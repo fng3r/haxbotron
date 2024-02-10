@@ -52,11 +52,7 @@ export class KickStack {
         this.lastTouched.team = team;
     }
     passJudgment(team: TeamID): boolean { // 1: red team, 2: blue team
-        if(this.lastTouched.team == team) {
-            return true;
-        } else {
-            return false;
-        }
+        return this.lastTouched.team == team;
     }
 
     possCount(team: TeamID): void { // 1: red team, 2: blue team

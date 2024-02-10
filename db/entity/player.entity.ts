@@ -18,36 +18,6 @@ export class Player {
     name!: string;
 
     @Column()
-    rating!: number; 
-
-    @Column()
-    totals!: number; 
-
-    @Column()
-    disconns!: number; 
-
-    @Column()
-    wins!: number; 
-
-    @Column()
-    goals!: number; 
-
-    @Column()
-    assists!: number;
-
-    @Column()
-    ogs!: number;
-
-    @Column()
-    losePoints!: number; 
-
-    @Column()
-    balltouch!: number; 
-
-    @Column()
-    passed!: number; 
-
-    @Column()
     mute!: boolean; 
 
     @Column()

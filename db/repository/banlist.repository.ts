@@ -12,7 +12,6 @@ export class BanListRepository implements IRepository<BanList> {
         } else {
             banlist = await repository.find({ ruid: ruid });
         }
-        if (banlist.length === 0) throw new Error('There are no banned players.');
         return banlist;
     }
 

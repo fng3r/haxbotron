@@ -8,7 +8,7 @@ import { GameRoomConfig } from "../game/model/Configuration/GameRoomConfig";
 import { TeamID } from "../game/model/GameObject/TeamID";
 import { Room } from "../game/model/RoomObject/RoomObject";
 import { BanList } from "../game/model/PlayerBan/BanList";
-import { PlayerStorage } from "../game/model/GameObject/PlayerObject";
+import {PlayerRole, PlayerStorage} from "../game/model/GameObject/PlayerObject";
 
 declare global {
     interface Window {
@@ -57,11 +57,10 @@ declare global {
             }
 
             logger: Logger // logger for whole bot application
-
-            isStatRecord: boolean // TRUE means that recording stats now
             isGamingNow: boolean // is playing now?
             isMuteAll: boolean // is All players muted?
             playerList: Map<number, Player> // player list (key: player.id, value: Player), usage: playerList.get(player.id).name
+            playerRoles: Map<number, PlayerRole>
 
             ballStack: KickStack // stack for ball tracing
 
@@ -104,6 +103,11 @@ declare global {
         async _readPlayerDB(ruid: string, playerAuth: string): Promise<PlayerStorage | undefined>
         async _updatePlayerDB(ruid: string, player: PlayerStorage): Promise<void>
         async _deletePlayerDB(ruid: string, playerAuth: string): Promise<void>
+
+        async _getPlayerRoleDB(auth: string): Promise<PlayerRole | undefined>
+        async _createPlayerRoleDB(playerRole: PlayerRole): Promise<void>
+        async _setPlayerRoleDB(playerRole: PlayerRole): Promise<void>
+        async _deletePlayerRoleDB(playerRole: PlayerRole): Promise<void>
 
         async _createBanlistDB(ruid: string, banList: BanList): Promise<void>
         async _readBanlistDB(ruid: string, playerConn: string): Promise<BanList | undefined>

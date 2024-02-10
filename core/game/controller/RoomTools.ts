@@ -4,12 +4,7 @@ import { PlayerObject } from "../model/GameObject/PlayerObject";
 import { convertTeamID2Name, TeamID } from "../model/GameObject/TeamID";
 
 export function setDefaultStadiums(): void {
-    // set stadium maps as default setting
-    if (window.gameRoom.config.rules.statsRecord === true && window.gameRoom.isStatRecord === true) {
-        window.gameRoom._room.setCustomStadium(window.gameRoom.stadiumData.default); // if game mode is 'stats'
-    } else {
-        window.gameRoom._room.setCustomStadium(window.gameRoom.stadiumData.training); // if game mode is 'ready'
-    }
+    window.gameRoom._room.setCustomStadium(window.gameRoom.stadiumData.default); // if game mode is 'ready'
 }
 
 export function setDefaultRoomLimitation(): void {
@@ -35,12 +30,7 @@ export function updateAdmins(): void {
     // Get all players except the host (id = 0 is always the host)
     let players = window.gameRoom._room.getPlayerList().filter(
             // only no afk mode players
-            (player: PlayerObject) => player.id !== 0 && window.gameRoom.playerList.get(player.id)!.permissions.afkmode !== true
-        ).sort(
-            (a: PlayerObject, b: PlayerObject) => {
-                return window.gameRoom.playerList.get(a.id)!.stats.rating
-                        - window.gameRoom.playerList.get(b.id)!.stats.rating
-            }
+            (player: PlayerObject) => player.id !== 0
         );
     if (players.length == 0) return; // If no players left, do nothing.
     if (players.find((player: PlayerObject) => player.admin) != null) return; // Do nothing if any admin player is still left.
@@ -50,8 +40,8 @@ export function updateAdmins(): void {
 
     window.gameRoom._room.setPlayerAdmin(players[0]!.id, true); // Give admin to the first non admin player in the list
     window.gameRoom.playerList.get(players[0].id)!.admin = true;
-    window.gameRoom.logger.i('updateAdmins', `${window.gameRoom.playerList.get(players[0].id)!.name}#${players[0].id} has been admin(value:${window.gameRoom.playerList.get(players[0].id)!.admin},super:${window.gameRoom.playerList.get(players[0].id)!.permissions.superadmin}), because there were no admin players.`);
-    window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.funcUpdateAdmins.newAdmin, placeholderUpdateAdmins), null, 0x00FF00, "normal", 0);
+    window.gameRoom.logger.i('updateAdmins', `${window.gameRoom.playerList.get(players[0].id)!.name}#${players[0].id} has been admin(value:${window.gameRoom.playerList.get(players[0].id)!.admin}), because there were no admin players.`);
+    window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.funcUpdateAdmins.newAdmin, placeholderUpdateAdmins), null, 0xFFFFFF, "normal", 0);
 }
 
 export function shuffleArray<T>(array: T[]): T[] {

@@ -11,7 +11,9 @@ export class BanList {
     @Column()
     conn!: string; 
 
-    @Column()
+    @Column({
+        default: ''
+    })
     reason!: string;
 
     @Column()

@@ -1,4 +1,4 @@
-import { PlayerObject, PlayerPosition, PlayerStats, PlayerPermissions, PlayerAfkTrace, PlayerEntryTime, PlayerMatchRecord } from "./PlayerObject";
+import { PlayerObject, PlayerPosition, PlayerPermissions, PlayerEntryTime, PlayerMatchRecord } from "./PlayerObject";
 import { TeamID } from "./TeamID";
 export class Player implements PlayerObject {
     // PlayerObject holds information about a player
@@ -31,23 +31,16 @@ export class Player implements PlayerObject {
     matchRecord: PlayerMatchRecord;
 
     // statistics of the player.
-    stats: PlayerStats;
+    // stats: PlayerStats;
 
     // permissions the player has.
     permissions: PlayerPermissions;
 
-    // detection data for trace afk
-    afktrace: PlayerAfkTrace;
-
     // time log for join and left
     entrytime: PlayerEntryTime;
 
-    // kick(ban) vote
-    voteTarget: number; //Who did this player vote for //this data will not be stored when left the room //default value is -1 (not 0, it means host)
-    voteGet: number; //How many votes did this player get //this data will not be stored when left the room //default value is 0
-
     // init
-    constructor(player: PlayerObject, stats: PlayerStats, permissions: PlayerPermissions, entrytime: PlayerEntryTime) {
+    constructor(player: PlayerObject, permissions: PlayerPermissions, entrytime: PlayerEntryTime) {
         this.id = player.id;
         this.name = player.name;
         this.auth = player.auth;
@@ -59,19 +52,11 @@ export class Player implements PlayerObject {
             goals: 0, // not contains OGs.
             assists: 0, // count for assist goal
             ogs: 0, // it means 'own goal' (in Korean, '자책골')
-            losePoints: 0, // it means the points this player lost (in Korean, '실점')
             balltouch: 0,  // total count of touch(kick) ball
             passed: 0, // total count of pass success
-            factorK: window.gameRoom.config.HElo.factor.factor_k_normal // K Factor for HElo rating
         }
-        this.stats = stats;
+        // this.stats = stats;
         this.permissions = permissions;
-        this.afktrace = {
-            exemption: true,
-            count: 0
-        }
         this.entrytime = entrytime;
-        this.voteTarget = -1; //default value is -1 (not 0, it means host)
-        this.voteGet = 0; //default value is 0
     }
 }

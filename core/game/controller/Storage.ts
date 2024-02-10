@@ -1,5 +1,6 @@
 import { Player } from "../model/GameObject/Player";
 import { PlayerStorage } from "../model/GameObject/PlayerObject";
+import { PlayerRole } from "../model/PlayerRole/PlayerRole";
 import { BanList } from "../model/PlayerBan/BanList";
 
 // Utilities
@@ -8,16 +9,6 @@ export function convertToPlayerStorage(player: Player): PlayerStorage {
         auth: player.auth, // same meaning as in PlayerObject. It can used for identify each of players.
         conn: player.conn, // same meaning as in PlayerObject.
         name: player.name, // save for compare player's current name and previous name.
-        rating: player.stats.rating, // HElo Rating points
-        totals: player.stats.totals, // total games include wins and disconns
-        disconns: player.stats.disconns, // disconnected games
-        wins: player.stats.wins, // the game wins
-        goals: player.stats.goals, // not contains OGs.
-        assists: player.stats.assists, // count for assist goal
-        ogs: player.stats.ogs, // it means 'own goal' (in Korean, '자책골')
-        losePoints: player.stats.losePoints, // it means the points this player lost (in Korean, '실점')
-        balltouch: player.stats.balltouch, // total count of touch(kick) ball
-        passed: player.stats.passed, // total count of pass success
         mute: player.permissions.mute, // is this player muted? 
         muteExpire: player.permissions.muteExpire, // expiration date of mute. -1 means Permanent mute.. (unix timestamp)
         rejoinCount: player.entrytime.rejoinCount, // How many rejoins this player has made.
@@ -44,6 +35,24 @@ export async function setPlayerDataToDB(playerStorage: PlayerStorage): Promise<v
 export async function getPlayerDataFromDB(playerAuth: string): Promise<PlayerStorage | undefined> {
     const player: PlayerStorage | undefined = await window._readPlayerDB(window.gameRoom.config._RUID, playerAuth);
     return player;
+}
+
+// get player data
+export async function getPlayerRoleFromDB(playerAuth: string): Promise<PlayerRole | undefined> {
+    const playerRole: PlayerRole | undefined = await window._getPlayerRoleDB(playerAuth);
+    return playerRole;
+}
+
+export async function createPlayerRoleToDB(playerRole: PlayerRole): Promise<void> {
+    await window._createPlayerRoleDB(playerRole);
+}
+
+export async function setPlayerRoleToDB(playerRole: PlayerRole): Promise<void> {
+    await window._setPlayerRoleDB(playerRole);
+}
+
+export async function deletePlayerRoleFromDB(playerRole: PlayerRole): Promise<void> {
+    await window._deletePlayerRoleDB(playerRole);
 }
 
 // register new ban or update it

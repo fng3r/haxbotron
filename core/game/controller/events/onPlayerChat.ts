@@ -2,10 +2,13 @@
 import * as Tst from "../Translator";
 import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { isCommandString, parseCommand } from "../Parser";
+import { isCommandString, executeCommand } from "../Parser";
 import { getUnixTimestamp } from "../Statistics";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
 import { isIncludeBannedWords } from "../TextFilter";
+import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
+
+const PRIVILEGED_ROLES = [PlayerRoles.S_ADM, PlayerRoles.CO_HOST];
 
 export function onPlayerChatListener(player: PlayerObject, message: string): boolean {
     // Event called when a player sends a chat message.
@@ -31,19 +34,20 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
 
     // =========
 
-    if (isCommandString(message) === true) { // if this message is command chat
-        parseCommand(player, message); // evaluate it
+    if (isCommandString(message)) { // if this message is command chat
+        executeCommand(player, message); // evaluate it
         return false; // and show this message for only him/herself
     } else { // if this message is normal chat
-        if (player.admin === true) { // if this player is admin
-            return true; // admin can chat regardless of mute
+        const playerRole = window.gameRoom.playerRoles.get(player.id)!;
+        if (PRIVILEGED_ROLES.some(role => role === playerRole.role)) { // if player is s-adm+ then he can chat anyway
+            return true;
         } else {
-            if (window.gameRoom.isMuteAll === true || window.gameRoom.playerList.get(player.id)!.permissions['mute'] === true) { // if this player is muted or whole chat is frozen
+            if (window.gameRoom.isMuteAll || window.gameRoom.playerList.get(player.id)!.permissions['mute']) { // if this player is muted or whole chat is frozen
                 window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.onChat.mutedChat, placeholderChat), player.id, 0xFF0000, "bold", 2); // notify that fact
                 return false; // and hide this chat
             } else {
                 // Anti Chat Flood Checking
-                if (window.gameRoom.config.settings.antiChatFlood === true && window.gameRoom.isStatRecord === true) { // if anti chat flood options is enabled
+                if (window.gameRoom.config.settings.antiChatFlood) { // if anti chat flood options is enabled
                     let chatFloodCritFlag: boolean = false;
                     window.gameRoom.antiTrollingChatFloodCount.push(player.id); // record who said this chat
                     for (let floodCritCount = 1; floodCritCount <= window.gameRoom.config.settings.chatFloodCriterion; floodCritCount++) {
@@ -55,7 +59,7 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
                             break; // abort loop
                         }
                     }
-                    if (chatFloodCritFlag === true && window.gameRoom.playerList.get(player.id)!.permissions['mute'] === false) { // after complete loop, check flag
+                    if (chatFloodCritFlag && !window.gameRoom.playerList.get(player.id)!.permissions['mute']) { // after complete loop, check flag
                         const nowTimeStamp: number = getUnixTimestamp(); //get timestamp
                         // judge as chat flood.
                         window.gameRoom.playerList.get(player.id)!.permissions['mute'] = true; // mute this player
@@ -77,7 +81,7 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
                     return false;
                 }
                 // Check if includes banned words
-                if(window.gameRoom.config.settings.chatTextFilter === true && isIncludeBannedWords(window.gameRoom.bannedWordsPool.chat, message)) {
+                if(window.gameRoom.config.settings.chatTextFilter && isIncludeBannedWords(window.gameRoom.bannedWordsPool.chat, message)) {
                     window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.onChat.bannedWords, placeholderChat), player.id, 0xFF0000, "bold", 2); // notify that fact
                     return false;
                 }

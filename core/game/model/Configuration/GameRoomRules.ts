@@ -9,8 +9,7 @@ export interface GameRoomRule {
         teamLock: boolean // limit moving teams by self
     }
     autoAdmin: boolean // auto appoint admin
-    autoOperating: boolean // auto emcee mode
-    statsRecord: boolean // record game results on statistics system.
+    whitelistEnabled: boolean // auto emcee mode
     defaultMapName: string // select default stadium name for the game.
     readyMapName: string // select stadium name for using until the game starts.
     customJSONOptions?: string // JSON stringified cumstom options.

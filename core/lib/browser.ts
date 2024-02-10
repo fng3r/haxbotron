@@ -218,6 +218,11 @@ export class HeadlessBrowser {
         await page.exposeFunction('_updatePlayerDB', dbUtilityInject.updatePlayerDB);
         await page.exposeFunction('_deletePlayerDB', dbUtilityInject.deletePlayerDB);
 
+        await page.exposeFunction('_getPlayerRoleDB', dbUtilityInject.getPlayerRoleDB);
+        await page.exposeFunction('_createPlayerRoleDB', dbUtilityInject.createPlayerRoleDB);
+        await page.exposeFunction('_setPlayerRoleDB', dbUtilityInject.setPlayerRoleDB);
+        await page.exposeFunction('_deletePlayerRoleDB', dbUtilityInject.deletePlayerRoleDB);
+
         await page.exposeFunction('_createBanlistDB', dbUtilityInject.createBanlistDB);
         await page.exposeFunction('_readBanlistDB', dbUtilityInject.readBanlistDB);
         await page.exposeFunction('_updateBanlistDB', dbUtilityInject.updateBanlistDB);
@@ -351,9 +356,7 @@ export class HeadlessBrowser {
                     _link: window.gameRoom.link,
                     _roomConfig: window.gameRoom.config._config,
                     _settings: window.gameRoom.config.settings,
-                    _rules: window.gameRoom.config.rules,
-                    _HElo: window.gameRoom.config.HElo,
-                    _commands: window.gameRoom.config.commands
+                    _rules: window.gameRoom.config.rules
                 }
             });
         } else {

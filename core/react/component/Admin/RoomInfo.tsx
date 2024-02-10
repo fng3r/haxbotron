@@ -10,7 +10,7 @@ import client from '../../lib/client';
 import { useParams } from 'react-router-dom';
 import Alert from '../common/Alert';
 import { Button, Divider, TextField } from '@material-ui/core';
-import { BrowserHostRoomCommands, BrowserHostRoomConfig, BrowserHostRoomGameRule, BrowserHostRoomHEloConfig, BrowserHostRoomSettings } from '../../../lib/browser.hostconfig';
+import { BrowserHostRoomConfig, BrowserHostRoomGameRule, BrowserHostRoomSettings } from '../../../lib/browser.hostconfig';
 import { WSocketContext } from '../../context/ws';
 
 interface styleClass {
@@ -30,8 +30,6 @@ interface roomInfo {
     _roomConfig: BrowserHostRoomConfig
     _settings: BrowserHostRoomSettings
     _rules: BrowserHostRoomGameRule
-    _HElo: BrowserHostRoomHEloConfig
-    _commands: BrowserHostRoomCommands
 }
 
 export default function RoomInfo({ styleClass }: styleClass) {
