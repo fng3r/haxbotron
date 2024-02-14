@@ -10,7 +10,7 @@ import Divider from '@material-ui/core/Divider';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 
-export default function RoomListSideMenu() {
+export default function PlayerRolesSideMenu() {
     return (
         <>
             <List>
@@ -20,12 +20,6 @@ export default function RoomListSideMenu() {
                             <DashboardIcon />
                         </ListItemIcon>
                         <ListItemText primary="Dashboard" />
-                    </ListItem>
-                    <ListItem button component={RouterLink} to="/admin/roomlist">
-                        <ListItemIcon>
-                            <SportsEsportsIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Room List" />
                     </ListItem>
                     <ListItem button component={RouterLink} to="/admin/roleslist">
                         <ListItemIcon>
@@ -44,6 +38,12 @@ export default function RoomListSideMenu() {
                             <AddCircleIcon />
                         </ListItemIcon>
                         <ListItemText primary="New Room" />
+                    </ListItem>
+                    <ListItem button component={RouterLink} to="/admin/roomlist">
+                        <ListItemIcon>
+                            <SportsEsportsIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Room List" />
                     </ListItem>
                 </div>
             </List>

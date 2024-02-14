@@ -39,6 +39,12 @@ export default function MainboardSideMenu() {
                         </ListItemIcon>
                         <ListItemText primary="Room List" />
                     </ListItem>
+                    <ListItem button component={RouterLink} to="/admin/roleslist">
+                        <ListItemIcon>
+                            <SportsEsportsIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Player Roles" />
+                    </ListItem>
                 </div>
             </List>
         </>

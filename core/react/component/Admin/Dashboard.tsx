@@ -34,6 +34,8 @@ import RoomPlayerList from './RoomPlayerList';
 import RoomSocial from './RoomSocial';
 import RoomTextFilter from './RoomTextFilter';
 import RoomAssets from './RoomAssets';
+import PlayerRoles from './PlayerRolesList';
+import PlayerRolesSideMenu from "./SideMenu/PlayerRoles.SideMenu";
 
 const drawerWidth = 240;
 
@@ -215,6 +217,7 @@ function Dashboard({ match }: RouteComponentProps) {
                     <Route path={`${match.path}/serverinfo`}><MainboardSideMenu /></Route>
                     <Route path={`${match.path}/superadmin/:ruid`} component={RoomInfoSideMenu} />
                     <Route path={`${match.path}/banlist/:ruid`} component={RoomInfoSideMenu} />
+                    <Route path={`${match.path}/roleslist`} component={PlayerRolesSideMenu} />
                     <Route path={`${match.path}/room/:ruid`} component={RoomInfoSideMenu} />
                 </Switch>
             </Drawer>
@@ -227,6 +230,7 @@ function Dashboard({ match }: RouteComponentProps) {
                     <Route path={`${match.path}/newroom`} render={()=><RoomCreate styleClass={styleClass} />} />
                     <Route path={`${match.path}/serverinfo`} render={()=><ServerInfo styleClass={styleClass} />} />
                     <Route path={`${match.path}/banlist/:ruid`} exact><RoomBanList styleClass={styleClass} /></Route>
+                    <Route path={`${match.path}/roleslist`} exact><PlayerRoles styleClass={styleClass} /></Route>
                     <Route path={`${match.path}/room/:ruid`} exact><RoomLog styleClass={styleClass} /></Route>
                     <Route path={`${match.path}/room/:ruid/info`}><RoomInfo styleClass={styleClass} /></Route>
                     <Route path={`${match.path}/room/:ruid/power`}><RoomPower styleClass={styleClass} /></Route>

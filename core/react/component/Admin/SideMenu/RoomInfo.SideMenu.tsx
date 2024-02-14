@@ -43,6 +43,12 @@ export default function RoomInfoSideMenu() {
                         </ListItemIcon>
                         <ListItemText primary="Room List" />
                     </ListItem>
+                    <ListItem button component={RouterLink} to="/admin/roleslist">
+                        <ListItemIcon>
+                            <SportsEsportsIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Player Roles" />
+                    </ListItem>
                 </div>
             </List>
             <Divider />

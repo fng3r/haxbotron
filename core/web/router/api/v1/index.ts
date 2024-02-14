@@ -7,6 +7,7 @@ import { systemRouter } from "./system";
 import { ruidlistRouter } from "./ruidlist";
 import { banlistRouter } from "./banlist";
 import { playerlistRouter } from "./playerlist";
+import { playerRolesRouter} from "./playerroles";
 
 export const indexAPIRouter = new Router();
 
@@ -20,5 +21,6 @@ indexAPIRouter
     .use('/init', initRouter.routes())
     .use('/ruidlist', ruidlistRouter.routes())
     .use('/banlist', banlistRouter.routes())
+    .use('/roleslist', playerRolesRouter.routes())
     .use('/playerlist', playerlistRouter.routes())
     .use('/system', systemRouter.routes());

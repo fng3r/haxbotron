@@ -7,6 +7,18 @@ export const playerRoleRouter = new Router();
 const playersRepository: IPlayerRoleRepository = new PlayerRoleRepository();
 const controller: PlayerRoleController = new PlayerRoleController(playersRepository);
 
+// /v1/player-roles/ GET
+// get player roles
+playerRoleRouter.get('/', async (ctx: Context) => {
+    await controller.getAll(ctx)
+});
+
+// /v1/player-roles/search GET
+// search player roles
+playerRoleRouter.get('/search', async (ctx: Context) => {
+    await controller.search(ctx)
+});
+
 // /v1/player-roles/:auth GET
 // get the player data
 playerRoleRouter.get('/:auth', async (ctx: Context) => {

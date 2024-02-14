@@ -136,7 +136,7 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
     // kick player without role
     if (playerRole === undefined) {
         if (window.gameRoom.config.rules.whitelistEnabled) {
-            window.gameRoom._room.kickPlayer(player.id, `Unknown public id: ${player.auth})`, false);
+            window.gameRoom._room.kickPlayer(player.id, `Unknown public id: ${player.auth}`, false);
             // emit websocket event
             window._emitSIOPlayerInOutEvent(player.id);
             return;

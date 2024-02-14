@@ -8,6 +8,50 @@ export class PlayerRoleController {
         this._repository = repository;
     }
 
+    public async getAll(ctx: Context) {
+        const { start, count } = ctx.request.query;
+
+        if (start && count) {
+            return this._repository
+                .findAll({ start: parseInt(<string>start), count: parseInt(<string>count) })
+                .then((players) => {
+                    ctx.status = 200;
+                    ctx.body = players;
+                })
+                .catch((error) => {
+                    ctx.status = 404;
+                    ctx.body = { error: error.message };
+                });
+        } else {
+            return this._repository
+                .findAll()
+                .then((players) => {
+                    ctx.status = 200;
+                    ctx.body = players;
+                })
+                .catch((error) => {
+                    ctx.status = 404;
+                    ctx.body = { error: error.message };
+                });
+        }
+    }
+
+    public async search(ctx: Context) {
+        const { searchQuery, start, count } = ctx.request.query;
+
+        return this._repository
+            .search(searchQuery as string, { start: parseInt(<string>start), count: parseInt(<string>count) })
+            .then((players) => {
+                ctx.status = 200;
+                ctx.body = players;
+            })
+            .catch((error) => {
+                console.error(error)
+                ctx.status = 500;
+                ctx.body = { error: error.message };
+            });
+    }
+
     public async getPlayerRole(ctx: Context) {
         const {auth} = ctx.params;
 
