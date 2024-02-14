@@ -52,26 +52,21 @@ export class HeadlessBrowser {
     */
     private async initBrowser() {
         const browserSettings = {
-            customArgs: ['--no-sandbox', '--disable-setuid-sandbox']
+            customArgs: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-features=WebRtcHideLocalIpsWithMdns']
             , openHeadless: true
         }
         if (process.env.TWEAKS_HEADLESSMODE && JSON.parse(process.env.TWEAKS_HEADLESSMODE.toLowerCase()) === false) {
             browserSettings.openHeadless = false;
         }
-        if (process.env.TWEAKS_WEBRTCANOYM && JSON.parse(process.env.TWEAKS_WEBRTCANOYM.toLowerCase()) === false) {
-            browserSettings.customArgs.push('--disable-features=WebRtcHideLocalIpsWithMdns');
-        }
 
-        //winstonLogger.info("[core] The browser is opened.");
+        winstonLogger.info("[core] The browser is opened.");
 
         this._BrowserContainer = await puppeteer.launch({ headless: browserSettings.openHeadless, args: browserSettings.customArgs });
 
         this._BrowserContainer.on('disconnected', () => {
-            //winstonLogger.info("[core] The browser is closed. Core server will open new one automatically.");
             winstonLogger.info("[core] The browser is closed.");
             this._BrowserContainer!.close();
             this._BrowserContainer = undefined;
-            //this.initBrowser();
             return;
         });
     }
@@ -206,12 +201,6 @@ export class HeadlessBrowser {
         await page.exposeFunction('_feedSocialDiscordWebhook', (id: string, token: string, type: string, content: any) => {
             page.emit('_SOCIAL.DiscordWebhook', { id: id, token: token, type: type, content: content });
         });
-
-        // inject functions for CRUD with DB Server ====================================
-        await page.exposeFunction('_createSuperadminDB', dbUtilityInject.createSuperadminDB);
-        await page.exposeFunction('_readSuperadminDB', dbUtilityInject.readSuperadminDB);
-        //await page.exposeFunction('updateSuperadminDB', dbUtilityInject.updateSuperadminDB); //this function is not implemented.
-        await page.exposeFunction('_deleteSuperadminDB', dbUtilityInject.deleteSuperadminDB);
 
         await page.exposeFunction('_createPlayerDB', dbUtilityInject.createPlayerDB);
         await page.exposeFunction('_readPlayerDB', dbUtilityInject.readPlayerDB);

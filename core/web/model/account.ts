@@ -28,8 +28,10 @@ export async function checkPassword(givenData: string, encryptedCompare: string)
  */
 export async function isCorrectPassword(accounts: IAdminAccount[], account: IAdminAccount): Promise<boolean> {
     for(const acc of accounts) {
-        if(acc.accountName === account.accountName && await checkPassword(account.hashedPassword, acc.hashedPassword) === true) return true;
+        if(acc.accountName === account.accountName && await checkPassword(account.hashedPassword, acc.hashedPassword))
+            return true;
     }
+
     return false;
 }
 
@@ -48,11 +50,7 @@ export function isExistAdminAccount(accounts: IAdminAccount[], account: IAdminAc
  */
 export async function isNeedInstallation(): Promise<boolean> {
     const stringified: string | undefined = await nodeStorage.getItem("admin");
-    if (stringified !== undefined) {
-        return false; // NOT NEED TO INSTALL
-    } else {
-        return true; // NEED TO INSTALL
-    }
+    return stringified === undefined;
 }
 
 /**

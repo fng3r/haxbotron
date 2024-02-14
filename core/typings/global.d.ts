@@ -114,12 +114,6 @@ declare global {
         async _updateBanlistDB(ruid: string, banList: BanList): Promise<void>
         async _deleteBanlistDB(ruid: string, playerConn: string): Promise<void>
 
-        async _createSuperadminDB(ruid: string, key: string, description: string): Promise<void>
-        async _readSuperadminDB(ruid: string, key: string): Promise<string | undefined>
-        //async updateSuperadminDB is not implemented.
-        async _deleteSuperadminDB(ruid: string, key: string): Promise<void>
-        // ==============================
-
         // ==============================
         // Haxball Headless Initial Methods
         // DO NOT EDIT THESE THINGS
