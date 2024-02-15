@@ -48,8 +48,6 @@ window.gameRoom = {
     ,playerList: new Map()
     ,playerRoles: new Map()
     ,ballStack: KickStack.getInstance()
-    ,banVoteCache: []
-    ,winningStreak: { count: 0, teamID: TeamID.Spec }
     ,antiTrollingOgFloodCount: []
     ,antiTrollingChatFloodCount: []
     ,antiInsufficientStartAbusingCount: []

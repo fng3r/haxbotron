@@ -2,13 +2,11 @@ import { getUnixTimestamp } from "../Statistics";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
 import * as Tst from "../Translator";
-import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
-
-const PRIVILEGED_ROLES = [PlayerRoles.S_ADM, PlayerRoles.CO_HOST];
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 
 export function cmdMute(byPlayer: PlayerObject, message?: string): void {
     const playerRole = window.gameRoom.playerRoles.get(byPlayer.id);
-    if(PRIVILEGED_ROLES.some(role => role === playerRole.role)) {
+    if(PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
         if(message !== undefined && message.charAt(0) == "#") {
             let messageParts = message.split(' ');
             let target: number = parseInt(messageParts[0].substr(1), 10);
@@ -32,7 +30,7 @@ export function cmdMute(byPlayer: PlayerObject, message?: string): void {
                         window.gameRoom.playerList.get(target)!.permissions.muteExpire = -1;
                         window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.command.mute.successPermaMute, placeholder), null, 0x479947, "normal", 1);
                     } else {
-                        const currentTimestamp: number = getUnixTimestamp(); //get timestamp
+                        const currentTimestamp: number = getUnixTimestamp();
                         const expirationTimestamp = currentTimestamp + muteInMinutes * 60 * 1000;
                         window.gameRoom.playerList.get(target)!.permissions.mute = true;
                         window.gameRoom.playerList.get(target)!.permissions.muteExpire = expirationTimestamp;

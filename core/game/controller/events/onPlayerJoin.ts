@@ -16,8 +16,6 @@ import {updateAdmins} from "../RoomTools";
 import {convertTeamID2Name, TeamID} from "../../model/GameObject/TeamID";
 import {isExistNickname} from "../TextFilter";
 
-const ADMIN_ROLES = [PlayerRoles.ADM, PlayerRoles.S_ADM, PlayerRoles.CO_HOST];
-
 export async function onPlayerJoinListener(player: PlayerObject): Promise<void> {
     const joinTimeStamp: number = getUnixTimestamp();
 
@@ -25,20 +23,12 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
     window.gameRoom.logger.i('onPlayerJoin', `${player.name}#${player.id} has joined. CONN(${player.conn}),AUTH(${player.auth})`);
 
     // Event called when a new player joins the room.
-    var placeholderJoin = {
+    let placeholderJoin = {
         playerID: player.id,
         playerName: player.name,
         playerNameOld: player.name,
         playerAuth: player.auth,
         playerRole: '',
-        gameRuleName: window.gameRoom.config.rules.ruleName,
-        gameRuleLimitTime: window.gameRoom.config.rules.requisite.timeLimit,
-        gameRuleLimitScore: window.gameRoom.config.rules.requisite.scoreLimit,
-        gameRuleNeedMin: window.gameRoom.config.rules.requisite.minimumPlayers,
-        possTeamRed: window.gameRoom.ballStack.possCalculate(TeamID.Red),
-        possTeamBlue: window.gameRoom.ballStack.possCalculate(TeamID.Blue),
-        streakTeamName: convertTeamID2Name(window.gameRoom.winningStreak.teamID),
-        streakTeamCount: window.gameRoom.winningStreak.count,
         banExpirationDate: '',
         banListReason: ''
     };
@@ -51,21 +41,18 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
         if (playerBanChecking.expire == -1) { // Permanent ban
             window.gameRoom.logger.i('onPlayerJoin', `${player.name}#${player.id} was joined but kicked for registered in permanent ban list. (conn:${player.conn},reason:${playerBanChecking.reason})`);
             window.gameRoom._room.kickPlayer(player.id, Tst.maketext(LangRes.onJoin.banList.permanentBan, placeholderJoin), false); // auto kick
-            window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.onJoin.banList.permanentBan, placeholderJoin), null, 0xFF0000, "normal", 0); // auto kick
             return;
         }
         if (playerBanChecking.expire > joinTimeStamp) { // Fixed-term ban (time limited ban)
             placeholderJoin.banExpirationDate = new Date(playerBanChecking.expire).toString();
             window.gameRoom.logger.i('onPlayerJoin', `${player.name}#${player.id} was joined but kicked for registered in fixed-term ban list. (conn:${player.conn},reason:${playerBanChecking.reason})`);
             window.gameRoom._room.kickPlayer(player.id, Tst.maketext(LangRes.onJoin.banList.fixedTermBan, placeholderJoin), false); // auto kick
-            window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.onJoin.banList.fixedTermBan, placeholderJoin), null, 0xFF0000, "normal", 0); // auto kick
             return;
         }
         if (playerBanChecking.expire != -1 && playerBanChecking.expire <= joinTimeStamp) { // time-over from expiration date
             // ban clear for this player
             window.gameRoom.logger.i('onPlayerJoin', `${player.name}#${player.id} is deleted from the ban list because the date has expired. (conn:${player.conn},reason:${playerBanChecking.reason})`);
             await removeBanlistDataFromDB(player.conn);
-            // window.room.clearBan(player.id); //useless cuz banned player in haxball couldn't make join-event.
         }
     }
 
@@ -156,7 +143,7 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
 
     window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.onJoin.playerJoined, placeholderJoin), null, 0xFFFFFF, "small", 0);
 
-    if (ADMIN_ROLES.some(role => role == playerRole!.role)) {
+    if (PlayerRoles.atLeast(playerRole, PlayerRoles.ADM)) {
         window.gameRoom._room.setPlayerAdmin(player.id, true);
     }
 

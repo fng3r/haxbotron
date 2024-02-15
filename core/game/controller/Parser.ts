@@ -5,7 +5,7 @@ import { cmdHelp } from "./commands/help";
 import { cmdList } from "./commands/list";
 import { cmdFreeze } from "./commands/freeze";
 import { cmdMute } from "./commands/mute";
-// import {cmdBan} from "./commands/ban";
+import { cmdBan } from "./commands/ban";
 import {GameCommands} from "./commands/GameCommands";
 
 const COMMANDS_PREFIX = '!';
@@ -58,11 +58,11 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
             cmdMute(byPlayer, remainingMessage);
             break;
         }
-        // case GameCommands.ban: {
-        //     const remainingMessage = message.substr(message.indexOf(' ') + 1);
-        //     cmdBan(byPlayer, remainingMessage);
-        //     break;
-        // }
+        case GameCommands.ban: {
+            const remainingMessage = message.substr(message.indexOf(' ') + 1);
+            cmdBan(byPlayer, remainingMessage);
+            break;
+        }
         default: {
             window.gameRoom._room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
             break;

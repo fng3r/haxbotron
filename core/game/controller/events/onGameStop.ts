@@ -14,14 +14,8 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     var placeholderStop = {
         playerID: 0,
         playerName: '',
-        gameRuleName: window.gameRoom.config.rules.ruleName,
-        gameRuleLimitTime: window.gameRoom.config.rules.requisite.timeLimit,
-        gameRuleLimitScore: window.gameRoom.config.rules.requisite.scoreLimit,
-        gameRuleNeedMin: window.gameRoom.config.rules.requisite.minimumPlayers,
         possTeamRed: window.gameRoom.ballStack.possCalculate(TeamID.Red),
-        possTeamBlue: window.gameRoom.ballStack.possCalculate(TeamID.Blue),
-        streakTeamName: convertTeamID2Name(window.gameRoom.winningStreak.teamID),
-        streakTeamCount: window.gameRoom.winningStreak.count
+        possTeamBlue: window.gameRoom.ballStack.possCalculate(TeamID.Blue)
     };
     if(byPlayer !== null) {
         placeholderStop.playerID = byPlayer.id;

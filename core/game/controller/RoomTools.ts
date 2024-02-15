@@ -16,15 +16,7 @@ export function setDefaultRoomLimitation(): void {
 export function updateAdmins(): void {
     let placeholderUpdateAdmins = {
         playerID: 0,
-        playerName: '',
-        gameRuleName: window.gameRoom.config.rules.ruleName,
-        gameRuleLimitTime: window.gameRoom.config.rules.requisite.timeLimit,
-        gameRuleLimitScore: window.gameRoom.config.rules.requisite.scoreLimit,
-        gameRuleNeedMin: window.gameRoom.config.rules.requisite.minimumPlayers,
-        possTeamRed: window.gameRoom.ballStack.possCalculate(TeamID.Red),
-        possTeamBlue: window.gameRoom.ballStack.possCalculate(TeamID.Blue),
-        streakTeamName: convertTeamID2Name(window.gameRoom.winningStreak.teamID),
-        streakTeamCount: window.gameRoom.winningStreak.count
+        playerName: ''
     };
 
     // Get all players except the host (id = 0 is always the host)

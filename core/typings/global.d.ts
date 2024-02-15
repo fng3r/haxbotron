@@ -64,13 +64,6 @@ declare global {
 
             ballStack: KickStack // stack for ball tracing
 
-            banVoteCache: number[] // top voted players list, value: player.id
-
-            winningStreak: { // how many wins straight (streak)
-                count: number
-                teamID: TeamID
-            }
-
             antiTrollingOgFloodCount: number[] // flood counter for OG (player id: number)
             antiTrollingChatFloodCount: number[] // flood counter for chat. (player id: number)
             antiInsufficientStartAbusingCount: number[] // ID record for start with insufficient players (player id: number)

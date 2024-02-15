@@ -1,4 +1,3 @@
-
 import * as Tst from "../Translator";
 import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
@@ -7,8 +6,6 @@ import { getUnixTimestamp } from "../Statistics";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
 import { isIncludeBannedWords } from "../TextFilter";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
-
-const PRIVILEGED_ROLES = [PlayerRoles.S_ADM, PlayerRoles.CO_HOST];
 
 export function onPlayerChatListener(player: PlayerObject, message: string): boolean {
     // Event called when a player sends a chat message.
@@ -25,11 +22,7 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
         gameRuleName: window.gameRoom.config.rules.ruleName,
         gameRuleLimitTime: window.gameRoom.config.rules.requisite.timeLimit,
         gameRuleLimitScore: window.gameRoom.config.rules.requisite.scoreLimit,
-        gameRuleNeedMin: window.gameRoom.config.rules.requisite.minimumPlayers,
-        possTeamRed: window.gameRoom.ballStack.possCalculate(TeamID.Red),
-        possTeamBlue: window.gameRoom.ballStack.possCalculate(TeamID.Blue),
-        streakTeamName: convertTeamID2Name(window.gameRoom.winningStreak.teamID),
-        streakTeamCount: window.gameRoom.winningStreak.count
+        gameRuleNeedMin: window.gameRoom.config.rules.requisite.minimumPlayers
     };
 
     // =========
@@ -39,7 +32,7 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
         return false; // and show this message for only him/herself
     } else { // if this message is normal chat
         const playerRole = window.gameRoom.playerRoles.get(player.id)!;
-        if (PRIVILEGED_ROLES.some(role => role === playerRole.role)) { // if player is s-adm+ then he can chat anyway
+        if (PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) { // if player is s-adm+ then he can chat anyway
             return true;
         } else {
             if (window.gameRoom.isMuteAll || window.gameRoom.playerList.get(player.id)!.permissions['mute']) { // if this player is muted or whole chat is frozen

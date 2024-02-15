@@ -52,8 +52,8 @@ export const command = {
     ,ban: {
         _ErrorNoPermission: '❌ You are not admin. You can\'t do this command.'
         ,_ErrorNoPlayer: '❌ Wrong player ID. You can only target numeric ID.(eg: !ban #12 5)\n📑 You can check IDs by command !list red,blue,spec,mute'
-        ,successTempBan: '🛑 {targetName}#{ticketTarget} player is banned for {banInMinutes} minute(s) by {byPlayerName}#{byPlayerId}. You can command it against for release.'
-        ,successPermaBan: '🛑 {targetName}#{ticketTarget} player is banned permanently by {byPlayerName}#{byPlayerId}. You can command it against for release.'
+        ,successTempBan: '🚫 {targetName}#{ticketTarget} player is banned for {banInMinutes} minute(s) by {byPlayerName}#{byPlayerId}. You can command it against for release.'
+        ,successPermaBan: '🚫 {targetName}#{ticketTarget} player is banned permanently by {byPlayerName}#{byPlayerId}. You can command it against for release.'
         ,successUnban: '🟢 Player {targetName}#{ticketTarget} was unbanned by {byPlayerName}#{byPlayerId}.'
     }
     ,list: {
@@ -82,8 +82,8 @@ export const onJoin = {
     ,bannedNickname: '🚫 Banned nickname.'
     ,includeSeperator: '🚫 Chat message includes banned word. (|,|)'
     ,banList: {
-        permanentBan: 'You are banned permanently ({banListReason})'
-        ,fixedTermBan: 'You are banned until {banExpirationDate} ({banListReason})'
+        permanentBan: '{playerName} is banned permanently ({banListReason})'
+        ,fixedTermBan: '{playerName} is banned until {banExpirationDate} ({banListReason})'
     }
 }
 
@@ -105,12 +105,15 @@ export const onStop = {
 }
 
 export const onVictory = {
-    victory: '🎉 {winnerTeam} team won. Score: 🔴{redScore}-{blueScore}🔵'
+    victory: '🎉 {winnerTeam} team won. Score: 🔴{redScore}-{blueScore}🔵. Possession: 🔴{possTeamRed}%-{possTeamBlue}%🔵'
 }
 
 export const onKick = {
     cannotBan: '🚫 You can\'t ban other players. Act kicking if you need.'
-    ,notifyNotBan: '🚫 Banning {kickedName}#{kickedID} player is negated.'
+    ,banned: {
+        permanentBan: '🚫 You are banned permanently ({banListReason})'
+        ,tempBan: '🚫 You are banned for {banInMinutes} minutes ({banListReason})'
+    }
 }
 
 export const onStadium = {
