@@ -11,11 +11,16 @@ import {GameCommands} from "./commands/GameCommands";
 import parserLanguage from "./ParserLanguage";
 import {cmdAuth} from "./commands/auth";
 import {cmdStaff} from "./commands/staff";
+import {cmdTeamChat} from "./commands/teamchat";
 
 const COMMANDS_PREFIX = '!';
 
 export function isCommandString(message: string): boolean {
     return message.charAt(0) == COMMANDS_PREFIX;
+}
+
+export function isTeamChatCommand(message: string): boolean {
+    return message.startsWith(`!${GameCommands.teamChat}`) || message.startsWith(`!${GameCommands.teamChatAlt}`);
 }
 
 export function executeCommand(byPlayer: PlayerObject, message: string): void {
@@ -73,6 +78,12 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
         }
         case GameCommands.staff: {
             cmdStaff(byPlayer);
+            break;
+        }
+        case GameCommands.teamChat:
+        case GameCommands.teamChatAlt: {
+            const [message] = commandArgs
+            cmdTeamChat(byPlayer, message);
             break;
         }
     }

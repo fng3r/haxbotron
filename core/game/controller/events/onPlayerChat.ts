@@ -1,7 +1,7 @@
 import * as Tst from "../Translator";
 import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { isCommandString, executeCommand } from "../Parser";
+import {isCommandString, executeCommand, isTeamChatCommand} from "../Parser";
 import { getUnixTimestamp } from "../DateTimeUtils";
 import { isIncludeBannedWords } from "../TextFilter";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
@@ -26,9 +26,9 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
 
     // =========
 
-    if (isCommandString(message)) { // if this message is command chat
-        executeCommand(player, message); // evaluate it
-        return true; // and show this message for only him/herself
+    if (isCommandString(message)) {
+        executeCommand(player, message);
+        return !isTeamChatCommand(message); // show message only when it's not team chat command
     } else { // if this message is normal chat
         const playerRole = window.gameRoom.playerRoles.get(player.id)!;
         if (PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) { // if player is s-adm+ then he can chat anyway

@@ -13,4 +13,7 @@ export enum GameCommands {
     listRed = 'red',
     listBlue = 'blue',
     listSpec = 'spec',
+
+    teamChat = 'x',
+    teamChatAlt = 'ч'
 }
