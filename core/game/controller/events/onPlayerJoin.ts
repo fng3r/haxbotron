@@ -120,21 +120,20 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
 
     let playerRole = await getPlayerRoleFromDB(player.auth);
 
-    // kick player without role
-    if (playerRole === undefined) {
+    // kick player without role or with wrong nickname when whitelist enabled
+    if (playerRole === undefined || playerRole.name !== player.name) {
         if (window.gameRoom.config.rules.whitelistEnabled) {
             window.gameRoom._room.kickPlayer(player.id, `Unknown public id: ${player.auth}`, false);
             // emit websocket event
             window._emitSIOPlayerInOutEvent(player.id);
             return;
         }
-
-        playerRole = {
-            auth: player.auth,
-            name: player.name,
-            role: PlayerRoles.PLAYER
-        }
     }
+    playerRole = playerRole ?? {
+        auth: player.auth,
+        name: player.name,
+        role: PlayerRoles.PLAYER
+    };
 
     window.gameRoom.logger.i('onPlayerJoin', `Player ${playerRole.name} with public id ${playerRole.auth} has role '${playerRole.role}'`)
 
