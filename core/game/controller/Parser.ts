@@ -7,6 +7,7 @@ import { cmdFreeze } from "./commands/freeze";
 import { cmdMute } from "./commands/mute";
 import { cmdBan } from "./commands/ban";
 import {GameCommands} from "./commands/GameCommands";
+import parserLanguage from "./ParserLanguage";
 
 const COMMANDS_PREFIX = '!';
 
@@ -15,26 +16,21 @@ export function isCommandString(message: string): boolean {
     return message.charAt(0) == COMMANDS_PREFIX;
 }
 
-// divide into 3 parts by seprator. !COMMAND FIRST-ARG SECOND-ARG
-export function getCommandChunk(message: string): string[] { 
-    return message.split(" ", 4);
-}
-
-// parse command message and excute it (need to check if it's command)
+// parse command message and execute it (need to check if it's command)
 export function executeCommand(byPlayer: PlayerObject, message: string): void {
     message = message.trim();
-    let msgChunk: string[] = getCommandChunk(message);
-    let commandSign: string = msgChunk[0].substring(1); // remove prefix character(default: !)
+    const parseCommandResult = parserLanguage.commandExpression.parse(message);
+    if (!parseCommandResult.status)
+    {
+        window.gameRoom._room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
+        return;
+    }
 
-    console.log(commandSign);
-    console.log(GameCommands.ban);
-    switch(commandSign) {
+    const [commandName, ...commandArgs] = Array.isArray(parseCommandResult.value) ? parseCommandResult.value : [parseCommandResult.value];
+    switch(commandName) {
         case GameCommands.help: {
-            if(msgChunk[1] !== undefined) {
-                cmdHelp(byPlayer, msgChunk[1]);
-            } else {
-                cmdHelp(byPlayer);
-            }
+            const [subCommand] = commandArgs
+            cmdHelp(byPlayer, subCommand);
             break;
         }
         case GameCommands.about: {
@@ -42,11 +38,8 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
             break;
         }
         case GameCommands.list: {
-            if(msgChunk[1] !== undefined) {
-                cmdList(byPlayer, msgChunk[1]);
-            } else {
-                cmdList(byPlayer);
-            }
+            const [playerGroup] = commandArgs;
+            cmdList(byPlayer, playerGroup)
             break;
         }
         case GameCommands.freeze: {
@@ -54,17 +47,13 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
             break;
         }
         case GameCommands.mute: {
-            const remainingMessage = message.substr(message.indexOf(' ') + 1);
-            cmdMute(byPlayer, remainingMessage);
+            const [playerIdentifier, muteDuration] = commandArgs;
+            cmdMute(byPlayer, playerIdentifier, muteDuration);
             break;
         }
         case GameCommands.ban: {
-            const remainingMessage = message.substr(message.indexOf(' ') + 1);
-            cmdBan(byPlayer, remainingMessage);
-            break;
-        }
-        default: {
-            window.gameRoom._room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
+            const [playerIdentifier, banDuration] = commandArgs;
+            cmdBan(byPlayer, playerIdentifier, banDuration);
             break;
         }
     }

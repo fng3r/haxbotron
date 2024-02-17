@@ -3,7 +3,7 @@ import * as LangRes from "../../resource/strings";
 import * as Tst from "../Translator";
 
 export function cmdAbout(byPlayer: PlayerObject): void {
-    var placeholder ={
+    var placeholder = {
         _LaunchTime: window.gameRoom.config._LaunchDate.toLocaleString()
         ,RoomName: window.gameRoom.config._config.roomName || "Untitled"
     }
