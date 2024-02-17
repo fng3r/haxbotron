@@ -1,4 +1,4 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
+import {PlayerObject} from "../../model/GameObject/PlayerObject";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 
 export function onPlayerAdminChangeListener(changedPlayer: PlayerObject, byPlayer: PlayerObject): void {
@@ -7,11 +7,13 @@ export function onPlayerAdminChangeListener(changedPlayer: PlayerObject, byPlaye
     if (byPlayer) {
         window.gameRoom.logger.i('onPlayerAdminChange', `${changedPlayer.name}#${changedPlayer.id} admin rights were taken away by ${byPlayer.name}#${byPlayer.id}`);
         const byPlayerRole = window.gameRoom.playerRoles.get(byPlayer.id);
-        if (!PlayerRoles.atLeast(byPlayerRole, PlayerRoles.S_ADM)) { // s-adm+ can remove admin rights anyways
-            const changedPlayerRole = window.gameRoom.playerRoles.get(changedPlayer.id);
-            if (PlayerRoles.atLeast(changedPlayerRole, PlayerRoles.ADM)) { // if admin rights were taken away from admin+ role, give it back
-                window.gameRoom._room.setPlayerAdmin(changedPlayer.id, true);
-            }
+        const changedPlayerRole = window.gameRoom.playerRoles.get(changedPlayer.id);
+        if (PlayerRoles.less(byPlayerRole, changedPlayerRole)) { // if admin rights were taken away from lesser role, give it back
+            window.gameRoom._room.setPlayerAdmin(changedPlayer.id, true);
+        }
+
+        if (changedPlayerRole.role === PlayerRoles.BAD && changedPlayer.admin) { // BAD players cannot be admins
+            window.gameRoom._room.setPlayerAdmin(changedPlayer.id, false);
         }
     }
 
