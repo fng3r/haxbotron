@@ -10,15 +10,14 @@ import {cmdSetPassword} from "./commands/setpassword";
 import {GameCommands} from "./commands/GameCommands";
 import parserLanguage from "./ParserLanguage";
 import {cmdAuth} from "./commands/auth";
+import {cmdStaff} from "./commands/staff";
 
 const COMMANDS_PREFIX = '!';
 
-// if given string is command chat, this function returns true, nor false.
 export function isCommandString(message: string): boolean {
     return message.charAt(0) == COMMANDS_PREFIX;
 }
 
-// parse command message and execute it (need to check if it's command)
 export function executeCommand(byPlayer: PlayerObject, message: string): void {
     message = message.trim();
     const parseCommandResult = parserLanguage.commandExpression.parse(message);
@@ -70,6 +69,10 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
         case GameCommands.setpassword: {
             const [password] = commandArgs;
             cmdSetPassword(byPlayer, password);
+            break;
+        }
+        case GameCommands.staff: {
+            cmdStaff(byPlayer);
             break;
         }
     }

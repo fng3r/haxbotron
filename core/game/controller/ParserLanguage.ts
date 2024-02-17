@@ -18,7 +18,8 @@ const parserLanguage = P.createLanguage({
             lang.banCommand,
             lang.muteCommand,
             lang.mutesCommand,
-            lang.setPasswordCommand
+            lang.setPasswordCommand,
+            lang.staffCommand
         )
         .trim(P.optWhitespace)
         .skip(P.all),
@@ -62,13 +63,15 @@ const parserLanguage = P.createLanguage({
 
     mutesCommand: _ => CustomParsers.command('mutes'),
 
-    setPasswordCommand: lang => P.seq(
+    setPasswordCommand: _ => P.seq(
         CustomParsers.command('setpassword'),
         P.alt(
             P.whitespace.then(P.regex(/\S+/)),
             P.eof
         )
     ),
+
+    staffCommand: _ => CustomParsers.command('staff'),
 
     command: _ => P.string('!').then(P.letter.atLeast(1).tie()),
 
