@@ -2,7 +2,7 @@ import * as Tst from "../Translator";
 import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { updateAdmins } from "../RoomTools";
-import { getUnixTimestamp } from "../Statistics";
+import { getUnixTimestamp } from "../DateTimeUtils";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
 import { convertToPlayerStorage, getBanlistDataFromDB, setBanlistDataToDB, setPlayerDataToDB } from "../Storage";
 

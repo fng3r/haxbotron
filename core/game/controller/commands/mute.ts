@@ -1,4 +1,4 @@
-import { getUnixTimestamp } from "../Statistics";
+import {getRemainingTimeString, getUnixTimestamp} from "../DateTimeUtils";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
 import * as Tst from "../Translator";
@@ -49,4 +49,18 @@ export function cmdMute(byPlayer: PlayerObject, playerIdentifier: string, muteDu
             window.gameRoom._room.sendAnnouncement(LangRes.command.mute._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 2);
         }
     }
+}
+
+export function cmdMutes(byPlayer: PlayerObject): void {
+    const [...players] = window.gameRoom.playerList.values();
+    let mutedPlayersString = players
+        .filter(player => player.permissions.mute)
+        .map(player => {
+            const remainingTime = getRemainingTimeString(player.permissions.muteExpire);
+            return `${player.name}#${player.id} (${remainingTime})`;
+        })
+        .join(', ');
+    mutedPlayersString = `🔇 ${mutedPlayersString || 'No muted players'}`;
+
+    window.gameRoom._room.sendAnnouncement(mutedPlayersString, null, 0x479947, "normal", 1);
 }

@@ -11,7 +11,7 @@ import {
     removeBanlistDataFromDB,
     setPlayerDataToDB
 } from "../Storage";
-import {getUnixTimestamp} from "../Statistics";
+import {getUnixTimestamp} from "../DateTimeUtils";
 import {updateAdmins} from "../RoomTools";
 import {convertTeamID2Name, TeamID} from "../../model/GameObject/TeamID";
 import {isExistNickname} from "../TextFilter";

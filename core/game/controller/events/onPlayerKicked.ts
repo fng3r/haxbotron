@@ -1,7 +1,7 @@
 import * as Tst from "../Translator";
 import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { getUnixTimestamp } from "../Statistics";
+import { getUnixTimestamp } from "../DateTimeUtils";
 import { setBanlistDataToDB } from "../Storage";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 

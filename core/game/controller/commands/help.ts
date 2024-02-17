@@ -8,6 +8,10 @@ export function cmdHelp(byPlayer: PlayerObject, subCommand?: string): void {
             window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.about, byPlayer.id, 0x479947, "normal", 1);
             break;
         }
+        case GameCommands.auth: {
+            window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.auth, byPlayer.id, 0x479947, "normal", 1);
+            break;
+        }
         case GameCommands.help: {
             window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.help, byPlayer.id, 0x479947, "normal", 1);
             break;
@@ -22,6 +26,10 @@ export function cmdHelp(byPlayer: PlayerObject, subCommand?: string): void {
         }
         case GameCommands.mute: {
             window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.mute, byPlayer.id, 0x479947, "normal", 1);
+            break;
+        }
+        case GameCommands.mutes: {
+            window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.mutes, byPlayer.id, 0x479947, "normal", 1);
             break;
         }
         case GameCommands.ban: {

@@ -1,7 +1,7 @@
 import * as Tst from "../Translator";
 import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { getUnixTimestamp } from "../Statistics";
+import { getUnixTimestamp } from "../DateTimeUtils";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
 import { ScoresObject } from "../../model/GameObject/ScoresObject";
 import { setBanlistDataToDB } from "../Storage";

@@ -10,18 +10,25 @@ const CustomParsers = {
 const parserLanguage = P.createLanguage({
     commandExpression: lang => P
         .alt(
-            lang.banCommand,
-            lang.muteCommand,
-            lang.freezeCommand,
             lang.helpCommand,
             lang.aboutCommand,
+            lang.authCommand,
+            lang.freezeCommand,
             lang.listCommand,
+            lang.banCommand,
+            lang.muteCommand,
+            lang.mutesCommand,
             lang.setPasswordCommand
         )
         .trim(P.optWhitespace)
         .skip(P.all),
 
     aboutCommand: _ => CustomParsers.command('about'),
+
+    authCommand: lang => P.seq(
+        CustomParsers.command('auth'),
+        P.whitespace.then(lang.playerIdNumber).or(P.eof)
+    ),
 
     helpCommand: _ => P.seq(
         CustomParsers.command('help'),
@@ -47,12 +54,13 @@ const parserLanguage = P.createLanguage({
     muteCommand: lang => P.seq(
         CustomParsers.command('mute'),
         P.whitespace.then(P.alt(lang.playerId, lang.playerAuth)),
-        // P.whitespace.then(P.digits.map(Number)).or(P.end)
         P.alt(
             P.whitespace.then(P.digits.map(Number)),
             P.eof
         )
     ),
+
+    mutesCommand: _ => CustomParsers.command('mutes'),
 
     setPasswordCommand: lang => P.seq(
         CustomParsers.command('setpassword'),
@@ -63,6 +71,8 @@ const parserLanguage = P.createLanguage({
     ),
 
     command: _ => P.string('!').then(P.letter.atLeast(1).tie()),
+
+    playerIdNumber: _ => P.string('#').then(P.digits).map(Number),
 
     playerId: _ => P
         .seq(

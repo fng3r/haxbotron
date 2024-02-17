@@ -1,4 +1,4 @@
-import { getUnixTimestamp } from "../Statistics";
+import { getUnixTimestamp } from "../DateTimeUtils";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
 import * as Tst from "../Translator";

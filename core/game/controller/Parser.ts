@@ -4,11 +4,12 @@ import { cmdAbout } from "./commands/about";
 import { cmdHelp } from "./commands/help";
 import { cmdList } from "./commands/list";
 import { cmdFreeze } from "./commands/freeze";
-import { cmdMute } from "./commands/mute";
+import {cmdMute, cmdMutes} from "./commands/mute";
 import { cmdBan } from "./commands/ban";
 import {cmdSetPassword} from "./commands/setpassword";
 import {GameCommands} from "./commands/GameCommands";
 import parserLanguage from "./ParserLanguage";
+import {cmdAuth} from "./commands/auth";
 
 const COMMANDS_PREFIX = '!';
 
@@ -38,6 +39,11 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
             cmdAbout(byPlayer);
             break;
         }
+        case GameCommands.auth: {
+            const [playerId] = commandArgs;
+            cmdAuth(byPlayer, playerId);
+            break;
+        }
         case GameCommands.list: {
             const [playerGroup] = commandArgs;
             cmdList(byPlayer, playerGroup)
@@ -50,6 +56,10 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
         case GameCommands.mute: {
             const [playerIdentifier, muteDuration] = commandArgs;
             cmdMute(byPlayer, playerIdentifier, muteDuration);
+            break;
+        }
+        case GameCommands.mutes: {
+            cmdMutes(byPlayer);
             break;
         }
         case GameCommands.ban: {

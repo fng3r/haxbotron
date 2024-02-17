@@ -10,7 +10,7 @@ import { Logger } from "./controller/Logger";
 import { PlayerObject } from "./model/GameObject/PlayerObject";
 import { ScoresObject } from "./model/GameObject/ScoresObject";
 import { KickStack } from "./model/GameObject/BallTrace";
-import { getUnixTimestamp } from "./controller/Statistics";
+import { getUnixTimestamp } from "./controller/DateTimeUtils";
 import { TeamID } from "./model/GameObject/TeamID";
 import { EmergencyTools } from "./model/ExposeLibs/EmergencyTools";
 import { GameRoomConfig } from "./model/Configuration/GameRoomConfig";
