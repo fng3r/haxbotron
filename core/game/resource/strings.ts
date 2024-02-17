@@ -30,7 +30,7 @@ export const command = {
     _ErrorWrongCommand : '❌ You did wrong command. 📑 !help or !help COMMAND for detail.'
     ,_ErrorNoPermission: '❌ You are not admin. You can\'t use this command.'
     ,_ErrorDisabled: '❌ This command is disabled. You can\'t use this command.'
-    ,help: '📄 !about, !list, !freeze, !mute, !ban\n📑 !help COMMAND for detail. (eg. !help stats).'
+    ,help: '📄 !about, !list, !freeze, !mute, !ban, !setpassword\n📑 !help COMMAND for detail. (eg. !help stats).'
     ,helpman: { // detailed description for a command
         _ErrorWrongMan : '❌ Failed to read manual about that command.'
         ,help: '📑 !help COMMAND shows you how to use COMMAND command.'
@@ -38,8 +38,11 @@ export const command = {
         ,list: '📑 !list red/blue/spec/mute/afk shows you all players list of that type.'
         ,freeze: '📑 !freeze mutes or unmutes all players.'
         ,mute: '📑 !mute #ID time(in minutes): prohibits the player whose id is ID to chat for specified time (permanently if not specified). Or unmute if the player is already muted. (eg: !mute #12 5)\n' +
-            '📑 You can check IDs by command !list red,blue,spec,mute'
-        ,ban: '📑 !ban #ID time(in minutes): ban the player for specified time (permanently if not specified). (eg: !ban #12 5)\n📑 You can check IDs by command !list red,blue,spec,mute'
+            '📑 You can check IDs by command !list'
+        ,ban: '📑 !ban #ID time(in minutes): ban the player for specified time (permanently if not specified). (eg: !ban #12 5). Or unmute if the player is already muted.\n' +
+            '📑 You can check IDs by command !list'
+        ,setpassword: '📑 !setpassword sets or resets room password. (eg: !setpassword 2552 | !setpassword - to reset)'
+
     } 
     ,about: '📄 {RoomName} ({_LaunchTime})'
     ,mute: {
@@ -57,7 +60,7 @@ export const command = {
         ,successUnban: '🟢 Player {targetName}#{ticketTarget} was unbanned by {byPlayerName}#{byPlayerId}.'
     }
     ,list: {
-        _ErrorNoTeam: '❌ You can only request red,blue,spec,mute,afk players list.'
+        _ErrorNoTeam: '❌ You can only request red,blue,spec players list.'
         ,_ErrorNoOne: '❌ There\'s no one.'
         ,whoisList: '📜 {whoisResult}'
     }
@@ -65,6 +68,11 @@ export const command = {
         _ErrorNoPermission : '❌ You are not admin. You can\'t do this command.'
         ,onFreeze: '🔇 The administrator freezed chatting on this room. Commands are available. 📄 !help'
         ,offFreeze: '🔊 The administrator unfreezed chatting.' 
+    }
+    ,setpassword: {
+        _ErrorNoPermission : '❌ You are not admin. You can\'t do this command.'
+        ,onPasswordSet: '🔒 Password was set by {playerName}#{playerID}'
+        ,onPasswordReset: '🔓 Password was reset by {playerName}#{playerID}'
     }
 }
 

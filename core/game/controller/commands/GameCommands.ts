@@ -5,9 +5,9 @@ export enum GameCommands {
     list = 'list',
     mute = 'mute',
     ban = 'ban',
+    setpassword = 'setpassword',
 
-    listSubmute = 'mute',
-    listSubred = 'red',
-    listSubblue = 'blue',
-    listSubspec = 'spec',
+    listRed = 'red',
+    listBlue = 'blue',
+    listSpec = 'spec',
 }
