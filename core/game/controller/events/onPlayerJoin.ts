@@ -13,7 +13,6 @@ import {
 } from "../Storage";
 import {getUnixTimestamp} from "../DateTimeUtils";
 import {updateAdmins} from "../RoomTools";
-import {convertTeamID2Name, TeamID} from "../../model/GameObject/TeamID";
 import {isExistNickname} from "../TextFilter";
 
 export async function onPlayerJoinListener(player: PlayerObject): Promise<void> {
@@ -135,7 +134,17 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
         role: PlayerRoles.PLAYER
     };
 
-    window.gameRoom.logger.i('onPlayerJoin', `Player ${playerRole.name} with public id ${playerRole.auth} has role '${playerRole.role}'`)
+    const playersCount = window.gameRoom._room.getPlayerList().length;
+    // last slot should be guarded by admin password
+    if (playersCount === window.gameRoom.config._config.maxPlayers! - 1) {
+        window.gameRoom._room.setPassword(window.gameRoom.adminPassword);
+    }
+
+    if (playersCount === window.gameRoom.config._config.maxPlayers && !PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
+        window.gameRoom._room.kickPlayer(player.id, 'Last slot is reserved for admins', false);
+    }
+
+    window.gameRoom.logger.i('onPlayerJoin', `Player ${playerRole.name} with public id ${playerRole.auth} has role '${playerRole.role}'`);
 
     window.gameRoom.playerRoles.set(player.id, playerRole);
     placeholderJoin.playerRole = playerRole.role;

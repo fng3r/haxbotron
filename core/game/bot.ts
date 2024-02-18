@@ -14,6 +14,7 @@ import { getUnixTimestamp } from "./controller/DateTimeUtils";
 import { TeamID } from "./model/GameObject/TeamID";
 import { EmergencyTools } from "./model/ExposeLibs/EmergencyTools";
 import { GameRoomConfig } from "./model/Configuration/GameRoomConfig";
+import {generateRandomString} from "../lib/utils";
 // ====================================================================================================
 // load initial configurations
 const loadedConfig: GameRoomConfig = JSON.parse(localStorage.getItem('_initConfig')!);
@@ -39,6 +40,7 @@ window.gameRoom = {
         ,blue: { angle: 0, textColour: 0xffffff, teamColour1: 0x5a89e5, teamColour2: 0x5a89e5, teamColour3: 0x5a89e5 }
     }
     ,logger: Logger.getInstance()
+    ,adminPassword: generateRandomString()
     ,isGamingNow: false
     ,isMuteAll: false
     ,playerList: new Map()
@@ -63,6 +65,7 @@ console.log(`Haxbotron loaded bot script. (UID ${window.gameRoom.config._RUID}, 
 window.document.title = `Haxbotron ${window.gameRoom.config._RUID}`;
 
 makeRoom();
+
 // ====================================================================================================
 // set scheduling timers
 
@@ -91,8 +94,20 @@ var scheduledTimer5 = setInterval(() => {
         }
     });
 }, 5000); // 5secs
+
+var scheduledTimer30m = setInterval(() => {
+    window.gameRoom.adminPassword = generateRandomString();
+    window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.id, window.gameRoom.social.discordWebhook.token, "password", {
+        message: Tst.maketext(
+            LangRes.onStop.feedSocialDiscordWebhook.adminPasswordMessage, {
+            roomId: window.gameRoom.config._RUID
+            ,password: window.gameRoom.adminPassword
+        })
+    });
+}, 1_800_000);
+
 // ====================================================================================================
-// declare functions
+// set defaults and register event handlers
 function makeRoom(): void {
     window.gameRoom.logger.i('initialization', `The game room is opened at ${window.gameRoom.config._LaunchDate.toLocaleString()}.`);
 
@@ -102,6 +117,14 @@ function makeRoom(): void {
     window.gameRoom._room.setScoreLimit(window.gameRoom.config.rules.requisite.scoreLimit);
     window.gameRoom._room.setTimeLimit(window.gameRoom.config.rules.requisite.timeLimit);
     window.gameRoom._room.setTeamsLock(window.gameRoom.config.rules.requisite.teamLock);
+
+    window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.id, window.gameRoom.social.discordWebhook.token, "password", {
+        message: Tst.maketext(
+            LangRes.onStop.feedSocialDiscordWebhook.adminPasswordMessage, {
+                roomId: window.gameRoom.config._RUID
+                ,password: window.gameRoom.adminPassword
+            })
+    });
 
     // Linking Event Listeners
     window.gameRoom._room.onPlayerJoin = async (player: PlayerObject): Promise<void> => await eventListener.onPlayerJoinListener(player);

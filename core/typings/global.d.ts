@@ -57,6 +57,7 @@ declare global {
             }
 
             logger: Logger // logger for whole bot application
+            adminPassword: string
             isGamingNow: boolean // is playing now?
             isMuteAll: boolean // is All players muted?
             playerList: Map<number, Player> // player list (key: player.id, value: Player), usage: playerList.get(player.id).name

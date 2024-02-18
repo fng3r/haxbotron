@@ -47,6 +47,7 @@ export default function RoomInfo({ styleClass }: styleClass) {
     const [roomInfoJSON, setRoomInfoJSON] = useState({} as roomInfo);
     const [roomInfoJSONText, setRoomInfoJSONText] = useState('');
 
+    const [adminPassword, setAdminPassword] = useState('');
     const [plainPassword, setPlainPassword] = useState('');
     const [freezeStatus, setFreezeStatus] = useState(false);
 
@@ -73,6 +74,7 @@ export default function RoomInfo({ styleClass }: styleClass) {
             if (result.status === 200) {
                 setRoomInfoJSON(result.data);
                 setPlainPassword(result.data._roomConfig.password || '');
+                setAdminPassword(result.data.adminPassword);
             }
         } catch (error) {
             if (error.response.status === 404) {
@@ -225,6 +227,11 @@ export default function RoomInfo({ styleClass }: styleClass) {
                                         <Button size="small" type="submit" variant="contained" color="primary" className={classes.submit}>Set</Button>
                                         <Button size="small" type="button" variant="contained" color="secondary" className={classes.submit} onClick={handleClearPassword}>Clear</Button>
                                     </form>
+
+                                    <TextField
+                                        variant="outlined" margin="normal" required size="small" value={adminPassword}
+                                        id="admin-password" label="Admin password" name="admin-password" InputProps={{readOnly: true}}
+                                    />
                                 </Grid>
                             </Grid>
                             <Divider />

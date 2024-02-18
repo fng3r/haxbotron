@@ -36,6 +36,12 @@ export async function onPlayerLeaveListener(player: PlayerObject): Promise<void>
         updateAdmins(); // update admin
     }
 
+    const playersCount = window.gameRoom._room.getPlayerList().length;
+    // reset password to default one when more than one slot available
+    if (playersCount < window.gameRoom.config._config.maxPlayers! - 1) {
+        window.gameRoom._room.setPassword(window.gameRoom.config._config.password || null);
+    }
+
     // emit websocket event
     window._emitSIOPlayerInOutEvent(player.id);
 }

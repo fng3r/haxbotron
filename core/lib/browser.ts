@@ -190,6 +190,10 @@ export class HeadlessBrowser {
                     });
                     break;
                 }
+                case "password": {
+                    webhookClient.send(event.content.message);
+                    break;
+                }
             }
         });
         // ================================================================================
@@ -349,6 +353,7 @@ export class HeadlessBrowser {
                 return {
                     roomName: window.gameRoom.config._config.roomName,
                     onlinePlayers: window.gameRoom.playerList.size,
+                    adminPassword: window.gameRoom.adminPassword,
                     _link: window.gameRoom.link,
                     _roomConfig: window.gameRoom.config._config,
                     _settings: window.gameRoom.config.settings,

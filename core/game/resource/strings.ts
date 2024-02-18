@@ -115,7 +115,8 @@ export const onChat = {
 
 export const onStop = {
     feedSocialDiscordWebhook: {
-        replayMessage: '💽 Room: {roomId}, Date: {replayDate}'
+        replayMessage: '💽 Room: {roomId}, Date: {replayDate}',
+        adminPasswordMessage: '🔒 [{roomId}] Admin password was updated. Current password is \'{password}\''
     }
 }
 
