@@ -9,6 +9,7 @@ import List from '@material-ui/core/List';
 import Divider from '@material-ui/core/Divider';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
 
 export default function PlayerRolesSideMenu() {
     return (
@@ -20,12 +21,6 @@ export default function PlayerRolesSideMenu() {
                             <DashboardIcon />
                         </ListItemIcon>
                         <ListItemText primary="Dashboard" />
-                    </ListItem>
-                    <ListItem button component={RouterLink} to="/admin/roleslist">
-                        <ListItemIcon>
-                            <SportsEsportsIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Player Roles" />
                     </ListItem>
                 </div>
             </List>
@@ -44,6 +39,12 @@ export default function PlayerRolesSideMenu() {
                             <SportsEsportsIcon />
                         </ListItemIcon>
                         <ListItemText primary="Room List" />
+                    </ListItem>
+                    <ListItem button style={{ backgroundColor: "#3f51b5" }} component={RouterLink} to="/admin/roleslist">
+                        <ListItemIcon>
+                            <SupervisedUserCircleIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Player Roles" />
                     </ListItem>
                 </div>
             </List>

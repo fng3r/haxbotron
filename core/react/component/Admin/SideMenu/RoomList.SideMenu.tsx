@@ -9,6 +9,7 @@ import List from '@material-ui/core/List';
 import Divider from '@material-ui/core/Divider';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
 
 export default function RoomListSideMenu() {
     return (
@@ -21,18 +22,6 @@ export default function RoomListSideMenu() {
                         </ListItemIcon>
                         <ListItemText primary="Dashboard" />
                     </ListItem>
-                    <ListItem button component={RouterLink} to="/admin/roomlist">
-                        <ListItemIcon>
-                            <SportsEsportsIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Room List" />
-                    </ListItem>
-                    <ListItem button component={RouterLink} to="/admin/roleslist">
-                        <ListItemIcon>
-                            <SportsEsportsIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Player Roles" />
-                    </ListItem>
                 </div>
             </List>
             <Divider />
@@ -44,6 +33,18 @@ export default function RoomListSideMenu() {
                             <AddCircleIcon />
                         </ListItemIcon>
                         <ListItemText primary="New Room" />
+                    </ListItem>
+                    <ListItem button style={{ backgroundColor: "#3f51b5" }} component={RouterLink} to="/admin/roomlist">
+                        <ListItemIcon>
+                            <SportsEsportsIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Room List" />
+                    </ListItem>
+                    <ListItem button component={RouterLink} to="/admin/roleslist">
+                        <ListItemIcon>
+                            <SupervisedUserCircleIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Player Roles" />
                     </ListItem>
                 </div>
             </List>

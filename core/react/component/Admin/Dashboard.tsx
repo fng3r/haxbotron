@@ -36,6 +36,7 @@ import RoomTextFilter from './RoomTextFilter';
 import RoomAssets from './RoomAssets';
 import PlayerRoles from './PlayerRolesList';
 import PlayerRolesSideMenu from "./SideMenu/PlayerRoles.SideMenu";
+import NewRoomSideMenu from "./SideMenu/NewRoom.SideMenu";
 
 const drawerWidth = 240;
 
@@ -213,11 +214,11 @@ function Dashboard({ match }: RouteComponentProps) {
                 <Switch>
                     <Route path={match.path} exact><MainboardSideMenu /></Route>
                     <Route path={`${match.path}/roomlist`}><RoomListSideMenu /></Route>
-                    <Route path={`${match.path}/newroom`}><RoomListSideMenu /></Route>
+                    <Route path={`${match.path}/newroom`}><NewRoomSideMenu /></Route>
                     <Route path={`${match.path}/serverinfo`}><MainboardSideMenu /></Route>
+                    <Route path={`${match.path}/roleslist`}><PlayerRolesSideMenu /></Route>
                     <Route path={`${match.path}/superadmin/:ruid`} component={RoomInfoSideMenu} />
                     <Route path={`${match.path}/banlist/:ruid`} component={RoomInfoSideMenu} />
-                    <Route path={`${match.path}/roleslist`} component={PlayerRolesSideMenu} />
                     <Route path={`${match.path}/room/:ruid`} component={RoomInfoSideMenu} />
                 </Switch>
             </Drawer>

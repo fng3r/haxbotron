@@ -17,6 +17,7 @@ import DnsIcon from '@material-ui/icons/Dns';
 import SendIcon from '@material-ui/icons/Send';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import AttachmentIcon from '@material-ui/icons/Attachment';
+import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
 
 interface matchParams {
     ruid: string
@@ -45,7 +46,7 @@ export default function RoomInfoSideMenu() {
                     </ListItem>
                     <ListItem button component={RouterLink} to="/admin/roleslist">
                         <ListItemIcon>
-                            <SportsEsportsIcon />
+                            <SupervisedUserCircleIcon />
                         </ListItemIcon>
                         <ListItemText primary="Player Roles" />
                     </ListItem>
@@ -90,12 +91,6 @@ export default function RoomInfoSideMenu() {
                             <ListAltIcon />
                         </ListItemIcon>
                         <ListItemText primary="Ban List" />
-                    </ListItem>
-                    <ListItem button component={RouterLink} to={`/admin/superadmin/${paramRUID}`}>
-                        <ListItemIcon>
-                            <VpnKeyIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Super Admin" />
                     </ListItem>
                     <ListItem button component={RouterLink} to={`/admin/room/${paramRUID}/assets`}>
                         <ListItemIcon>
