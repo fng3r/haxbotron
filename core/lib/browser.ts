@@ -4,7 +4,7 @@ import { winstonLogger } from "../winstonLoggerSystem";
 import { BrowserHostRoomInitConfig } from "./browser.hostconfig";
 import * as dbUtilityInject from "./db.injection";
 import { loadStadiumData } from "./stadiumLoader";
-import { Server as SIOserver, Socket as SIOsocket } from "socket.io";
+import { Server as SIOserver, } from "socket.io";
 import { TeamID } from "../game/model/GameObject/TeamID";
 import Discord from 'discord.js';
 import { DiscordWebhookConfig } from "./browser.interface";
@@ -103,6 +103,13 @@ export class HeadlessBrowser {
             }
         }
 
+        const discordWebhookConfig = {
+            feed: JSON.parse(process.env.DISCORD_WEBHOOK_FEED || false.toString())
+            ,replayUpload: JSON.parse(process.env.DISCORD_WEBHOOK_REPLAY_UPLOAD || false.toString())
+            ,id: process.env.DISCORD_WEBHOOK_ID
+            ,token: process.env.DISCORD_WEBHOOK_TOKEN
+        }
+
         if (!this._BrowserContainer) await this.initBrowser(); // open if browser isn't exist.
 
         const page: puppeteer.Page = await this._BrowserContainer!.newPage(); // create new page(tab)
@@ -152,11 +159,12 @@ export class HeadlessBrowser {
         });
 
         // convey configuration values via html5 localStorage
-        await page.evaluate((initConfig: string, defaultMap: string, readyMap: string) => {
+        await page.evaluate((initConfig: string, defaultMap: string, readyMap: string, discordWebhookConfig: string) => {
             localStorage.setItem('_initConfig', initConfig);
             localStorage.setItem('_defaultMap', defaultMap);
             localStorage.setItem('_readyMap', readyMap);
-        }, JSON.stringify(initConfig), loadStadiumData(initConfig.rules.defaultMapName), loadStadiumData(initConfig.rules.readyMapName));
+            localStorage.setItem('_discordWebhookConfig', discordWebhookConfig);
+        }, JSON.stringify(initConfig), loadStadiumData(initConfig.rules.defaultMapName), loadStadiumData(initConfig.rules.readyMapName), JSON.stringify(discordWebhookConfig));
 
         // add event listeners ============================================================
         page.addListener('_SIO.Log', (event: any) => {
@@ -174,10 +182,9 @@ export class HeadlessBrowser {
             switch (event.type as string) {
                 case "replay": {
                     const bufferData = Buffer.from(JSON.parse(event.content.data));
-                    const date = Date.now().toLocaleString();
                     const attachment = new Discord.MessageAttachment(
                         bufferData
-                        , `${date}.hbr2`);
+                        ,event.content.filename);
                     webhookClient.send(event.content.message, {
                         files: [attachment],
                     });

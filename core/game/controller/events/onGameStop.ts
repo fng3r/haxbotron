@@ -1,8 +1,9 @@
 import * as Tst from "../Translator";
 import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
+import { TeamID } from "../../model/GameObject/TeamID";
 import { setDefaultRoomLimitation, setDefaultStadiums } from "../RoomTools";
+import moment from "moment";
 
 
 export function onGameStopListener(byPlayer: PlayerObject): void {
@@ -41,13 +42,16 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     const replay = window.gameRoom._room.stopRecording();
     
     if(replay && window.gameRoom.social.discordWebhook.feed && window.gameRoom.social.discordWebhook.replayUpload && window.gameRoom.social.discordWebhook.id && window.gameRoom.social.discordWebhook.token) {
+        const roomId = window.gameRoom.config._RUID;
+        const replayDate = moment(Date.now()).format('DD-MM-YYTHH-mm-ss');
         const placeholder = {
-            roomName: window.gameRoom.config._config.roomName
-            ,replayDate: Date().toLocaleString()
-        }
+            roomId: roomId
+            ,replayDate: replayDate
+        };
 
         window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.id, window.gameRoom.social.discordWebhook.token, "replay", {
             message: Tst.maketext(LangRes.onStop.feedSocialDiscordWebhook.replayMessage, placeholder)
+            ,filename: `${roomId}_${replayDate}.hbr2`
             ,data: JSON.stringify(Array.from(replay))
         });
     }

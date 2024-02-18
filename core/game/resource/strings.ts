@@ -115,7 +115,7 @@ export const onChat = {
 
 export const onStop = {
     feedSocialDiscordWebhook: {
-        replayMessage: '💽 Replay file from {roomName} ({replayDate})'
+        replayMessage: '💽 Room: {roomId}, Date: {replayDate}'
     }
 }
 

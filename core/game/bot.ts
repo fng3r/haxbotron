@@ -17,18 +17,14 @@ import { GameRoomConfig } from "./model/Configuration/GameRoomConfig";
 // ====================================================================================================
 // load initial configurations
 const loadedConfig: GameRoomConfig = JSON.parse(localStorage.getItem('_initConfig')!);
+const discordWebhook = JSON.parse(localStorage.getItem('_discordWebhookConfig')!);
 
 window.gameRoom = {
     _room: window.HBInit(loadedConfig._config)
     ,config: loadedConfig
     ,link: ''
     ,social: {
-        discordWebhook: {
-            feed: false
-            ,replayUpload: false
-            ,id: ''
-            ,token: ''
-        }
+        discordWebhook: discordWebhook
     }
     ,stadiumData: {
         default: localStorage.getItem('_defaultMap')!
