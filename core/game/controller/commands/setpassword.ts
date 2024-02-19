@@ -17,10 +17,12 @@ export function cmdSetPassword(byPlayer: PlayerObject, password?: string): void 
 
     if (!password) {
         window.gameRoom._room.setPassword(null);
+        window.gameRoom.config._config.password = null!;
         window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.command.setpassword.onPasswordReset, placeholder), null, 0x479947, "normal", 1);
     }
     else {
         window.gameRoom._room.setPassword(password);
+        window.gameRoom.config._config.password = password;
         window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.command.setpassword.onPasswordSet, placeholder), null, 0x479947, "normal", 1);
     }
 }
