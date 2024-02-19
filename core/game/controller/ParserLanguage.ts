@@ -1,5 +1,6 @@
 import * as P from "parsimmon";
 import { Parser } from "parsimmon";
+import {GameCommands} from "./commands/GameCommands";
 
 const CustomParsers = {
     command(commandName: string) : Parser<string> {
@@ -28,29 +29,29 @@ const parserLanguage = P.createLanguage({
         .trim(P.optWhitespace)
         .skip(P.all),
 
-    aboutCommand: _ => CustomParsers.command('about'),
+    aboutCommand: _ => CustomParsers.command(GameCommands.about),
 
     authCommand: lang => P.seq(
-        CustomParsers.command('auth'),
+        CustomParsers.command(GameCommands.auth),
         P.whitespace.then(lang.playerIdNumber).or(P.eof)
     ),
 
-    bbCommand: _ => CustomParsers.command('bb').or(CustomParsers.command('ии')),
+    bbCommand: _ => CustomParsers.command(GameCommands.bb).or(CustomParsers.command(GameCommands.bbAlt)),
 
     helpCommand: _ => P.seq(
-        CustomParsers.command('help'),
+        CustomParsers.command(GameCommands.help),
         P.whitespace.then(P.letter.atLeast(1).tie()).or(P.eof)
     ),
 
-    freezeCommand: _ => CustomParsers.command('freeze'),
+    freezeCommand: _ => CustomParsers.command(GameCommands.freeze),
 
     listCommand: _ => P.seq(
-        CustomParsers.command('list'),
+        CustomParsers.command(GameCommands.list),
         P.whitespace.then(P.letter.atLeast(1).tie()).or(P.eof)
     ),
 
     banCommand: lang => P.seq(
-        CustomParsers.command('ban'),
+        CustomParsers.command(GameCommands.ban),
         P.whitespace.then(P.alt(lang.playerId, lang.playerAuth)),
         P.alt(
             P.whitespace.then(P.digits.map(Number)),
@@ -58,10 +59,10 @@ const parserLanguage = P.createLanguage({
         )
     ),
 
-    bansCommand: _ => CustomParsers.command('bans'),
+    bansCommand: _ => CustomParsers.command(GameCommands.bans),
 
     muteCommand: lang => P.seq(
-        CustomParsers.command('mute'),
+        CustomParsers.command(GameCommands.mute),
         P.whitespace.then(P.alt(lang.playerId, lang.playerAuth)),
         P.alt(
             P.whitespace.then(P.digits.map(Number)),
@@ -69,22 +70,22 @@ const parserLanguage = P.createLanguage({
         )
     ),
 
-    mutesCommand: _ => CustomParsers.command('mutes'),
+    mutesCommand: _ => CustomParsers.command(GameCommands.mutes),
 
     setPasswordCommand: _ => P.seq(
-        CustomParsers.command('setpassword'),
+        CustomParsers.command(GameCommands.setpassword),
         P.alt(
             P.whitespace.then(P.regex(/\S+/)),
             P.eof
         )
     ),
 
-    staffCommand: _ => CustomParsers.command('staff'),
+    staffCommand: _ => CustomParsers.command(GameCommands.staff),
 
-    switchCommand: _ => CustomParsers.command('switch'),
+    switchCommand: _ => CustomParsers.command(GameCommands.switch),
 
     teamChatCommand: _ => P.seq(
-        CustomParsers.command('x').or(CustomParsers.command('ч')),
+        CustomParsers.command(GameCommands.teamChat).or(CustomParsers.command(GameCommands.teamChatAlt)),
         P.whitespace.then(P.all)
     ),
 
