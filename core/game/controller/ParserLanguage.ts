@@ -13,6 +13,7 @@ const parserLanguage = P.createLanguage({
             lang.helpCommand,
             lang.aboutCommand,
             lang.authCommand,
+            lang.bbCommand,
             lang.freezeCommand,
             lang.listCommand,
             lang.banCommand,
@@ -31,6 +32,8 @@ const parserLanguage = P.createLanguage({
         CustomParsers.command('auth'),
         P.whitespace.then(lang.playerIdNumber).or(P.eof)
     ),
+
+    bbCommand: _ => CustomParsers.command('bb').or(CustomParsers.command('ии')),
 
     helpCommand: _ => P.seq(
         CustomParsers.command('help'),

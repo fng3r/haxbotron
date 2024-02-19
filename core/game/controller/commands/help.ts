@@ -12,6 +12,10 @@ export function cmdHelp(byPlayer: PlayerObject, subCommand?: string): void {
             window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.auth, byPlayer.id, 0x479947, "normal", 1);
             break;
         }
+        case GameCommands.bb: {
+            window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.bb, byPlayer.id, 0x479947, "normal", 1);
+            break;
+        }
         case GameCommands.help: {
             window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.help, byPlayer.id, 0x479947, "normal", 1);
             break;

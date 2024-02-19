@@ -15,5 +15,8 @@ export enum GameCommands {
     listSpec = 'spec',
 
     teamChat = 'x',
-    teamChatAlt = 'ч'
+    teamChatAlt = 'ч',
+
+    bb = 'bb',
+    bbAlt = 'ии'
 }

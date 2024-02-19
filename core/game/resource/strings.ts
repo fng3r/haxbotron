@@ -19,7 +19,7 @@ export const teamName = {
 
 export const antitrolling = {
     chatFlood: {
-        muteReason: '🔇 You are muted for too many chats.(3mins) Admin player can unmute it.'
+        muteReason: '🔇 You are muted for flood.(3mins) Admin player can unmute it.'
     }
     ,malAct: {
         banReason: '🚫 Malicious behaviour is detected'
@@ -30,18 +30,19 @@ export const command = {
     _ErrorWrongCommand : '❌ You did wrong command. 📑 !help or !help COMMAND for details.'
     ,_ErrorNoPermission: '❌ You are not admin. You can\'t use this command.'
     ,_ErrorDisabled: '❌ This command is disabled. You can\'t use this command.'
-    ,help: '📄 !about, !auth, !list, !freeze, !mute, !mutes, !ban, !setpassword, !staff\n📑 !help COMMAND for detail. (eg. !help stats).'
+    ,help: '📄 !about, !auth, !bb, !list, !freeze, !mute, !mutes, !ban, !setpassword, !staff\n📑 !help COMMAND for detail. (eg. !help stats).'
     ,helpman: { // detailed description for a command
         _ErrorWrongMan : '❌ Failed to read manual about that command.'
         ,help: '📑 !help COMMAND shows you how to use COMMAND command.'
         ,about: '📑 !about shows you simple inforamtion of the bot running now.'
         ,auth: '📑 !auth shows player\'s public id (eg: !auth, !auth #12)'
+        ,bb: '📑 !bb to leave the room'
         ,list: '📑 !list red/blue/spec/mute/afk shows you all players list of that type.'
         ,freeze: '📑 !freeze mutes or unmutes all players.'
         ,mute: '📑 !mute #ID time(in minutes): prohibits the player whose id is ID to chat for specified time (permanently if not specified). Or unmute if the player is already muted. (eg: !mute #12 5)\n' +
             '📑 You can check IDs by command !list'
         ,mutes: '📑 !mutes shows muted players'
-        ,ban: '📑 !ban #ID time(in minutes): ban the player for specified time (permanently if not specified). (eg: !ban #12 5). Or unmute if the player is already muted.\n' +
+        ,ban: '📑 !ban #ID time(in minutes): ban the player for specified time (permanently if not specified). (eg: !ban #12 5). Or unban if the player is already banned.\n' +
             '📑 You can check IDs by command !list'
         ,setpassword: '📑 !setpassword sets or resets room password. (eg: !setpassword 2552 | !setpassword - to reset)'
         ,staff: '📑 !staff shows staff player in the room.'
@@ -84,7 +85,7 @@ export const command = {
 }
 
 export const funcUpdateAdmins = {
-    newAdmin: '📢 {playerName}#{playerID} has been new admin.\n📑 Changing stadium and banning other players are prohibited.\n📑 !help admin shows commands list for administrator.'
+    newAdmin: '📢 {playerName}#{playerID} is new admin.\n📑 Banning other players are prohibited.'
 }
 
 export const onJoin = {

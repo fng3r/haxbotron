@@ -12,6 +12,7 @@ import parserLanguage from "./ParserLanguage";
 import {cmdAuth} from "./commands/auth";
 import {cmdStaff} from "./commands/staff";
 import {cmdTeamChat} from "./commands/teamchat";
+import {cmdBb} from "./commands/bb";
 
 const COMMANDS_PREFIX = '!';
 
@@ -46,6 +47,11 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
         case GameCommands.auth: {
             const [playerId] = commandArgs;
             cmdAuth(byPlayer, playerId);
+            break;
+        }
+        case GameCommands.bb:
+        case GameCommands.bbAlt: {
+            cmdBb(byPlayer);
             break;
         }
         case GameCommands.list: {
