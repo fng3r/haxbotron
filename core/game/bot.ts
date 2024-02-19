@@ -15,6 +15,7 @@ import { TeamID } from "./model/GameObject/TeamID";
 import { EmergencyTools } from "./model/ExposeLibs/EmergencyTools";
 import { GameRoomConfig } from "./model/Configuration/GameRoomConfig";
 import {generateRandomString} from "../lib/utils";
+import {PlayersSet} from "./model/GameObject/PlayersSet";
 // ====================================================================================================
 // load initial configurations
 const loadedConfig: GameRoomConfig = JSON.parse(localStorage.getItem('_initConfig')!);
@@ -43,7 +44,7 @@ window.gameRoom = {
     ,adminPassword: generateRandomString()
     ,isGamingNow: false
     ,isMuteAll: false
-    ,playerList: new Map()
+    ,playerList: new PlayersSet()
     ,playerRoles: new Map()
     ,ballStack: KickStack.getInstance()
     ,antiTrollingChatFloodCount: []

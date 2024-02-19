@@ -40,6 +40,10 @@ export function cmdHelp(byPlayer: PlayerObject, subCommand?: string): void {
             window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.ban, byPlayer.id, 0x479947, "normal", 1);
             break;
         }
+        case GameCommands.bans: {
+            window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.bans, byPlayer.id, 0x479947, "normal", 1);
+            break;
+        }
         case GameCommands.setpassword: {
             window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.setpassword, byPlayer.id, 0x479947, "normal", 1);
             break;

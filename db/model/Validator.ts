@@ -14,6 +14,7 @@ export const playerModelSchema = Joi.object().keys({
 
 export const banListModelSchema = Joi.object().keys({
     conn: Joi.string().required()
+    ,auth: Joi.string().required()
     ,reason: Joi.string().optional().allow('')
     ,register: Joi.number().required()
     ,expire: Joi.number().required()

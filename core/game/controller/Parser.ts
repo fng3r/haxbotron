@@ -5,7 +5,7 @@ import { cmdHelp } from "./commands/help";
 import { cmdList } from "./commands/list";
 import { cmdFreeze } from "./commands/freeze";
 import {cmdMute, cmdMutes} from "./commands/mute";
-import { cmdBan } from "./commands/ban";
+import {cmdBan, cmdBans} from "./commands/ban";
 import {cmdSetPassword} from "./commands/setpassword";
 import {GameCommands} from "./commands/GameCommands";
 import parserLanguage from "./ParserLanguage";
@@ -76,6 +76,10 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
         case GameCommands.ban: {
             const [playerIdentifier, banDuration] = commandArgs;
             cmdBan(byPlayer, playerIdentifier, banDuration);
+            break;
+        }
+        case GameCommands.bans: {
+            cmdBans(byPlayer);
             break;
         }
         case GameCommands.setpassword: {

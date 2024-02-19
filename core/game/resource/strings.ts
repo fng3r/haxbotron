@@ -30,7 +30,9 @@ export const command = {
     _ErrorWrongCommand : '❌ You did wrong command. 📑 !help or !help COMMAND for details.'
     ,_ErrorNoPermission: '❌ You are not admin. You can\'t use this command.'
     ,_ErrorDisabled: '❌ This command is disabled. You can\'t use this command.'
-    ,help: '📄 !about, !auth, !bb, !list, !freeze, !mute, !mutes, !ban, !setpassword, !staff, !switch\n📑 !help COMMAND for detail. (eg. !help stats).'
+    ,help: '📑 !about, !auth, !bb, !list, !staff\n' +
+           '📑 !freeze, !mute, !mutes, !ban, !bans !setpassword, !switch\n' +
+           '📑 !help COMMAND for detail. (eg. !help stats).'
     ,helpman: { // detailed description for a command
         _ErrorWrongMan : '❌ Failed to read manual about that command.'
         ,help: '📑 !help COMMAND shows you how to use COMMAND command.'
@@ -44,6 +46,7 @@ export const command = {
         ,mutes: '📑 !mutes shows muted players'
         ,ban: '📑 !ban #ID time(in minutes): ban the player for specified time (permanently if not specified). (eg: !ban #12 5). Or unban if the player is already banned.\n' +
             '📑 You can check IDs by command !list'
+        ,bans: '📑 !bans shows banned players'
         ,setpassword: '📑 !setpassword sets or resets room password. (eg: !setpassword 2552 | !setpassword - to reset)'
         ,staff: '📑 !staff shows staff player in the room.'
         ,switch: '📑 !switch switches teams.'
@@ -68,6 +71,12 @@ export const command = {
         ,successPermaBan: '🚫 {targetName}#{ticketTarget} player is banned permanently by {byPlayerName}#{byPlayerId}. You can command it against for release.'
         ,successUnban: '🟢 Player {targetName}#{ticketTarget} was unbanned by {byPlayerName}#{byPlayerId}.'
     }
+    ,bans: {
+        _ErrorFailedToGet: '❌ Failed to get ban list.'
+        ,noBans: '🚫 No banned players'
+        ,allBans: '🚫 {bannedPlayers}'
+        ,singleBan: '{playerName} ({banInMinutes})'
+    }
     ,list: {
         _ErrorNoTeam: '❌ You can only request red,blue,spec players list.'
         ,_ErrorNoOne: '❌ There\'s no one.'
@@ -91,7 +100,7 @@ export const command = {
 }
 
 export const funcUpdateAdmins = {
-    newAdmin: '📢 {playerName}#{playerID} is new admin.\n📑 Banning other players are prohibited.'
+    newAdmin: '📢 {playerName}#{playerID} is new admin.\n📑 Banning other players is prohibited.'
 }
 
 export const onJoin = {

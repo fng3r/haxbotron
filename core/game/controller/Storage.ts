@@ -73,6 +73,12 @@ export async function getBanlistDataFromDB(playerConn: string): Promise<BanList 
     return banplayer;
 }
 
+// get exist ban
+export async function getAllBansFromDB(playerConn: string): Promise<BanList[] | undefined> {
+    const bannedPlayers: BanList[] | undefined = await window._getAllBansDB(window.gameRoom.config._RUID);
+    return bannedPlayers;
+}
+
 // remove exist ban
 export async function removeBanlistDataFromDB(playerConn: string): Promise<void> {
     await window._deleteBanlistDB(window.gameRoom.config._RUID, playerConn);

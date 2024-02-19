@@ -17,6 +17,7 @@ const parserLanguage = P.createLanguage({
             lang.freezeCommand,
             lang.listCommand,
             lang.banCommand,
+            lang.bansCommand,
             lang.muteCommand,
             lang.mutesCommand,
             lang.setPasswordCommand,
@@ -56,6 +57,8 @@ const parserLanguage = P.createLanguage({
             P.eof
         )
     ),
+
+    bansCommand: _ => CustomParsers.command('bans'),
 
     muteCommand: lang => P.seq(
         CustomParsers.command('mute'),

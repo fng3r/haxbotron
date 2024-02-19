@@ -224,6 +224,7 @@ export class HeadlessBrowser {
         await page.exposeFunction('_deletePlayerRoleDB', dbUtilityInject.deletePlayerRoleDB);
 
         await page.exposeFunction('_createBanlistDB', dbUtilityInject.createBanlistDB);
+        await page.exposeFunction('_getAllBansDB', dbUtilityInject.getAllBansDB);
         await page.exposeFunction('_readBanlistDB', dbUtilityInject.readBanlistDB);
         await page.exposeFunction('_updateBanlistDB', dbUtilityInject.updateBanlistDB);
         await page.exposeFunction('_deleteBanlistDB', dbUtilityInject.deleteBanlistDB);
@@ -335,7 +336,7 @@ export class HeadlessBrowser {
             return await this._PageContainer.get(ruid)!.evaluate(() => {
                 return {
                     roomName: window.gameRoom.config._config.roomName,
-                    onlinePlayers: window.gameRoom.playerList.size
+                    onlinePlayers: window.gameRoom.playerList.size()
                 }
             });
         } else {
@@ -352,7 +353,7 @@ export class HeadlessBrowser {
             return await this._PageContainer.get(ruid)!.evaluate(() => {
                 return {
                     roomName: window.gameRoom.config._config.roomName,
-                    onlinePlayers: window.gameRoom.playerList.size,
+                    onlinePlayers: window.gameRoom.playerList.size(),
                     adminPassword: window.gameRoom.adminPassword,
                     _link: window.gameRoom.link,
                     _roomConfig: window.gameRoom.config._config,
@@ -411,6 +412,7 @@ export class HeadlessBrowser {
             if (window.gameRoom.playerList.has(id)) {
                 const banItem = {
                     conn: window.gameRoom.playerList.get(id)!.conn,
+                    auth: window.gameRoom.playerList.get(id)!.auth,
                     reason: message,
                     register: Math.floor(Date.now()),
                     expire: Math.floor(Date.now()) + (seconds * 1000)

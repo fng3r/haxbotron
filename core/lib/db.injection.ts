@@ -82,12 +82,25 @@ export async function createBanlistDB(ruid: string, banList: BanList): Promise<v
     }
 }
 
+export async function getAllBansDB(ruid: string): Promise<BanList[] | undefined> {
+    try {
+        const result = await axios.get(`${dbConnAddr}room/${ruid}/banlist`);
+        if (result.status === 200 && result.data) {
+            winstonLogger.info(`200 Succeed on getAllBansDB: Read.`);
+            return result.data;
+        }
+    } catch (error) {
+        winstonLogger.error(`Error caught on getAllBansDB: ${error}`);
+    }
+}
+
 export async function readBanlistDB(ruid: string, playerConn: string): Promise<BanList | undefined> {
     try {
         const result = await axios.get(`${dbConnAddr}room/${ruid}/banlist/${playerConn}`);
         if (result.status === 200 && result.data) {
             const banlist: BanList = {
                 conn: result.data.conn,
+                auth: result.data.auth,
                 reason: result.data.reason,
                 register: result.data.register,
                 expire: result.data.expire
