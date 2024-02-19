@@ -13,6 +13,7 @@ import {cmdAuth} from "./commands/auth";
 import {cmdStaff} from "./commands/staff";
 import {cmdTeamChat} from "./commands/teamchat";
 import {cmdBb} from "./commands/bb";
+import {cmdSwitch} from "./commands/switch";
 
 const COMMANDS_PREFIX = '!';
 
@@ -84,6 +85,10 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
         }
         case GameCommands.staff: {
             cmdStaff(byPlayer);
+            break;
+        }
+        case GameCommands.switch: {
+            cmdSwitch(byPlayer);
             break;
         }
         case GameCommands.teamChat:

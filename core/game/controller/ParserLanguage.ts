@@ -21,7 +21,8 @@ const parserLanguage = P.createLanguage({
             lang.mutesCommand,
             lang.setPasswordCommand,
             lang.staffCommand,
-            lang.teamChatCommand
+            lang.teamChatCommand,
+            lang.switchCommand
         )
         .trim(P.optWhitespace)
         .skip(P.all),
@@ -76,6 +77,8 @@ const parserLanguage = P.createLanguage({
     ),
 
     staffCommand: _ => CustomParsers.command('staff'),
+
+    switchCommand: _ => CustomParsers.command('switch'),
 
     teamChatCommand: _ => P.seq(
         CustomParsers.command('x').or(CustomParsers.command('ч')),

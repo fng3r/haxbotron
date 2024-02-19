@@ -30,7 +30,7 @@ export const command = {
     _ErrorWrongCommand : '❌ You did wrong command. 📑 !help or !help COMMAND for details.'
     ,_ErrorNoPermission: '❌ You are not admin. You can\'t use this command.'
     ,_ErrorDisabled: '❌ This command is disabled. You can\'t use this command.'
-    ,help: '📄 !about, !auth, !bb, !list, !freeze, !mute, !mutes, !ban, !setpassword, !staff\n📑 !help COMMAND for detail. (eg. !help stats).'
+    ,help: '📄 !about, !auth, !bb, !list, !freeze, !mute, !mutes, !ban, !setpassword, !staff, !switch\n📑 !help COMMAND for detail. (eg. !help stats).'
     ,helpman: { // detailed description for a command
         _ErrorWrongMan : '❌ Failed to read manual about that command.'
         ,help: '📑 !help COMMAND shows you how to use COMMAND command.'
@@ -46,6 +46,7 @@ export const command = {
             '📑 You can check IDs by command !list'
         ,setpassword: '📑 !setpassword sets or resets room password. (eg: !setpassword 2552 | !setpassword - to reset)'
         ,staff: '📑 !staff shows staff player in the room.'
+        ,switch: '📑 !switch switches teams.'
 
     } 
     ,about: '📄 {RoomName} ({_LaunchTime})'
@@ -81,6 +82,11 @@ export const command = {
         _ErrorNoPermission : '❌ You are not admin. You can\'t do this command.'
         ,onPasswordSet: '🔒 Password was set by {playerName}#{playerID}'
         ,onPasswordReset: '🔓 Password was reset by {playerName}#{playerID}'
+    }
+    ,switch: {
+        _ErrorNoPermission: '❌ You are not admin. You can\'t do this command.'
+        ,_ErrorGameStartedAlready: '❌ Can\'t switch teams during the game'
+        ,success: '🔃 Teams were switched by {playerName}#{playerID}'
     }
 }
 

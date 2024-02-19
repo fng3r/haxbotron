@@ -9,6 +9,7 @@ export enum GameCommands {
     ban = 'ban',
     setpassword = 'setpassword',
     staff = 'staff',
+    switch = 'switch',
 
     listRed = 'red',
     listBlue = 'blue',
