@@ -32,9 +32,10 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
     } else { // if this message is normal chat
         const playerRole = window.gameRoom.playerRoles.get(player.id)!;
         if (PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) { // if player is s-adm+ then he can chat anyway
+            window.gameRoom.antiTrollingChatFloodCount.push(player.id); // record who said this chat
             return true;
         } else {
-            if (window.gameRoom.isMuteAll || window.gameRoom.playerList.get(player.id)!.permissions['mute']) { // if this player is muted or whole chat is frozen
+            if (window.gameRoom.isMuteAll || window.gameRoom.playerList.get(player.id)!.permissions.mute) { // if this player is muted or whole chat is frozen
                 window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.onChat.mutedChat, placeholderChat), player.id, 0xFF0000, "bold", 2); // notify that fact
                 return false; // and hide this chat
             } else {
@@ -51,10 +52,10 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
                             break; // abort loop
                         }
                     }
-                    if (chatFloodCritFlag && !window.gameRoom.playerList.get(player.id)!.permissions['mute']) { // after complete loop, check flag
+                    if (chatFloodCritFlag && !window.gameRoom.playerList.get(player.id)!.permissions.mute) { // after complete loop, check flag
                         const nowTimeStamp: number = getUnixTimestamp(); //get timestamp
                         // judge as chat flood.
-                        window.gameRoom.playerList.get(player.id)!.permissions['mute'] = true; // mute this player
+                        window.gameRoom.playerList.get(player.id)!.permissions.mute = true; // mute this player
                         window.gameRoom.playerList.get(player.id)!.permissions.muteExpire = nowTimeStamp + window.gameRoom.config.settings.muteDefaultMillisecs; //record mute expiration date by unix timestamp
                         window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.antitrolling.chatFlood.muteReason, placeholderChat), null, 0xFF0000, "normal", 1); // notify that fact
                         

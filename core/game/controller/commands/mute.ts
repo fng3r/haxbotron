@@ -27,6 +27,7 @@ export function cmdMute(byPlayer: PlayerObject, playerIdentifier: string, muteDu
             };
             if(player.permissions.mute) {
                 player.permissions.mute = false; //unmute
+                window.gameRoom.antiTrollingChatFloodCount.push(0); // add 'fake' chat activity to reset current chat streak
                 window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.command.mute.successUnmute, placeholder), null, 0x479947, "normal", 1);
             } else {
                 if (muteInMinutes === -1)

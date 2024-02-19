@@ -46,10 +46,7 @@ window.gameRoom = {
     ,playerList: new Map()
     ,playerRoles: new Map()
     ,ballStack: KickStack.getInstance()
-    ,antiTrollingOgFloodCount: []
     ,antiTrollingChatFloodCount: []
-    ,antiInsufficientStartAbusingCount: []
-    ,antiPlayerKickAbusingCount: []
     ,notice: ''
     ,onEmergency: EmergencyTools
 }
@@ -69,11 +66,11 @@ makeRoom();
 // ====================================================================================================
 // set scheduling timers
 
-var scheduledTimer60 = setInterval(() => {
+const advertisementTimer = setInterval(() => {
     window.gameRoom._room.sendAnnouncement(LangRes.scheduler.advertise, null, 0x777777, "normal", 0); // advertisement
-}, 300_000); // 5 mins
+}, 600_000); // 10 mins
 
-var scheduledTimer5 = setInterval(() => {
+const autoUnmuteTimer = setInterval(() => {
     const nowTimeStamp: number = getUnixTimestamp(); //get timestamp
 
     let placeholderScheduler = {
@@ -81,7 +78,7 @@ var scheduledTimer5 = setInterval(() => {
         targetName: '',
     }
 
-    window.gameRoom.playerList.forEach((player: Player) => { // afk detection system & auto unmute system
+    window.gameRoom.playerList.forEach((player: Player) => { // auto unmute system
         // init placeholder
         placeholderScheduler.targetID = player.id;
         placeholderScheduler.targetName = player.name;
@@ -89,13 +86,14 @@ var scheduledTimer5 = setInterval(() => {
         // check muted player and unmute when it's time to unmute
         if (player.permissions.mute && player.permissions.muteExpire !== -1 && nowTimeStamp > player.permissions.muteExpire) {
             player.permissions.mute = false; //unmute
+            window.gameRoom.antiTrollingChatFloodCount.push(0); // add 'fake' chat activity to reset current chat streak
             window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.scheduler.autoUnmute, placeholderScheduler), null, 0x479947, "normal", 0); //notify it
             window._emitSIOPlayerStatusChangeEvent(player.id);
         }
     });
-}, 5000); // 5secs
+}, 5000); // 5 secs
 
-var scheduledTimer30m = setInterval(() => {
+const rotateAdminPasswordTimer = setInterval(() => {
     window.gameRoom.adminPassword = generateRandomString();
     window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.id, window.gameRoom.social.discordWebhook.token, "password", {
         message: Tst.maketext(
@@ -104,7 +102,11 @@ var scheduledTimer30m = setInterval(() => {
             ,password: window.gameRoom.adminPassword
         })
     });
-}, 1_800_000);
+}, 1_800_000); // 30 mins
+
+const cleanAntiChatFloodCount = setInterval(() => {
+    window.gameRoom.antiTrollingChatFloodCount.splice(0);
+}, 300_000) // 5 mins
 
 // ====================================================================================================
 // set defaults and register event handlers

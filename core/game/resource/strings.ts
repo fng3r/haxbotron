@@ -134,8 +134,8 @@ export const onVictory = {
 export const onKick = {
     cannotBan: '🚫 You can\'t ban other players. Act kicking if you need.'
     ,banned: {
-        permanentBan: '🚫 You are banned permanently ({banListReason})'
-        ,tempBan: '🚫 You are banned for {banInMinutes} minutes ({banListReason})'
+        permanentBan: '🚫 You are banned permanently'
+        ,tempBan: '🚫 You are banned for {banInMinutes} minutes'
     }
 }
 

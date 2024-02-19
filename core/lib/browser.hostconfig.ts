@@ -53,7 +53,6 @@ export interface BrowserHostRoomSettings {
     antiChatFlood : boolean
     chatFloodCriterion : number
 
-    muteAllowIntervalMillisecs : number
     muteDefaultMillisecs : number
 
     nicknameLengthLimit : number

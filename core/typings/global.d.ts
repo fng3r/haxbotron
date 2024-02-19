@@ -65,10 +65,7 @@ declare global {
 
             ballStack: KickStack // stack for ball tracing
 
-            antiTrollingOgFloodCount: number[] // flood counter for OG (player id: number)
             antiTrollingChatFloodCount: number[] // flood counter for chat. (player id: number)
-            antiInsufficientStartAbusingCount: number[] // ID record for start with insufficient players (player id: number)
-            antiPlayerKickAbusingCount: AdminKickTrace[] // ID and Timestamp record for abusing kick other players (id:number, register date:number)
 
             notice: string // Notice Message
 

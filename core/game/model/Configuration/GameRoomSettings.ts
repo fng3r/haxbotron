@@ -6,7 +6,6 @@ export interface GameRoomSettings {
     antiChatFlood : boolean
     chatFloodCriterion : number
 
-    muteAllowIntervalMillisecs : number
     muteDefaultMillisecs : number
 
     avatarOverridingByTier : boolean

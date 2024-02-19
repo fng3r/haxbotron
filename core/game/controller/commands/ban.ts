@@ -22,10 +22,11 @@ export function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, banDura
             const player = window.gameRoom.playerList.get(playerId)!;
             let placeholder = {
                 targetName: window.gameRoom.playerList.get(playerId)!.name
-                , ticketTarget: playerId
-                , byPlayerName: byPlayer.name
-                , byPlayerId: byPlayer.id
-                , banInMinutes: banInMinutes
+                ,ticketTarget: playerId
+                ,byPlayerName: byPlayer.name
+                ,byPlayerId: byPlayer.id
+                ,banInMinutes: banInMinutes
+                ,banListReason
             };
             const currentTimestamp: number = getUnixTimestamp();
 
