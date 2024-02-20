@@ -39,6 +39,7 @@ const roomSettingSchema = Joi.object().keys({
 
     ,antiChatFlood : Joi.boolean().required()
     ,chatFloodCriterion : Joi.number().required()
+    ,chatFloodIntervalMillisecs: Joi.number().required()
 
     ,muteDefaultMillisecs : Joi.number().required()
 

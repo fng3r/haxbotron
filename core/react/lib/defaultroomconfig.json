@@ -14,6 +14,7 @@
 		"chatFiltering": true,
 		"antiChatFlood": true,
 		"chatFloodCriterion": 5,
+		"chatFloodIntervalMillisecs": 10000,
 		"muteDefaultMillisecs": 180000,
 		"nicknameLengthLimit": 12,
 		"chatLengthLimit": 150,

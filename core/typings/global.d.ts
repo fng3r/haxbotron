@@ -2,14 +2,12 @@ import { Logger } from "../game/controller/Logger"
 import { RoomConfig } from '../game/model/RoomObject/RoomConfig';
 import { KickStack } from "../game/model/GameObject/BallTrace";
 import { Logger } from "../game/controller/Logger";
-import { AdminKickTrace } from "../game/model/PlayerBan/AdminKickTrace";
-import { Player } from "../game/model/GameObject/Player";
 import { GameRoomConfig } from "../game/model/Configuration/GameRoomConfig";
-import { TeamID } from "../game/model/GameObject/TeamID";
 import { Room } from "../game/model/RoomObject/RoomObject";
 import { BanList } from "../game/model/PlayerBan/BanList";
 import {PlayerRole, PlayerStorage} from "../game/model/GameObject/PlayerObject";
 import {PlayersSet} from "../game/model/GameObject/PlayersSet";
+import ChatActivityMap from "../game/model/ChatActivityMap";
 
 declare global {
     interface Window {
@@ -66,7 +64,7 @@ declare global {
 
             ballStack: KickStack // stack for ball tracing
 
-            antiTrollingChatFloodCount: number[] // flood counter for chat. (player id: number)
+            antiTrollingChatFloodMap: ChatActivityMap // map<playerId, chatActivityTimestamp[]>
 
             notice: string // Notice Message
 

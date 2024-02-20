@@ -16,6 +16,8 @@ import { EmergencyTools } from "./model/ExposeLibs/EmergencyTools";
 import { GameRoomConfig } from "./model/Configuration/GameRoomConfig";
 import {generateRandomString} from "../lib/utils";
 import {PlayersSet} from "./model/GameObject/PlayersSet";
+import CircularArray from "./model/CircularArray";
+import ChatActivityMap from "./model/ChatActivityMap";
 // ====================================================================================================
 // load initial configurations
 const loadedConfig: GameRoomConfig = JSON.parse(localStorage.getItem('_initConfig')!);
@@ -47,7 +49,7 @@ window.gameRoom = {
     ,playerList: new PlayersSet()
     ,playerRoles: new Map()
     ,ballStack: KickStack.getInstance()
-    ,antiTrollingChatFloodCount: []
+    ,antiTrollingChatFloodMap: new ChatActivityMap(loadedConfig.settings.chatFloodCriterion)
     ,notice: ''
     ,onEmergency: EmergencyTools
 }
@@ -87,7 +89,7 @@ const autoUnmuteTimer = setInterval(() => {
         // check muted player and unmute when it's time to unmute
         if (player.permissions.mute && player.permissions.muteExpire !== -1 && nowTimeStamp > player.permissions.muteExpire) {
             player.permissions.mute = false; //unmute
-            window.gameRoom.antiTrollingChatFloodCount.push(0); // add 'fake' chat activity to reset current chat streak
+            window.gameRoom.antiTrollingChatFloodMap.clear(player.id); // clear previous chat activity on unmute
             window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.scheduler.autoUnmute, placeholderScheduler), null, 0x479947, "normal", 0); //notify it
             window._emitSIOPlayerStatusChangeEvent(player.id);
         }
@@ -104,10 +106,6 @@ const rotateAdminPasswordTimer = setInterval(() => {
         })
     });
 }, 1_800_000); // 30 mins
-
-const cleanAntiChatFloodCount = setInterval(() => {
-    window.gameRoom.antiTrollingChatFloodCount.splice(0);
-}, 300_000) // 5 mins
 
 // ====================================================================================================
 // set defaults and register event handlers

@@ -31,8 +31,9 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
         return !isTeamChatCommand(message); // show message only when it's not team chat command
     } else { // if this message is normal chat
         const playerRole = window.gameRoom.playerRoles.get(player.id)!;
+        const currentTimestamp = getUnixTimestamp();
         if (PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) { // if player is s-adm+ then he can chat anyway
-            window.gameRoom.antiTrollingChatFloodCount.push(player.id); // record who said this chat
+            window.gameRoom.antiTrollingChatFloodMap.add(player.id, currentTimestamp); // record who said this chat
             return true;
         } else {
             if (window.gameRoom.isMuteAll || window.gameRoom.playerList.get(player.id)!.permissions.mute) { // if this player is muted or whole chat is frozen
@@ -41,24 +42,20 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
             } else {
                 // Anti Chat Flood Checking
                 if (window.gameRoom.config.settings.antiChatFlood) { // if anti chat flood options is enabled
-                    let chatFloodCritFlag: boolean = false;
-                    window.gameRoom.antiTrollingChatFloodCount.push(player.id); // record who said this chat
-                    for (let floodCritCount = 1; floodCritCount <= window.gameRoom.config.settings.chatFloodCriterion; floodCritCount++) {
-                        let floodID: number = window.gameRoom.antiTrollingChatFloodCount[window.gameRoom.antiTrollingChatFloodCount.length - floodCritCount] || 0;
-                        if (floodID === player.id) {
-                            chatFloodCritFlag = true;
-                        } else {
-                            chatFloodCritFlag = false;
-                            break; // abort loop
-                        }
+                    let chatFloodFlag = false;
+                    window.gameRoom.antiTrollingChatFloodMap.add(player.id, currentTimestamp); // record who said this chat
+                    const playerActivity = window.gameRoom.antiTrollingChatFloodMap.get(player.id);
+
+                    // if player has more than chatFloodCriterion chats in last chatFloodIntervalMillisecs, mark it as a flood
+                    if (playerActivity.length >= window.gameRoom.config.settings.chatFloodCriterion &&
+                        playerActivity[playerActivity.length - 1] - playerActivity[0] < window.gameRoom.config.settings.chatFloodIntervalMillisecs) {
+                        chatFloodFlag = true;
                     }
-                    if (chatFloodCritFlag && !window.gameRoom.playerList.get(player.id)!.permissions.mute) { // after complete loop, check flag
-                        const nowTimeStamp: number = getUnixTimestamp(); //get timestamp
-                        // judge as chat flood.
+                    if (chatFloodFlag && !window.gameRoom.playerList.get(player.id)!.permissions.mute) {
                         window.gameRoom.playerList.get(player.id)!.permissions.mute = true; // mute this player
-                        window.gameRoom.playerList.get(player.id)!.permissions.muteExpire = nowTimeStamp + window.gameRoom.config.settings.muteDefaultMillisecs; //record mute expiration date by unix timestamp
+                        window.gameRoom.playerList.get(player.id)!.permissions.muteExpire = currentTimestamp + window.gameRoom.config.settings.muteDefaultMillisecs; //record mute expiration date by unix timestamp
                         window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.antitrolling.chatFlood.muteReason, placeholderChat), null, 0xFF0000, "normal", 1); // notify that fact
-                        
+
                         window._emitSIOPlayerStatusChangeEvent(player.id);
                         return false;
                     }
