@@ -21,9 +21,6 @@ export const antitrolling = {
     chatFlood: {
         muteReason: '🔇 You are muted for flood.(3mins) Admin player can unmute it.'
     }
-    ,malAct: {
-        banReason: '🚫 Malicious behaviour is detected'
-    }
 }
 
 export const command = {
@@ -123,16 +120,16 @@ export const onLeft = {
 }
 
 export const onChat = {
-    mutedChat: '🔇 You are muted. You can\'t send message to others, and only can command by chat.'
+    mutedChat: '🔇 You are muted. You can\'t send message to others, and only can send commands.'
     ,tooLongChat: '🔇 Chat message is too long.'
     ,bannedWords: '🚫 Chat message includes banned words.'
-    ,includeSeperator: '🚫 Chat message includes banned word. (|,|)'
+    ,includeSeparator: '🚫 Chat message includes banned word (|,|).'
 }
 
 export const onStop = {
     feedSocialDiscordWebhook: {
         replayMessage: '💽 Room: {roomId}, Date: {replayDate}',
-        adminPasswordMessage: '🔒 [{roomId}] Admin password was updated. Current password is \'{password}\''
+        adminPasswordMessage: '🔒 [{roomId}] Admin password was updated. Current admin password is \'{password}\''
     }
 }
 

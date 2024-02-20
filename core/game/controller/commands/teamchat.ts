@@ -1,7 +1,14 @@
 import {PlayerObject} from "../../model/GameObject/PlayerObject";
 import {TeamID} from "../../model/GameObject/TeamID";
+import * as LangRes from "../../resource/strings";
 
 export function cmdTeamChat(byPlayer: PlayerObject, message: string): void {
+    const player = window.gameRoom.playerList.get(byPlayer.id)!;
+    if (window.gameRoom.isMuteAll || player.permissions.mute) { // if this player is muted or whole chat is frozen
+        window.gameRoom._room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2); // notify that fact
+        return; // and hide this chat
+    }
+
     const messageColor = getMessageColor(byPlayer.team);
     const messagePrefix = getMessagePrefix(byPlayer.team);
     const resultMessage = `${messagePrefix} ${byPlayer.name}: ${message}`;
