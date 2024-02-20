@@ -185,7 +185,7 @@ export async function setNotice(ctx: Context) {
     ctx.status = 404;
     if (browser.checkExistRoom(ruid)) {
         if (message) {
-            browser.setNotice(ruid, message);
+            await browser.setNotice(ruid, message);
             ctx.status = 201;
         } else {
             ctx.status = 400;
@@ -487,8 +487,10 @@ export async function getDiscordWebhookConfig(ctx: Context) {
         const config = await browser.getDiscordWebhookConfig(ruid);
         ctx.body = {
             feed: config.feed
-            ,id: config.id
-            ,token: config.token
+            ,passwordWebhookId: config.passwordWebhookId
+            ,passwordWebhookToken: config.passwordWebhookToken
+            ,replaysWebhookId: config.replaysWebhookId
+            ,replaysWebhookToken: config.replaysWebhookToken
             ,replayUpload: config.replayUpload
         }
         ctx.status = 200;
@@ -500,7 +502,7 @@ export async function getDiscordWebhookConfig(ctx: Context) {
  */
 export async function setDiscordWebhookConfig(ctx: Context) {
     const { ruid } = ctx.params;
-    const { feed, id, token, replayUpload } = ctx.request.body;
+    const { feed, replaysWebhookId, replaysWebhookToken, replayUpload, passwordWebhookId, passwordWebhookToken } = ctx.request.body;
     ctx.status = 404;
 
     const validationResult = discordWebhookConfigSchema.validate(ctx.request.body);
@@ -512,7 +514,7 @@ export async function setDiscordWebhookConfig(ctx: Context) {
     }
 
     if (browser.checkExistRoom(ruid)) {
-        browser.setDiscordWebhookConfig(ruid, { feed, id, token, replayUpload });
+        await browser.setDiscordWebhookConfig(ruid, { feed, replaysWebhookId, replaysWebhookToken, replayUpload, passwordWebhookId, passwordWebhookToken });
         ctx.status = 201;
     }
 }

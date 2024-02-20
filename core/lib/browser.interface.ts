@@ -1,6 +1,8 @@
 export type DiscordWebhookConfig = {
     feed: boolean
-    id: string
-    token: string
+    passwordWebhookId: string
+    passwordWebhookToken: string
+    replaysWebhookId: string
+    replaysWebhookToken: string
     replayUpload: boolean
 }

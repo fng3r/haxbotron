@@ -41,7 +41,7 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     // stop replay record and send it
     const replay = window.gameRoom._room.stopRecording();
     
-    if(replay && window.gameRoom.social.discordWebhook.feed && window.gameRoom.social.discordWebhook.replayUpload && window.gameRoom.social.discordWebhook.id && window.gameRoom.social.discordWebhook.token) {
+    if(replay && window.gameRoom.social.discordWebhook.feed && window.gameRoom.social.discordWebhook.replayUpload && window.gameRoom.social.discordWebhook.replaysWebhookId && window.gameRoom.social.discordWebhook.replaysWebhookToken) {
         const roomId = window.gameRoom.config._RUID;
         const replayDate = moment(Date.now()).format('DD-MM-YYTHH-mm-ss');
         const placeholder = {
@@ -49,7 +49,7 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
             ,replayDate: replayDate
         };
 
-        window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.id, window.gameRoom.social.discordWebhook.token, "replay", {
+        window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.replaysWebhookId, window.gameRoom.social.discordWebhook.replaysWebhookToken, "replay", {
             message: Tst.maketext(LangRes.onStop.feedSocialDiscordWebhook.replayMessage, placeholder)
             ,filename: `${roomId}_${replayDate}.hbr2`
             ,data: JSON.stringify(Array.from(replay))

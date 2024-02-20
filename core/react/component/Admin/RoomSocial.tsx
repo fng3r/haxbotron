@@ -23,8 +23,10 @@ interface matchParams {
 
 type DiscordWebhookConfig = {
     feed: boolean
-    id: string
-    token: string
+    passwordWebhookId: string
+    passwordWebhookToken: string
+    replaysWebhookId: string
+    replaysWebhookToken: string
     replayUpload: boolean
 }
 
@@ -39,8 +41,10 @@ export default function RoomSocial({ styleClass }: styleClass) {
     const [newNoticeMessage, setNewNoticeMessage] = useState('');
     const [noticeMessage, setNoticeMessage] = useState('');
 
-    const [newDiscordWebhookID, setNewDiscordWebhookID] = useState('');
-    const [newDiscordWebhookToken, setNewDiscordWebhookToken] = useState('');
+    const [newReplaysWebhookID, setNewReplaysWebhookID] = useState('');
+    const [newReplaysWebhookToken, setNewReplaysWebhookToken] = useState('');
+    const [newPasswordWebhookID, setNewPasswordWebhookID] = useState('');
+    const [newPasswordWebhookToken, setNewPasswordWebhookToken] = useState('');
     const [newDiscordWebhookFeed, setNewDiscordWebhookFeed] = useState(false);
     const [newDiscordWebhookReplayUpload, setNewDiscordWebhookReplayUpload] = useState(false);
 
@@ -90,13 +94,15 @@ export default function RoomSocial({ styleClass }: styleClass) {
     const handleDiscordWebhookSet = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         localStorage.setItem(`_DiscordWebhookConfig`, JSON.stringify({
-            feed: newDiscordWebhookFeed, id: newDiscordWebhookID, token: newDiscordWebhookToken, replayUpload: newDiscordWebhookReplayUpload
+            feed: newDiscordWebhookFeed, passwordWebhookId: newPasswordWebhookID, passwordWebhookToken: newPasswordWebhookToken, replaysWebhookId: newReplaysWebhookID, replaysWebhookToken: newReplaysWebhookToken, replayUpload: newDiscordWebhookReplayUpload
         } as DiscordWebhookConfig));
         try {
             const result = await client.post(`/api/v1/room/${matchParams.ruid}/social/discord/webhook`, {
                 feed: newDiscordWebhookFeed,
-                id: newDiscordWebhookID,
-                token: newDiscordWebhookToken,
+                replaysWebhookId: newReplaysWebhookID,
+                replaysWebhookToken: newReplaysWebhookToken,
+                passwordWebhookId: newPasswordWebhookID,
+                passwordWebhookToken: newPasswordWebhookToken,
                 replayUpload: newDiscordWebhookReplayUpload
             });
             if (result.status === 201) {
@@ -137,11 +143,17 @@ export default function RoomSocial({ styleClass }: styleClass) {
         setNewNoticeMessage(e.target.value);
     }
 
-    const onChangeDiscordWebhookID = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNewDiscordWebhookID(e.target.value);
+    const onChangeReplaysWebhookID = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewReplaysWebhookID(e.target.value);
     }
-    const onChangeDiscordWebhookToken = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNewDiscordWebhookToken(e.target.value);
+    const onChangeReplaysWebhookToken = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewReplaysWebhookToken(e.target.value);
+    }
+    const onChangePasswordWebhookID = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewPasswordWebhookID(e.target.value);
+    }
+    const onChangePasswordWebhookToken = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewReplaysWebhookToken(e.target.value);
     }
     const onChangeDiscordWebhookFeed = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewDiscordWebhookFeed(e.target.checked); // switch toggle component
@@ -172,8 +184,10 @@ export default function RoomSocial({ styleClass }: styleClass) {
             const result = await client.get(`/api/v1/room/${matchParams.ruid}/social/discord/webhook`);
             if (result.status === 200) {
                 const config: DiscordWebhookConfig = result.data;
-                setNewDiscordWebhookID(config.id);
-                setNewDiscordWebhookToken(config.token);
+                setNewReplaysWebhookID(config.replaysWebhookId);
+                setNewReplaysWebhookToken(config.replaysWebhookToken);
+                setNewPasswordWebhookID(config.passwordWebhookId);
+                setNewPasswordWebhookToken(config.passwordWebhookToken);
                 setNewDiscordWebhookFeed(config.feed);
                 setNewDiscordWebhookReplayUpload(config.replayUpload);
             }
@@ -219,8 +233,10 @@ export default function RoomSocial({ styleClass }: styleClass) {
 
         if (localStorage.getItem(`_DiscordWebhookConfig`) !== null) {
             const config: DiscordWebhookConfig = JSON.parse(localStorage.getItem(`_DiscordWebhookConfig`)!);
-            setNewDiscordWebhookID(config.id);
-            setNewDiscordWebhookToken(config.token);
+            setNewReplaysWebhookID(config.replaysWebhookId);
+            setNewReplaysWebhookToken(config.replaysWebhookToken);
+            setNewPasswordWebhookID(config.passwordWebhookId);
+            setNewPasswordWebhookToken(config.passwordWebhookToken);
             setNewDiscordWebhookFeed(config.feed);
             setNewDiscordWebhookReplayUpload(config.replayUpload);
         }
@@ -305,15 +321,29 @@ export default function RoomSocial({ styleClass }: styleClass) {
                                     <Grid item xs={6} sm={3}>
                                         <TextField
                                             variant="outlined" margin="normal" size="small" fullWidth
-                                            id="discordWebhookID" label="Webhook ID" name="discordWebhookID"
-                                            value={newDiscordWebhookID} onChange={onChangeDiscordWebhookID}
+                                            id="discordReplaysWebhookID" label="Replays Webhook ID" name="discordReplaysWebhookID"
+                                            value={newReplaysWebhookID} onChange={onChangeReplaysWebhookID}
                                         />
                                     </Grid>
                                     <Grid item xs={8} sm={6}>
                                         <TextField
                                             variant="outlined" margin="normal" size="small" fullWidth
-                                            id="discordWebhookToken" label="Webhook Token" name="discordWebhookToken"
-                                            value={newDiscordWebhookToken} onChange={onChangeDiscordWebhookToken}
+                                            id="discordReplaysWebhookToken" label="Replays Webhook Token" name="discordReplaysWebhookToken"
+                                            value={newReplaysWebhookToken} onChange={onChangeReplaysWebhookToken}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={6} sm={3}>
+                                        <TextField
+                                            variant="outlined" margin="normal" size="small" fullWidth
+                                            id="discordPasswordWebhookID" label="Password Webhook ID" name="discordPasswordWebhookID"
+                                            value={newPasswordWebhookID} onChange={onChangePasswordWebhookID}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={8} sm={6}>
+                                        <TextField
+                                            variant="outlined" margin="normal" size="small" fullWidth
+                                            id="discordPasswordWebhookToken" label="Password Webhook Token" name="discordPasswordWebhookToken"
+                                            value={newPasswordWebhookToken} onChange={onChangePasswordWebhookToken}
                                         />
                                     </Grid>
                                     <Grid item xs={3} sm={1}>

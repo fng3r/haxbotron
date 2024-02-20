@@ -106,8 +106,10 @@ export class HeadlessBrowser {
         const discordWebhookConfig = {
             feed: JSON.parse(process.env.DISCORD_WEBHOOK_FEED || false.toString())
             ,replayUpload: JSON.parse(process.env.DISCORD_WEBHOOK_REPLAY_UPLOAD || false.toString())
-            ,id: process.env.DISCORD_WEBHOOK_ID
-            ,token: process.env.DISCORD_WEBHOOK_TOKEN
+            ,replaysWebhookId: process.env.DISCORD_REPLAYS_WEBHOOK_ID
+            ,replaysWebhookToken: process.env.DISCORD_REPLAYS_WEBHOOK_TOKEN
+            ,passwordWebhookId: process.env.DISCORD_PASSWORD_WEBHOOK_ID
+            ,passwordWebhookToken: process.env.DISCORD_PASSWORD_WEBHOOK_TOKEN
         }
 
         if (!this._BrowserContainer) await this.initBrowser(); // open if browser isn't exist.
@@ -668,7 +670,14 @@ export class HeadlessBrowser {
      * @param ruid ruid Game room's UID
      * @param config discord webhook configuration
      */
-    public async setDiscordWebhookConfig(ruid: string, config: DiscordWebhookConfig) {
+    public async setDiscordWebhookConfig(ruid: string, config: {
+        feed: any;
+        passwordWebhookToken: any;
+        passwordWebhookId: any;
+        replaysWebhookId: any;
+        replayUpload: any;
+        replaysWebhookToken: any
+    }) {
         await this._PageContainer.get(ruid)!.evaluate((config: DiscordWebhookConfig) => {
             window.gameRoom.social.discordWebhook = config;
         }, config);

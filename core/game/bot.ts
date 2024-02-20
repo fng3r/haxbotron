@@ -16,7 +16,6 @@ import { EmergencyTools } from "./model/ExposeLibs/EmergencyTools";
 import { GameRoomConfig } from "./model/Configuration/GameRoomConfig";
 import {generateRandomString} from "../lib/utils";
 import {PlayersSet} from "./model/GameObject/PlayersSet";
-import CircularArray from "./model/CircularArray";
 import ChatActivityMap from "./model/ChatActivityMap";
 // ====================================================================================================
 // load initial configurations
@@ -53,6 +52,9 @@ window.gameRoom = {
     ,notice: ''
     ,onEmergency: EmergencyTools
 }
+
+window.gameRoom.logger.i('abc', discordWebhook);
+window.gameRoom.logger.i('abc', JSON.stringify(window.gameRoom.social.discordWebhook));
 
 // clear localStorage
 localStorage.removeItem('_initConfig');
@@ -98,7 +100,7 @@ const autoUnmuteTimer = setInterval(() => {
 
 const rotateAdminPasswordTimer = setInterval(() => {
     window.gameRoom.adminPassword = generateRandomString();
-    window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.id, window.gameRoom.social.discordWebhook.token, "password", {
+    window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.passwordWebhookId, window.gameRoom.social.discordWebhook.passwordWebhookToken, "password", {
         message: Tst.maketext(
             LangRes.onStop.feedSocialDiscordWebhook.adminPasswordMessage, {
             roomId: window.gameRoom.config._RUID
@@ -119,7 +121,8 @@ function makeRoom(): void {
     window.gameRoom._room.setTimeLimit(window.gameRoom.config.rules.requisite.timeLimit);
     window.gameRoom._room.setTeamsLock(window.gameRoom.config.rules.requisite.teamLock);
 
-    window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.id, window.gameRoom.social.discordWebhook.token, "password", {
+    window.gameRoom.logger.i('setpass', 'setinitpass');
+    window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.passwordWebhookId, window.gameRoom.social.discordWebhook.passwordWebhookToken, "password", {
         message: Tst.maketext(
             LangRes.onStop.feedSocialDiscordWebhook.adminPasswordMessage, {
                 roomId: window.gameRoom.config._RUID
