@@ -65,7 +65,7 @@ export function cmdHelp(byPlayer: PlayerObject, subCommand?: string): void {
             break;
         }
         default: {
-            window.gameRoom._room.sendAnnouncement(LangRes.command.helpman._ErrorWrongMan, byPlayer.id, 0xFF7777, "normal", 2);
+            window.gameRoom._room.sendAnnouncement(LangRes.command.helpman._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
             break;
         }
     }

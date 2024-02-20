@@ -50,7 +50,11 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
         if (chatFloodFlag && !roomPlayer.permissions.mute) {
             roomPlayer.permissions.mute = true; // mute this player
             roomPlayer.permissions.muteExpire = currentTimestamp + window.gameRoom.config.settings.muteDefaultMillisecs; //record mute expiration date by unix timestamp
-            window.gameRoom._room.sendAnnouncement(LangRes.antitrolling.chatFlood.muteReason, null, 0xFF0000, "normal", 1); // notify that fact
+            const placeholder = {
+                playerID: player.id,
+                playerName: player.name
+            };
+            window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.antitrolling.chatFlood.muteReason, placeholder), null, 0xFF0000, "normal", 1); // notify that fact
 
             window._emitSIOPlayerStatusChangeEvent(player.id);
             return false;

@@ -8,8 +8,8 @@ import * as P from "parsimmon";
 const COMMANDS_PREFIX = '!';
 
 const customParsers = {
-    command(commandName: string) : Parser<string> {
-        return P.string(COMMANDS_PREFIX).then(P.string(commandName))
+    command(commandName: GameCommands) : Parser<GameCommands> {
+        return P.string(COMMANDS_PREFIX).then(P.string(commandName)).map(_ => commandName);
     }
 }
 

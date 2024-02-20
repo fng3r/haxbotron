@@ -19,7 +19,7 @@ export const teamName = {
 
 export const antitrolling = {
     chatFlood: {
-        muteReason: '🔇 You are muted for flood.(3mins) Admin player can unmute it.'
+        muteReason: '🔇 {playerName}#{playerID} is muted for flood (3 mins).'
     }
 }
 
@@ -31,7 +31,7 @@ export const command = {
            '📑 !freeze, !mute, !mutes, !ban, !bans !setpassword, !switch\n' +
            '📑 !help COMMAND for detail. (eg. !help stats).'
     ,helpman: { // detailed description for a command
-        _ErrorWrongMan : '❌ Failed to read manual about that command.'
+        _ErrorWrongCommand : '❌ This command is unknown or disabled.'
         ,help: '📑 !help COMMAND shows you how to use COMMAND command.'
         ,about: '📑 !about shows you simple inforamtion of the bot running now.'
         ,auth: '📑 !auth shows player\'s public id (eg: !auth, !auth #12)'
