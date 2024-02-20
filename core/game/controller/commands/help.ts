@@ -24,6 +24,10 @@ export function cmdHelp(byPlayer: PlayerObject, subCommand?: string): void {
             window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.list, byPlayer.id, 0x479947, "normal", 1);
             break;
         }
+        case GameCommands.listroles: {
+            window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.listroles, byPlayer.id, 0x479947, "normal", 1);
+            break;
+        }
         case GameCommands.freeze: {
             window.gameRoom._room.sendAnnouncement(LangRes.command.helpman.freeze, byPlayer.id, 0x479947, "normal", 1);
             break;

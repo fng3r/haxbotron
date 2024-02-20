@@ -4,6 +4,7 @@ export enum GameCommands {
     freeze = 'freeze',
     help = 'help',
     list = 'list',
+    listroles = 'listroles',
     mute = 'mute',
     mutes = 'mutes',
     ban = 'ban',

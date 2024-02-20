@@ -10,7 +10,7 @@ export function cmdSwitch(byPlayer: PlayerObject): void {
         ,playerName: byPlayer.name
     };
 
-    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id);
+    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
         window.gameRoom._room.sendAnnouncement(LangRes.command.switch._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;

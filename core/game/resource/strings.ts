@@ -27,7 +27,7 @@ export const command = {
     _ErrorWrongCommand : '❌ You did wrong command. 📑 !help or !help COMMAND for details.'
     ,_ErrorNoPermission: '❌ You are not admin. You can\'t use this command.'
     ,_ErrorDisabled: '❌ This command is disabled. You can\'t use this command.'
-    ,help: '📑 !about, !auth, !bb, !list, !staff\n' +
+    ,help: '📑 !about, !auth, !bb, !list, !listroles, !staff\n' +
            '📑 !freeze, !mute, !mutes, !ban, !bans !setpassword, !switch\n' +
            '📑 !help COMMAND for detail. (eg. !help stats).'
     ,helpman: { // detailed description for a command
@@ -36,7 +36,8 @@ export const command = {
         ,about: '📑 !about shows you simple inforamtion of the bot running now.'
         ,auth: '📑 !auth shows player\'s public id (eg: !auth, !auth #12)'
         ,bb: '📑 !bb to leave the room'
-        ,list: '📑 !list red/blue/spec/mute/afk shows you all players list of that type.'
+        ,list: '📑 !list red/blue/spec shows you all players list of that type.'
+        ,listroles: '📑 !listroles shows roles of players in the room.'
         ,freeze: '📑 !freeze mutes or unmutes all players.'
         ,mute: '📑 !mute #ID time(in minutes): prohibits the player whose id is ID to chat for specified time (permanently if not specified). Or unmute if the player is already muted. (eg: !mute #12 5)\n' +
             '📑 You can check IDs by command !list'
@@ -78,6 +79,10 @@ export const command = {
         _ErrorNoTeam: '❌ You can only request red,blue,spec players list.'
         ,_ErrorNoOne: '❌ There\'s no one.'
         ,whoisList: '📜 {whoisResult}'
+    }
+    ,listroles: {
+        singleRole: '{playerName} ({playerRole})'
+        ,rolesList: '📜 {rolesList}'
     }
     ,freeze: {
         _ErrorNoPermission : '❌ You are not admin. You can\'t do this command.'

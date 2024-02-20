@@ -24,7 +24,7 @@ export function onPlayerKickedListener(kickedPlayer: PlayerObject, reason: strin
     if (byPlayer !== null && byPlayer.id != 0) {
         placeholderKick.kickerID = byPlayer.id;
         placeholderKick.kickerName = byPlayer.name;
-        const playerRole = window.gameRoom.playerRoles.get(byPlayer.id);
+        const playerRole = window.gameRoom.playerRoles.get(byPlayer.id)!;
         if (!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
             // if the player who acted banning is not s-adm+
             window.gameRoom._room.kickPlayer(byPlayer.id, '', false);

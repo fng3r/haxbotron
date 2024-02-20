@@ -5,9 +5,10 @@ import { Logger } from "../game/controller/Logger";
 import { GameRoomConfig } from "../game/model/Configuration/GameRoomConfig";
 import { Room } from "../game/model/RoomObject/RoomObject";
 import { BanList } from "../game/model/PlayerBan/BanList";
-import {PlayerRole, PlayerStorage} from "../game/model/GameObject/PlayerObject";
+import { PlayerStorage } from "../game/model/GameObject/PlayerObject";
 import {PlayersSet} from "../game/model/GameObject/PlayersSet";
 import ChatActivityMap from "../game/model/ChatActivityMap";
+import {PlayerRole} from "../game/model/PlayerRole/PlayerRole";
 
 declare global {
     interface Window {

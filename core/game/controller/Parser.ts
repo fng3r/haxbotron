@@ -14,6 +14,7 @@ import {cmdStaff} from "./commands/staff";
 import {cmdTeamChat} from "./commands/teamchat";
 import {cmdBb} from "./commands/bb";
 import {cmdSwitch} from "./commands/switch";
+import {cmdListRoles} from "./commands/listroles";
 
 const COMMANDS_PREFIX = '!';
 
@@ -58,6 +59,10 @@ export function executeCommand(byPlayer: PlayerObject, message: string): void {
         case GameCommands.list: {
             const [playerGroup] = commandArgs;
             cmdList(byPlayer, playerGroup)
+            break;
+        }
+        case GameCommands.listroles: {
+            cmdListRoles(byPlayer);
             break;
         }
         case GameCommands.freeze: {

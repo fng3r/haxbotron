@@ -6,7 +6,7 @@ import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 import {extractPlayerIdentifier, isPlayerId, PlayerId} from "../../model/PlayerIdentifier/PlayerIdentifier";
 
 export function cmdMute(byPlayer: PlayerObject, playerIdentifier: string, muteDuration?: number): void {
-    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id);
+    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
         window.gameRoom._room.sendAnnouncement(LangRes.command.mute._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;

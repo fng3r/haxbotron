@@ -17,6 +17,7 @@ const parserLanguage = P.createLanguage({
             lang.bbCommand,
             lang.freezeCommand,
             lang.listCommand,
+            lang.listRolesCommand,
             lang.banCommand,
             lang.bansCommand,
             lang.muteCommand,
@@ -49,6 +50,8 @@ const parserLanguage = P.createLanguage({
         CustomParsers.command(GameCommands.list),
         P.whitespace.then(P.letter.atLeast(1).tie()).or(P.eof)
     ),
+
+    listRolesCommand: _ => CustomParsers.command(GameCommands.listroles),
 
     banCommand: lang => P.seq(
         CustomParsers.command(GameCommands.ban),

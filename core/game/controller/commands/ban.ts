@@ -6,8 +6,8 @@ import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 import {getAllBansFromDB, getPlayerDataFromDB, setBanlistDataToDB} from "../Storage";
 import {extractPlayerIdentifier, isPlayerId, PlayerId} from "../../model/PlayerIdentifier/PlayerIdentifier";
 
-export function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, banDuration?: number): void {
-    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id);
+export async function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, banDuration?: number): Promise<void> {
+    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
         window.gameRoom._room.sendAnnouncement(LangRes.command.mute._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
@@ -30,12 +30,12 @@ export function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, banDura
             const currentTimestamp: number = getUnixTimestamp();
 
             if (banInMinutes === -1) {
-                setBanlistDataToDB({conn: player.conn, auth: player.auth, reason: '', register: currentTimestamp, expire: -1});
+                await setBanlistDataToDB({conn: player.conn, auth: player.auth, reason: '', register: currentTimestamp, expire: -1});
                 window.gameRoom._room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.permanentBan, placeholder), false);
                 window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successPermaBan, placeholder), null, 0x479947, "normal", 1);
             } else {
                 const expirationTimestamp = currentTimestamp + banInMinutes * 60 * 1000;
-                setBanlistDataToDB({
+                await setBanlistDataToDB({
                     conn: player.conn,
                     auth: player.auth,
                     reason: '',

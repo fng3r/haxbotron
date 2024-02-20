@@ -3,7 +3,7 @@ import * as LangRes from "../../resource/strings";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 
 export function cmdFreeze(byPlayer: PlayerObject): void {
-    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id);
+    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id)!;
     if(PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
         if(window.gameRoom.isMuteAll) {
             window.gameRoom.isMuteAll = false; //off
