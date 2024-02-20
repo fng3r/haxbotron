@@ -1,7 +1,7 @@
 import * as Tst from "../Translator";
 import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import {isCommandString, executeCommand, isTeamChatCommand} from "../Parser";
+import {isCommandString, executeCommand, isTeamChatCommand} from "../commands/CommandParser";
 import { getUnixTimestamp } from "../DateTimeUtils";
 import { isIncludeBannedWords } from "../TextFilter";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
