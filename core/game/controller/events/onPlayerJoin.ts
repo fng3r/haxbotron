@@ -83,16 +83,20 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
     let existPlayerData = await getPlayerDataFromDB(player.auth);
     if (existPlayerData !== undefined) {
         // if this player is existing player (not new player)
-        window.gameRoom.playerList.set(player.id, new Player(player, {
+        window.gameRoom.playerList.set(player.id, new Player(
+            player,
+            existPlayerData.nicknames.concat(player.name),
+            {
             mute: existPlayerData.mute,
             muteExpire: existPlayerData.muteExpire,
             malActCount: existPlayerData.malActCount,
-        }, {
-            rejoinCount: existPlayerData.rejoinCount,
-            joinDate: joinTimeStamp,
-            leftDate: existPlayerData.leftDate,
-            matchEntryTime: 0
-        }));
+            },
+            {
+                rejoinCount: existPlayerData.rejoinCount,
+                joinDate: joinTimeStamp,
+                leftDate: existPlayerData.leftDate,
+                matchEntryTime: 0,
+            }));
 
         if (player.name != existPlayerData.name) {
             // if this player changed his/her name
@@ -103,7 +107,7 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
     } else {
         // if new player
         // create a Player Object
-        window.gameRoom.playerList.set(player.id, new Player(player, {
+        window.gameRoom.playerList.set(player.id, new Player(player, [player.name], {
             mute: false,
             muteExpire: 0,
             malActCount: 0,

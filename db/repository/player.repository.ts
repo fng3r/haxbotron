@@ -3,6 +3,8 @@ import { IRepository } from './repository.interface';
 import { Player } from '../entity/player.entity';
 import { PlayerModel } from '../model/PlayerModel';
 
+const NICKNAMES_SEPARATOR = ';;';
+
 export class PlayerRepository implements IRepository<Player> {
     public async findAll(ruid: string, pagination?: {start: number, count: number}): Promise<Player[]> {
         const repository: Repository<Player> = getRepository(Player);
@@ -37,6 +39,7 @@ export class PlayerRepository implements IRepository<Player> {
             newPlayer.rejoinCount = player.rejoinCount;
             newPlayer.joinDate = player.joinDate;
             newPlayer.leftDate = player.leftDate;
+            newPlayer.nicknames = player.nicknames;
             newPlayer.malActCount = player.malActCount;
         } else {
             throw new Error('Such player is exist already.');
@@ -57,6 +60,7 @@ export class PlayerRepository implements IRepository<Player> {
             newPlayer.rejoinCount = player.rejoinCount;
             newPlayer.joinDate = player.joinDate;
             newPlayer.leftDate = player.leftDate;
+            newPlayer.nicknames = player.nicknames;
             newPlayer.malActCount = player.malActCount;
         } else {
             throw new Error('Such player is not found.');

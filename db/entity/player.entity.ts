@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import {Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable} from "typeorm";
 
 @Entity()
 export class Player {
@@ -30,8 +30,20 @@ export class Player {
     joinDate!: number;
 
     @Column()
-    leftDate!: number; 
+    leftDate!: number;
+
+    @Column("simple-array", {nullable: true})
+    nicknames!: string[];
 
     @Column()
     malActCount!: number; 
+}
+
+@Entity()
+export class PlayerNickname {
+    @PrimaryGeneratedColumn()
+    uid!: number;
+
+    @Column()
+    nickname!: string
 }

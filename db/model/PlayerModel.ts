@@ -7,5 +7,6 @@ export interface PlayerModel {
     rejoinCount: number;
     joinDate: number;
     leftDate: number;
+    nicknames: string[];
     malActCount: number;
 }

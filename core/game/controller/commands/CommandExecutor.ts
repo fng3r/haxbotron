@@ -13,6 +13,7 @@ import {cmdSetPassword} from "./setpassword";
 import {cmdStaff} from "./staff";
 import {cmdSwitch} from "./switch";
 import {cmdTeamChat} from "./teamchat";
+import {cmdDeanon} from "./deanon";
 
 export class CommandExecutor {
     private readonly _commandHandlers: Map<GameCommands, Function>;
@@ -98,6 +99,10 @@ export const commandExecutor = CommandExecutorBuilder.new()
         cmdAuth(byPlayer, playerId);
     })
     .addCommands(GameCommands.bb, GameCommands.bbAlt, LangRes.command.helpman.bb, (byPlayer) => cmdBb(byPlayer))
+    .addCommand(GameCommands.deanon, LangRes.command.helpman.deanon, (byPlayer, commandArgs) => {
+        const [playerId] = commandArgs;
+        cmdDeanon(byPlayer, playerId);
+    })
     .addCommand(GameCommands.list, LangRes.command.helpman.list, (byPlayer, commandArgs) => {
         const [playerGroup] = commandArgs;
         cmdList(byPlayer, playerGroup)

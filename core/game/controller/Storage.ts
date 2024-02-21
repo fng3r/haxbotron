@@ -14,6 +14,7 @@ export function convertToPlayerStorage(player: Player): PlayerStorage {
         rejoinCount: player.entrytime.rejoinCount, // How many rejoins this player has made.
         joinDate: player.entrytime.joinDate, // player join time
         leftDate: player.entrytime.leftDate, // player left time
+        nicknames: Array.from(player.nicknames.values()),
         malActCount: player.permissions.malActCount // count for malicious behaviour like Brute force attack
     }
 }

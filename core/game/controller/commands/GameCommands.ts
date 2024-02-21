@@ -1,6 +1,7 @@
 export enum GameCommands {
     about = 'about',
     auth = 'auth',
+    deanon = 'deanon',
     freeze = 'freeze',
     help = 'help',
     list = 'list',

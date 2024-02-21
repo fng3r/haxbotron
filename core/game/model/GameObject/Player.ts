@@ -39,8 +39,10 @@ export class Player implements PlayerObject {
     // time log for join and left
     entrytime: PlayerEntryTime;
 
-    // init
-    constructor(player: PlayerObject, permissions: PlayerPermissions, entrytime: PlayerEntryTime) {
+    // player's nicknames history
+    nicknames: Set<string>;
+
+    constructor(player: PlayerObject, nicknames: string[], permissions: PlayerPermissions, entrytime: PlayerEntryTime) {
         this.id = player.id;
         this.name = player.name;
         this.auth = player.auth;
@@ -58,5 +60,6 @@ export class Player implements PlayerObject {
         // this.stats = stats;
         this.permissions = permissions;
         this.entrytime = entrytime;
+        this.nicknames = new Set(nicknames || [player.name]);
     }
 }

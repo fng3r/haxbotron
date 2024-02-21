@@ -27,7 +27,7 @@ export const command = {
     _ErrorWrongCommand : '❌ You did wrong command. 📑 !help or !help COMMAND for details.'
     ,_ErrorNoPermission: '❌ You are not admin. You can\'t use this command.'
     ,_ErrorDisabled: '❌ This command is disabled. You can\'t use this command.'
-    ,help: '📑 !about, !auth, !bb, !list, !listroles, !staff\n' +
+    ,help: '📑 !about, !auth, !bb, !deanon, !list, !listroles, !staff\n' +
            '📑 !freeze, !mute, !mutes, !ban, !bans !setpassword, !switch\n' +
            '📑 !help COMMAND for detail. (eg. !help stats).'
     ,helpman: { // detailed description for a command
@@ -36,6 +36,7 @@ export const command = {
         ,about: '📑 !about shows you simple inforamtion of the bot running now.'
         ,auth: '📑 !auth shows player\'s public id (eg: !auth, !auth #12)'
         ,bb: '📑 !bb to leave the room'
+        ,deanon: '📑 !deanon #ID shows player\'s nicknames history (eg: !deanon #12)'
         ,list: '📑 !list red/blue/spec shows you all players list of that type.'
         ,listroles: '📑 !listroles shows roles of players in the room.'
         ,freeze: '📑 !freeze mutes or unmutes all players.'
@@ -54,6 +55,10 @@ export const command = {
     ,auth: {
         _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by command !list red,blue,spec,mute'
         ,playerAuth: `📄 {playerName}#{playerID} public id: {playerAuth}`
+    }
+    ,deanon: {
+        _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by command !list red,blue,spec,mute'
+        ,playerNicknames: `📄 {playerName}#{playerID} nicknames: {nicknamesList}`
     }
     ,mute: {
         _ErrorNoPermission: '❌ You are not admin. You can\'t do this command.'

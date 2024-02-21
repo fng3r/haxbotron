@@ -67,5 +67,6 @@ export interface PlayerStorage {
     rejoinCount: number; // How many rejoins this player has made.
     joinDate: number; // player join time
     leftDate: number; // player left time
+    nicknames: string[];
     malActCount: number; // count for malicious behaviour like Brute force attack
 }

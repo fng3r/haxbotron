@@ -175,6 +175,7 @@ export async function readPlayerDB(ruid: string, playerAuth: string): Promise<Pl
                 rejoinCount: result.data.rejoinCount,
                 joinDate: result.data.joinDate,
                 leftDate: result.data.leftDate,
+                nicknames: result.data.nicknames,
                 malActCount: result.data.malActCount
             }
             winstonLogger.info(`${result.status} Succeed on readPlayerDB: Read. auth(${playerAuth})`);

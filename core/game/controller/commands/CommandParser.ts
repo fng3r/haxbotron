@@ -1,9 +1,9 @@
 import * as LangRes from "../../resource/strings";
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
+import {PlayerObject} from "../../model/GameObject/PlayerObject";
 import {GameCommands} from "./GameCommands";
 import {commandExecutor} from "./CommandExecutor";
-import {Parser} from "parsimmon";
 import * as P from "parsimmon";
+import {Parser} from "parsimmon";
 
 const COMMANDS_PREFIX = '!';
 
@@ -20,6 +20,7 @@ const parserLanguage = P.createLanguage({
             lang.aboutCommand,
             lang.authCommand,
             lang.bbCommand,
+            lang.deanonCommand,
             lang.freezeCommand,
             lang.listCommand,
             lang.listRolesCommand,
@@ -43,6 +44,11 @@ const parserLanguage = P.createLanguage({
     ),
 
     bbCommand: _ => customParsers.command(GameCommands.bb).or(customParsers.command(GameCommands.bbAlt)),
+
+    deanonCommand: lang => P.seq(
+        customParsers.command(GameCommands.deanon),
+        P.whitespace.then(lang.playerIdNumber)
+    ),
 
     helpCommand: _ => P.seq(
         customParsers.command(GameCommands.help),

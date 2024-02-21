@@ -9,6 +9,7 @@ export const playerModelSchema = Joi.object().keys({
     ,rejoinCount: Joi.number().required()
     ,joinDate: Joi.number().required()
     ,leftDate: Joi.number().required()
+    ,nicknames: Joi.array()
     ,malActCount: Joi.number().required()
 });
 
