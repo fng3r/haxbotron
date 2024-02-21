@@ -14,6 +14,7 @@ import {cmdStaff} from "./staff";
 import {cmdSwitch} from "./switch";
 import {cmdTeamChat} from "./teamchat";
 import {cmdDeanon} from "./deanon";
+import {cmdMap} from "./map";
 
 export class CommandExecutor {
     private readonly _commandHandlers: Map<GameCommands, Function>;
@@ -108,6 +109,10 @@ export const commandExecutor = CommandExecutorBuilder.new()
         cmdList(byPlayer, playerGroup)
     })
     .addCommand(GameCommands.listroles, LangRes.command.helpman.listroles, (byPlayer) => cmdListRoles(byPlayer))
+    .addCommand(GameCommands.map, LangRes.command.helpman.map, (byPlayer, commandArgs) => {
+        const [mapName] = commandArgs;
+        cmdMap(byPlayer, mapName);
+    })
     .addCommand(GameCommands.freeze, LangRes.command.helpman.freeze, (byPlayer) => cmdFreeze(byPlayer))
     .addCommand(GameCommands.mute, LangRes.command.helpman.mute, (byPlayer, commandArgs) => {
         const [playerIdentifier, muteDuration] = commandArgs;

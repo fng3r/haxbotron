@@ -27,28 +27,31 @@ export const command = {
     _ErrorWrongCommand : '❌ You did wrong command. 📑 !help or !help COMMAND for details.'
     ,_ErrorNoPermission: '❌ You are not admin. You can\'t use this command.'
     ,_ErrorDisabled: '❌ This command is disabled. You can\'t use this command.'
-    ,help: '📑 !about, !auth, !bb, !deanon, !list, !listroles, !staff\n' +
+    ,help: '📑 !about, !auth, !bb, !deanon, !list, !listroles, !map, !staff\n' +
            '📑 !freeze, !mute, !mutes, !ban, !bans !setpassword, !switch\n' +
            '📑 !help COMMAND for detail. (eg. !help stats).'
     ,helpman: { // detailed description for a command
         _ErrorWrongCommand : '❌ This command is unknown or disabled.'
-        ,help: '📑 !help COMMAND shows you how to use COMMAND command.'
-        ,about: '📑 !about shows you simple inforamtion of the bot running now.'
-        ,auth: '📑 !auth shows player\'s public id (eg: !auth, !auth #12)'
+        ,help: '📑 !help COMMAND - shows you how to use COMMAND command.'
+        ,about: '📑 !about - shows you simple inforamtion of the bot running now.'
+        ,auth: '📑 !auth - shows player\'s public id (eg: !auth, !auth #12)'
         ,bb: '📑 !bb to leave the room'
-        ,deanon: '📑 !deanon #ID shows player\'s nicknames history (eg: !deanon #12)'
-        ,list: '📑 !list red/blue/spec shows you all players list of that type.'
-        ,listroles: '📑 !listroles shows roles of players in the room.'
-        ,freeze: '📑 !freeze mutes or unmutes all players.'
-        ,mute: '📑 !mute #ID time(in minutes): prohibits the player whose id is ID to chat for specified time (permanently if not specified). Or unmute if the player is already muted. (eg: !mute #12 5)\n' +
+        ,deanon: '📑 !deanon #ID - shows player\'s nicknames history (eg: !deanon #12)'
+        ,list: '📑 !list red/blue/spec - shows you all players list of that type.'
+        ,listroles: '📑 !listroles - shows roles of players in the room.'
+        ,freeze: '📑 !freeze - mutes or unmutes all players.'
+        ,map: '📑 !map NAME - sets stadium to NAME map. Available maps:\n' +
+            '📑 big, bigeasy, classic, gbhotclassic, gbhotbig, realsoccer\n' +
+            '📑 futsal1v1, futsal4v4, bff4v4, icebear, 6man'
+        ,mute: '📑 !mute #ID time(in minutes) - prohibits the player whose id is ID to chat for specified time (permanently if not specified). Or unmute if the player is already muted. (eg: !mute #12 5)\n' +
             '📑 You can check IDs by command !list'
-        ,mutes: '📑 !mutes shows muted players'
-        ,ban: '📑 !ban #ID time(in minutes): ban the player for specified time (permanently if not specified). (eg: !ban #12 5). Or unban if the player is already banned.\n' +
+        ,mutes: '📑 !mutes - shows muted players'
+        ,ban: '📑 !ban #ID time(in minutes) - bans the player for specified time (permanently if not specified). (eg: !ban #12 5). Or unban if the player is already banned.\n' +
             '📑 You can check IDs by command !list'
-        ,bans: '📑 !bans shows banned players'
-        ,setpassword: '📑 !setpassword sets or resets room password. (eg: !setpassword 2552 | !setpassword - to reset)'
-        ,staff: '📑 !staff shows staff player in the room.'
-        ,switch: '📑 !switch switches teams.'
+        ,bans: '📑 !bans - shows banned players'
+        ,setpassword: '📑 !setpassword - sets or resets room password. (eg: !setpassword 2552 | !setpassword - to reset)'
+        ,staff: '📑 !staff - shows staff player in the room.'
+        ,switch: '📑 !switch - switches teams.'
 
     } 
     ,about: '📄 {RoomName} ({_LaunchTime})'
@@ -59,6 +62,11 @@ export const command = {
     ,deanon: {
         _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by command !list red,blue,spec,mute'
         ,playerNicknames: `📄 {playerName}#{playerID} nicknames: {nicknamesList}`
+    }
+    ,map: {
+        _ErrorNoPermission: '❌ You are not admin. You can\'t do this command.'
+        ,_ErrorNoMap: '❌ Unknown map name. 📑 You can check available maps by command !help map'
+        ,_ErrorGameStartedAlready: '❌ Can\'t change map during the game'
     }
     ,mute: {
         _ErrorNoPermission: '❌ You are not admin. You can\'t do this command.'
@@ -156,7 +164,7 @@ export const onKick = {
 }
 
 export const onStadium = {
-    loadNewStadium: '📁 {stadiumName} has been loaded by {playerName}.'
+    loadNewStadium: '📁 {stadiumName} has been loaded by {playerName}#{playerID}.'
     ,setDefaultStadium: '📁 {stadiumName} has been loaded automatically.'
     ,cannotChange: '🚫 You can\'t change the stadium.'
 }

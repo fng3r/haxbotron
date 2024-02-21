@@ -6,6 +6,7 @@ export enum GameCommands {
     help = 'help',
     list = 'list',
     listroles = 'listroles',
+    map = 'map',
     mute = 'mute',
     mutes = 'mutes',
     ban = 'ban',

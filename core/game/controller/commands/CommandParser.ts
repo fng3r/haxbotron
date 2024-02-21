@@ -24,6 +24,7 @@ const parserLanguage = P.createLanguage({
             lang.freezeCommand,
             lang.listCommand,
             lang.listRolesCommand,
+            lang.mapCommand,
             lang.banCommand,
             lang.bansCommand,
             lang.muteCommand,
@@ -63,6 +64,11 @@ const parserLanguage = P.createLanguage({
     ),
 
     listRolesCommand: _ => customParsers.command(GameCommands.listroles),
+
+    mapCommand: _ => P.seq(
+        customParsers.command(GameCommands.map),
+        P.whitespace.then(P.regex(/\S+/))
+    ),
 
     banCommand: lang => P.seq(
         customParsers.command(GameCommands.ban),

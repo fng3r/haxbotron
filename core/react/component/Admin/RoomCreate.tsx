@@ -12,12 +12,13 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import * as DefaultConfigSet from "../../lib/defaultroomconfig.json";
 import { useHistory } from 'react-router-dom';
-import { Divider, IconButton, Switch } from '@material-ui/core';
+import { Divider, IconButton, Switch, Tooltip } from '@material-ui/core';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import client from '../../lib/client';
 import Alert, { AlertColor } from '../common/Alert';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import { isNumber } from '../../lib/numcheck';
+import {LiveHelp} from "@material-ui/icons";
 
 interface styleClass {
     styleClass: any
@@ -384,7 +385,12 @@ export default function RoomCreate({ styleClass }: styleClass) {
                                         />
                                     </Grid>
                                     <Grid item xs={4} sm={2}>
-                                        <Button startIcon={<OpenInNewIcon />} type="button" variant="text" color="default" className={classes.submit} onClick={() => window.open('https://github.com/dapucita/haxbotron/wiki/Available-built-in-maps-name-tags', '_blank')}>AVAILABLE MAPS</Button>
+                                        <Tooltip placement="top-start"
+                                                 title="Available maps: big, bigeasy, classic, gbhotclassic, gbhotbig, realsoccer, futsal1v1, futsal4v4, bff4v4, icebear, 6man">
+                                            <IconButton>
+                                                <LiveHelp />
+                                            </IconButton>
+                                        </Tooltip>
                                     </Grid>
                                 </Grid>
                                 <Divider />
