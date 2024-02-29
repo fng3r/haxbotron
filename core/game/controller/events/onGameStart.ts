@@ -2,8 +2,8 @@ import { PlayerObject } from "../../model/GameObject/PlayerObject";
 
 const DEFAULT_KICKRATE = {
     min: 6,
-    burst: 12,
-    rate: 4
+    rate: 12,
+    burst: 4
 }
 
 export function onGameStartListener(byPlayer: PlayerObject | null): void {

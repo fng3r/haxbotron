@@ -32,7 +32,7 @@ export class Player {
     @Column()
     leftDate!: number;
 
-    @Column("simple-array", {nullable: true})
+    @Column("simple-array", {default: ""})
     nicknames!: string[];
 
     @Column()
