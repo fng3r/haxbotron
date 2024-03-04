@@ -15,6 +15,7 @@ import {cmdSwitch} from "./switch";
 import {cmdTeamChat} from "./teamchat";
 import {cmdDeanon} from "./deanon";
 import {cmdMap} from "./map";
+import {buildHelpCommand} from "./help";
 
 export class CommandExecutor {
     private readonly _commandHandlers: Map<GameCommands, Function>;
@@ -72,20 +73,7 @@ export class CommandExecutorBuilder {
     }
 
     private addHelpCommand(helpMessages: Map<string, string>): void {
-        function cmdHelp(byPlayer: PlayerObject, command?: string): void {
-            if (command === undefined || command === null) {
-                window.gameRoom._room.sendAnnouncement(LangRes.command.help, byPlayer.id, 0x479947, "normal", 1);
-                return;
-            }
-
-            if (helpMessages.has(command)) {
-                const commandHelp = helpMessages.get(command)!;
-                window.gameRoom._room.sendAnnouncement(commandHelp, byPlayer.id, 0x479947, "normal", 1);
-            } else {
-                window.gameRoom._room.sendAnnouncement(LangRes.command.helpman._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
-            }
-        }
-
+        const cmdHelp = buildHelpCommand(helpMessages);
         this.addCommand(GameCommands.help, LangRes.command.helpman.help, (byPlayer, commandArgs) => {
             const [command] = commandArgs;
             cmdHelp(byPlayer, command);
