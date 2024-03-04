@@ -77,7 +77,7 @@ export class PlayerRoleController {
                 ctx.status = 204;
             })
             .catch((error) => {
-                console.error(error)
+                console.error(error);
                 ctx.status = 409;
                 ctx.body = {error: error.message};
             });
@@ -90,7 +90,7 @@ export class PlayerRoleController {
         return this._repository
             .set(auth, name as string, role as string)
             .then((player) => {
-                ctx.status = 200;
+                ctx.status = 204;
                 ctx.body = player;
             })
             .catch((error) => {

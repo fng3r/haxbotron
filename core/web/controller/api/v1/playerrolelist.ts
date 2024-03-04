@@ -44,12 +44,30 @@ export async function getAllList(ctx: Context) {
     }
 }
 
-export async function setPlayerRole(ctx: Context) {
+export async function addPlayerRole(ctx: Context) {
     const { auth } = ctx.params;
     const { name, role } = ctx.query;
 
     try {
         await client.post(`${dbConnAddr}player-roles/${auth}?name=${name}&role=${role}`)
+            .then((response) => {
+            })
+            .catch((error) => {
+                throw(error.response.status || 500);
+            });
+
+        ctx.status = 204;
+    } catch (error) {
+        ctx.status = error;
+    }
+}
+
+export async function updatePlayerRole(ctx: Context) {
+    const { auth } = ctx.params;
+    const { name, role } = ctx.query;
+
+    try {
+        await client.put(`${dbConnAddr}player-roles/${auth}?name=${name}&role=${role}`)
             .then((response) => {
             })
             .catch((error) => {

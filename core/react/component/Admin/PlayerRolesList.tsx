@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, {ChangeEvent, useContext, useEffect, useState} from 'react';
 import clsx from 'clsx';
 import Box from '@material-ui/core/Box';
 import Container from '@material-ui/core/Container';
@@ -12,7 +12,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Title from './common/Widget.Title';
 import client from '../../lib/client';
-import { Button, Collapse, Divider, IconButton, makeStyles, TextField, Typography } from '@material-ui/core';
+import {Button, IconButton, makeStyles, MenuItem, Select, TextField, Typography} from '@material-ui/core';
 import Alert, { AlertColor } from '../common/Alert';
 import { isNumber } from '../../lib/numcheck';
 import BackspaceIcon from "@material-ui/icons/Backspace";
@@ -20,12 +20,6 @@ import BackspaceIcon from "@material-ui/icons/Backspace";
 
 interface styleClass {
     styleClass: any
-}
-
-interface rolesListItem {
-    auth: string
-    name: string,
-    role: string
 }
 
 interface newRoleFields {
@@ -65,10 +59,20 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
     const [playerRolesList, setPlayerRolesList] = useState([] as PlayerRole[]);
     const [newRole, setNewRole] = useState({ auth: '', name: '', role: 'player' } as newRoleFields);
 
+    const showAlert = (status: AlertColor, message: string, hideAfter: number | null = 3000) => {
+        setFlashMessage(message);
+        setAlertStatus(status);
+        if (hideAfter !== null) {
+            setTimeout(() => {
+                setFlashMessage('');
+            }, hideAfter);
+        }
+    }
+
     const onClickPaging = (move: number) => {
         if (pagingOrder + move >= 1) {
             setPagingOrder(pagingOrder + move);
-            getPlayerRolesList(pagingOrder + move);
+            getPlayersRoles(pagingOrder + move);
         }
     }
 
@@ -87,7 +91,7 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
         const query = e.target.value;
         setSearchQuery(query);
 
-        getPlayerRolesList(pagingOrder, query)
+        getPlayersRoles(pagingOrder, query)
     }
 
     const onChangeNewRole = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +104,7 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
         });
     }
 
-    const getPlayerRolesList = async (page: number, searchQuery: string = '') => {
+    const getPlayersRoles = async (page: number, searchQuery: string = '') => {
         const index: number = (page - 1) * pagingCount;
         try {
             const result = await client.get(`/api/v1/roleslist?searchQuery=${searchQuery}&start=${index}&count=${pagingCount}`);
@@ -110,8 +114,7 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                 setPlayerRolesList(playerRoles);
             }
         } catch (e) {
-            setFlashMessage('Failed to load roles list.');
-            setAlertStatus('error');
+            showAlert('error', 'Failed to load roles list.', null);
         }
     }
 
@@ -120,47 +123,55 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
         try {
             const result = await client.post(`/api/v1/roleslist/${newRole.auth}?name=${newRole.name}&role=${newRole.role}`);
             if (result.status === 204) {
-                setFlashMessage('Successfully added new role.');
-                setAlertStatus('success');
                 setNewRole({ auth: '', name: '', role: 'player' });
-                setTimeout(() => {
-                    setFlashMessage('');
-                }, 3000);
+                showAlert('success', 'Successfully added new role.');
             }
         } catch (error) {
             //error.response.status
-            setFlashMessage('Failed to add new role.');
-            setAlertStatus('error');
-            setTimeout(() => {
-                setFlashMessage('');
-            }, 3000);
+            if (error.response.status === 409) {
+                showAlert('error', `Player '${newRole.name}' with public id '${newRole.auth}' already added`);
+            } else {
+                showAlert('error', 'Failed to add new role.');
+            }
         }
-        getPlayerRolesList(pagingOrder);
+        getPlayersRoles(pagingOrder);
+    }
+
+    const updateRole = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, playerIndex: number) => {
+        const {  value: role } = e.target;
+        const selectedRole = playerRolesList[playerIndex];
+        try {
+            const result = await client.put(`/api/v1/roleslist/${selectedRole.auth}?name=${selectedRole.name}&role=${role}`);
+            if (result.status === 204) {
+                showAlert('success', `Successfully updated '${selectedRole.name}' role.`);
+                setPlayerRolesList(playerRolesList.map(
+                    (playerRole: PlayerRole, i: number) => {
+                        if (i === playerIndex)
+                            return {...playerRolesList[playerIndex], role: role}
+
+                        return playerRole
+                    })
+                );
+            }
+        } catch (error) {
+            showAlert('error', 'Failed to update player role.');
+        }
     }
 
     const deleteRole = async (auth: string) => {
         try {
             const result = await client.delete(`/api/v1/roleslist/${auth}`);
             if (result.status === 204) {
-                setFlashMessage('Successfully deleted role.');
-                setAlertStatus('success');
-                setTimeout(() => {
-                    setFlashMessage('');
-                }, 3000);
+                showAlert('success', 'Successfully deleted role.');
             }
         } catch (error) {
-            //error.response.status
-            setFlashMessage('Failed to delete player role.');
-            setTimeout(() => {
-                setFlashMessage('');
-                setAlertStatus('error');
-            }, 3000);
+            showAlert('error', 'Failed to delete player role.');
         }
-        getPlayerRolesList(pagingOrder);
+        getPlayersRoles(pagingOrder);
     }
 
     useEffect(() => {
-        getPlayerRolesList(1);
+        getPlayersRoles(1);
 
         return (() => {
             setPlayerRolesList([]);
@@ -184,12 +195,17 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                                         />
                                         <TextField
                                             variant="outlined" margin="normal" required size="small" value={newRole.auth} onChange={onChangeNewRole}
-                                            id="auth" label="Public id" name="auth"
+                                            id="auth" label="Public id" name="auth" style={{width: 450}}
                                         />
                                         <TextField
                                             variant="outlined" margin="normal" required size="small" value={newRole.role} onChange={onChangeNewRole}
-                                            id="role" label="Role" name="role"
-                                        />
+                                            id="role" label="Role" name="role" select>
+                                            <MenuItem value="player">player</MenuItem>
+                                            <MenuItem value="adm">adm</MenuItem>
+                                            <MenuItem value="s-adm">s-adm</MenuItem>
+                                            <MenuItem value="co-host">co-host</MenuItem>
+                                            <MenuItem value="bad">bad</MenuItem>
+                                        </TextField>
                                         <Button size="small" type="submit" variant="contained" color="primary" className={classes.submit}>Add</Button>
                                     </Grid>
                                 </form>
@@ -228,10 +244,10 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                                 <Table size="small">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Name</TableCell>
-                                            <TableCell>Public id</TableCell>
-                                            <TableCell>Role</TableCell>
-                                            <TableCell align="right"></TableCell>
+                                            <TableCell width="20%">Name</TableCell>
+                                            <TableCell width="35%">Public id</TableCell>
+                                            <TableCell width="10%">Role</TableCell>
+                                            <TableCell></TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -239,10 +255,19 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                                             // <PlayerRoleRow key={idx} idx={idx} row={item} />
                                             <React.Fragment>
                                                 <TableRow className={rowStyles.root}>
-                                                    <TableCell component="th" scope="row">{item.name}</TableCell>
-                                                    <TableCell>{item.auth}</TableCell>
-                                                    <TableCell>{item.role}</TableCell>
-                                                    <TableCell align="right">
+                                                    <TableCell width="20%" component="th" scope="row">{item.name}</TableCell>
+                                                    <TableCell width="35%">{item.auth}</TableCell>
+                                                    <TableCell width="5%">
+                                                        <TextField variant="outlined" margin="normal" required size="small" value={item.role} onChange={e => updateRole(e, idx)}
+                                                                   id="role" name="role" select>
+                                                            <MenuItem value="player">player</MenuItem>
+                                                            <MenuItem value="adm">adm</MenuItem>
+                                                            <MenuItem value="s-adm">s-adm</MenuItem>
+                                                            <MenuItem value="co-host">co-host</MenuItem>
+                                                            <MenuItem value="bad">bad</MenuItem>
+                                                        </TextField>
+                                                    </TableCell>
+                                                    <TableCell align="left">
                                                         <IconButton name={item.auth} onClick={() => deleteRole(item.auth)} aria-label="delete">
                                                             <BackspaceIcon fontSize="small" />
                                                         </IconButton>
