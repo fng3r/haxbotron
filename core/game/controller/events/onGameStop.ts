@@ -23,6 +23,9 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
         placeholderStop.playerName = byPlayer.name;
     }
 
+    const stats = window.gameRoom.matchStats;
+    window.gameRoom.logger.i('onGameStop', JSON.stringify(stats));
+
     window.gameRoom.isGamingNow = false; // turn off
 
     let msg = "The game has been stopped.";
@@ -43,15 +46,10 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     
     if(replay && window.gameRoom.social.discordWebhook.feed && window.gameRoom.social.discordWebhook.replayUpload && window.gameRoom.social.discordWebhook.replaysWebhookId && window.gameRoom.social.discordWebhook.replaysWebhookToken) {
         const roomId = window.gameRoom.config._RUID;
-        const replayDate = moment(Date.now()).format('DD-MM-YYTHH-mm-ss');
-        const placeholder = {
-            roomId: roomId
-            ,replayDate: replayDate
-        };
 
         window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.replaysWebhookId, window.gameRoom.social.discordWebhook.replaysWebhookToken, "replay", {
-            message: Tst.maketext(LangRes.onStop.feedSocialDiscordWebhook.replayMessage, placeholder)
-            ,filename: `${roomId}_${replayDate}.hbr2`
+            roomId: window.gameRoom.config._RUID
+            ,matchStats: window.gameRoom.matchStats
             ,data: JSON.stringify(Array.from(replay))
         });
     }

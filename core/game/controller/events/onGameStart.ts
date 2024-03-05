@@ -1,4 +1,5 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
+import {PlayerObject} from "../../model/GameObject/PlayerObject";
+import {TeamID} from "../../model/GameObject/TeamID";
 
 const DEFAULT_KICKRATE = {
     min: 6,
@@ -23,7 +24,18 @@ export function onGameStartListener(byPlayer: PlayerObject | null): void {
         msg += `(by ${byPlayer.name}#${byPlayer.id})`;
     }
 
-    window.gameRoom._room.setKickRateLimit(DEFAULT_KICKRATE.min, DEFAULT_KICKRATE.rate, DEFAULT_KICKRATE.burst)
+    window.gameRoom._room.setKickRateLimit(DEFAULT_KICKRATE.min, DEFAULT_KICKRATE.rate, DEFAULT_KICKRATE.burst);
+
+    window.gameRoom.matchStats.startedAt = Date.now()
+    window.gameRoom.matchStats.scores = {
+        red: 0,
+        blue: 0,
+        time: 0
+    };
+    window.gameRoom.matchStats.startingLineup = {
+        red: window.gameRoom._room.getPlayerList().filter(p => p.team === TeamID.Red),
+        blue: window.gameRoom._room.getPlayerList().filter(p => p.team === TeamID.Blue)
+    }
 
     // replay record start
     window.gameRoom._room.startRecording();
