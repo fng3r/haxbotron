@@ -46,10 +46,10 @@ export async function getAllList(ctx: Context) {
 
 export async function addPlayerRole(ctx: Context) {
     const { auth } = ctx.params;
-    const { name, role } = ctx.query;
+    const { name, role } = ctx.request.body;
 
     try {
-        await client.post(`${dbConnAddr}player-roles/${auth}?name=${name}&role=${role}`)
+        await client.post(`${dbConnAddr}player-roles/${auth}`, {name, role})
             .then((response) => {
             })
             .catch((error) => {
@@ -64,10 +64,10 @@ export async function addPlayerRole(ctx: Context) {
 
 export async function updatePlayerRole(ctx: Context) {
     const { auth } = ctx.params;
-    const { name, role } = ctx.query;
+    const { name, role } = ctx.request.body;
 
     try {
-        await client.put(`${dbConnAddr}player-roles/${auth}?name=${name}&role=${role}`)
+        await client.put(`${dbConnAddr}player-roles/${auth}`, {name, role})
             .then((response) => {
             })
             .catch((error) => {
