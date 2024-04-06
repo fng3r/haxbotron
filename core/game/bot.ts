@@ -84,7 +84,7 @@ makeRoom();
 // set scheduling timers
 
 const advertisementTimer = setInterval(() => {
-    window.gameRoom._room.sendAnnouncement(LangRes.scheduler.advertise, null, 0x777777, "normal", 0); // advertisement
+    window.gameRoom._room.sendAnnouncement(LangRes.scheduler.advertise, null, 0xF4F4F4, "normal", 0); // advertisement
 }, 600_000); // 10 mins
 
 const autoUnmuteTimer = setInterval(() => {
