@@ -6,8 +6,10 @@ import * as dbUtilityInject from "./db.injection";
 import { loadStadiumData } from "./stadiumLoader";
 import { Server as SIOserver, } from "socket.io";
 import { TeamID } from "../game/model/GameObject/TeamID";
-import Discord from 'discord.js';
+import Discord, {MessageEmbed} from 'discord.js';
 import { DiscordWebhookConfig } from "./browser.interface";
+import moment from "moment";
+import {PlayerObject} from "../game/model/GameObject/PlayerObject";
 
 function typedArrayToBuffer(array: Uint8Array): ArrayBuffer {
     return array.buffer.slice(array.byteOffset, array.byteLength + array.byteOffset)
@@ -183,13 +185,41 @@ export class HeadlessBrowser {
 
             switch (event.type as string) {
                 case "replay": {
+                    const {roomId, matchStats} = event.content;
+                    const matchDuration = moment.duration(matchStats.scores.time, 'seconds');
+                    const matchDurationString = `${matchDuration.minutes().toString().padStart(2, '0')}:${matchDuration.seconds().toString().padStart(2, '0')}`;
+                    const matchScoreString = `🔴 Red Team ${matchStats.scores.red}:${matchStats.scores.blue} Blue Team 🔵\n​`;
+                    const matchStartString = moment(matchStats.startedAt).format('DD.MM.YY HH:mm:ss');
+
                     const bufferData = Buffer.from(JSON.parse(event.content.data));
-                    const attachment = new Discord.MessageAttachment(
-                        bufferData
-                        ,event.content.filename);
-                    webhookClient.send(event.content.message, {
-                        files: [attachment],
-                    });
+                    const replayDateString = moment(matchStats.startedAt).format('DD-MM-YYTHH-mm-ss');
+                    const filename = `${roomId}_${replayDateString}.hbr2`;
+                    const attachment = new Discord.MessageAttachment(bufferData, filename);
+
+                    const embed = new Discord.MessageEmbed();
+                    embed.setColor('WHITE');
+                    embed.setAuthor('CIS-HAXBALL', 'https://www.cis-haxball.com/static/img/logo_try.png', 'https://www.cis-haxball.com/')
+                    embed.setThumbnail('https://www.cis-haxball.com/static/img/logo_try.png')
+                    embed.setTitle(`${roomId} | ${matchStartString}`);
+                    embed.setDescription(`[${matchDurationString}]  ${matchScoreString}\n`);
+                    embed.addFields([
+                        {
+                            name: '🔴\t\tRed Team\t\t\t\n-----------------------',
+                            value: matchStats.startingLineup.red.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
+                            inline: true
+                        },
+                        {
+                            name: '🔵\t\tBlue Team\t\t\t\n-----------------------',
+                            value: matchStats.startingLineup.blue.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
+                            inline: true
+                        }
+                    ]);
+                    embed.addField(' ', '-------------------------------------------------');
+                    embed.setFooter(`Replay: ${filename}`);
+                    embed.setTimestamp(moment.now());
+
+                    webhookClient.send({embeds: [embed]});
+                    webhookClient.send({files: [attachment]});
                     break;
                 }
                 case "password": {

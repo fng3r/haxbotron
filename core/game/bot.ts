@@ -41,6 +41,18 @@ window.gameRoom = {
         red: { angle: 0, textColour: 0xffffff, teamColour1: 0xe66e55, teamColour2: 0xe66e55, teamColour3: 0xe66e55 }
         ,blue: { angle: 0, textColour: 0xffffff, teamColour1: 0x5a89e5, teamColour2: 0x5a89e5, teamColour3: 0x5a89e5 }
     }
+    ,matchStats: {
+        startedAt: Date.now(),
+        startingLineup: {
+            red: [],
+            blue: []
+        },
+        scores: {
+            red: 0,
+            blue: 0,
+            time: 0
+        }
+    }
     ,logger: Logger.getInstance()
     ,adminPassword: generateRandomString()
     ,isGamingNow: false
@@ -72,7 +84,7 @@ makeRoom();
 // set scheduling timers
 
 const advertisementTimer = setInterval(() => {
-    window.gameRoom._room.sendAnnouncement(LangRes.scheduler.advertise, null, 0x777777, "normal", 0); // advertisement
+    window.gameRoom._room.sendAnnouncement(LangRes.scheduler.advertise, null, 0xF4F4F4, "normal", 0); // advertisement
 }, 600_000); // 10 mins
 
 const autoUnmuteTimer = setInterval(() => {
@@ -142,6 +154,7 @@ function makeRoom(): void {
     window.gameRoom._room.onGameStop = (byPlayer: PlayerObject): void => eventListener.onGameStopListener(byPlayer);
     window.gameRoom._room.onPlayerAdminChange = (changedPlayer: PlayerObject, byPlayer: PlayerObject): void => eventListener.onPlayerAdminChangeListener(changedPlayer, byPlayer);
     window.gameRoom._room.onPlayerKicked = (kickedPlayer: PlayerObject, reason: string, ban: boolean, byPlayer: PlayerObject): void => eventListener.onPlayerKickedListener(kickedPlayer, reason, ban, byPlayer);
+    window.gameRoom._room.onGameTick = () => eventListener.onGameTickListener();
     window.gameRoom._room.onGamePause = (byPlayer: PlayerObject): void => eventListener.onGamePauseListener(byPlayer);
     window.gameRoom._room.onGameUnpause = (byPlayer: PlayerObject): void => eventListener.onGameUnpauseListener(byPlayer);
     window.gameRoom._room.onStadiumChange = (newStadiumName: string, byPlayer: PlayerObject): void => eventListener.onStadiumChangeListner(newStadiumName, byPlayer);

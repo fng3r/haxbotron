@@ -69,10 +69,10 @@ export class PlayerRoleController {
 
     public async addPlayerRole(ctx: Context) {
         const {auth} = ctx.params;
-        const {name, role} = ctx.query;
+        const {name, role} = ctx.request.body;
 
         return this._repository
-            .create(auth, name as string, role as string)
+            .create(auth, name, role)
             .then((player) => {
                 ctx.status = 204;
             })
@@ -85,10 +85,10 @@ export class PlayerRoleController {
 
     public async updatePlayerRole(ctx: Context) {
         const {auth} = ctx.params;
-        const {name, role} = ctx.query;
+        const {name, role} = ctx.request.body;
 
         return this._repository
-            .set(auth, name as string, role as string)
+            .set(auth, name, role)
             .then((player) => {
                 ctx.status = 204;
                 ctx.body = player;

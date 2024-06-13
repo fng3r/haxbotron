@@ -2,7 +2,9 @@
 // THE TYPES OF PLACEHOLDER ARE LIMITED BY STRING SET.
 
 export const scheduler = {
-    advertise: '📢 CIS-HAXBALL https://cis-haxball.com/\n💬 Discord https://discord.gg/sTnutdTM'
+    advertise: '📢 CIS-HAXBALL https://cis-haxball.com/\n💬 Discord https://discord.gg/sTnutdTM\n' +
+        '📢 Открыта регистрация на pvp-турнир https://www.cis-haxball.com/post/843/arena-reborn. Успей подать заявку, ' +
+        'чтобы получить шанс проявить себя'
     ,shutdown: '📢 This room will be shutdown soon. Thanks for joinning our game!'
     ,afkKick: '📢 kicked: AFK'
     ,afkCommandTooLongKick: '📢 AFK over 2mins'
@@ -146,7 +148,7 @@ export const onChat = {
 
 export const onStop = {
     feedSocialDiscordWebhook: {
-        replayMessage: '💽 Room: {roomId}, Date: {replayDate}',
+        replayMessage: '[{roomId}] {startedAt}',
         adminPasswordMessage: '🔒 [{roomId}] Admin password was updated. Current admin password is \'{password}\''
     }
 }

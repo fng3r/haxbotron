@@ -121,7 +121,10 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
     const addRole = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         try {
-            const result = await client.post(`/api/v1/roleslist/${newRole.auth}?name=${newRole.name}&role=${newRole.role}`);
+            const result = await client.post(
+                `/api/v1/roleslist/${newRole.auth}`, {
+                    name: newRole.name, role: newRole.role
+                });
             if (result.status === 204) {
                 setNewRole({ auth: '', name: '', role: 'player' });
                 showAlert('success', 'Successfully added new role.');
@@ -138,10 +141,13 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
     }
 
     const updateRole = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, playerIndex: number) => {
-        const {  value: role } = e.target;
+        const { value: role } = e.target;
         const selectedRole = playerRolesList[playerIndex];
         try {
-            const result = await client.put(`/api/v1/roleslist/${selectedRole.auth}?name=${selectedRole.name}&role=${role}`);
+            const result = await client.put(
+                `/api/v1/roleslist/${selectedRole.auth}`, {
+                    name: selectedRole.name, role: role
+                });
             if (result.status === 204) {
                 showAlert('success', `Successfully updated '${selectedRole.name}' role.`);
                 setPlayerRolesList(playerRolesList.map(
