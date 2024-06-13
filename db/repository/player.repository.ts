@@ -3,6 +3,8 @@ import { IRepository } from './repository.interface';
 import { Player } from '../entity/player.entity';
 import { PlayerModel } from '../model/PlayerModel';
 
+const NICKNAMES_SEPARATOR = ';;';
+
 export class PlayerRepository implements IRepository<Player> {
     public async findAll(ruid: string, pagination?: {start: number, count: number}): Promise<Player[]> {
         const repository: Repository<Player> = getRepository(Player);
@@ -32,21 +34,12 @@ export class PlayerRepository implements IRepository<Player> {
             newPlayer.auth = player.auth;
             newPlayer.conn = player.conn;
             newPlayer.name = player.name;
-            newPlayer.rating = player.rating;
-            newPlayer.totals = player.totals;
-            newPlayer.disconns = player.disconns;
-            newPlayer.wins = player.wins;
-            newPlayer.goals = player.goals;
-            newPlayer.assists = player.assists;
-            newPlayer.ogs = player.ogs;
-            newPlayer.losePoints = player.losePoints;
-            newPlayer.balltouch = player.balltouch;
-            newPlayer.passed = player.passed;
             newPlayer.mute = player.mute;
             newPlayer.muteExpire = player.muteExpire;
             newPlayer.rejoinCount = player.rejoinCount;
             newPlayer.joinDate = player.joinDate;
             newPlayer.leftDate = player.leftDate;
+            newPlayer.nicknames = player.nicknames;
             newPlayer.malActCount = player.malActCount;
         } else {
             throw new Error('Such player is exist already.');
@@ -62,21 +55,12 @@ export class PlayerRepository implements IRepository<Player> {
             newPlayer.auth = player.auth;
             newPlayer.conn = player.conn;
             newPlayer.name = player.name;
-            newPlayer.rating = player.rating;
-            newPlayer.totals = player.totals;
-            newPlayer.disconns = player.disconns;
-            newPlayer.wins = player.wins;
-            newPlayer.goals = player.goals;
-            newPlayer.assists = player.assists;
-            newPlayer.ogs = player.ogs;
-            newPlayer.losePoints = player.losePoints;
-            newPlayer.balltouch = player.balltouch;
-            newPlayer.passed = player.passed;
             newPlayer.mute = player.mute;
             newPlayer.muteExpire = player.muteExpire;
             newPlayer.rejoinCount = player.rejoinCount;
             newPlayer.joinDate = player.joinDate;
             newPlayer.leftDate = player.leftDate;
+            newPlayer.nicknames = player.nicknames;
             newPlayer.malActCount = player.malActCount;
         } else {
             throw new Error('Such player is not found.');

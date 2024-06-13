@@ -2,13 +2,13 @@ import { Logger } from "../game/controller/Logger"
 import { RoomConfig } from '../game/model/RoomObject/RoomConfig';
 import { KickStack } from "../game/model/GameObject/BallTrace";
 import { Logger } from "../game/controller/Logger";
-import { AdminKickTrace } from "../game/model/PlayerBan/AdminKickTrace";
-import { Player } from "../game/model/GameObject/Player";
 import { GameRoomConfig } from "../game/model/Configuration/GameRoomConfig";
-import { TeamID } from "../game/model/GameObject/TeamID";
 import { Room } from "../game/model/RoomObject/RoomObject";
 import { BanList } from "../game/model/PlayerBan/BanList";
 import { PlayerStorage } from "../game/model/GameObject/PlayerObject";
+import {PlayersSet} from "../game/model/GameObject/PlayersSet";
+import ChatActivityMap from "../game/model/ChatActivityMap";
+import {PlayerRole} from "../game/model/PlayerRole/PlayerRole";
 
 declare global {
     interface Window {
@@ -23,8 +23,10 @@ declare global {
             social: {
                 discordWebhook: {
                     feed: boolean
-                    id: string
-                    token: string
+                    passwordWebhookId: string
+                    passwordWebhookToken: string
+                    replaysWebhookId: string
+                    replaysWebhookToken: string
                     replayUpload: boolean
                 }
             }
@@ -57,25 +59,15 @@ declare global {
             }
 
             logger: Logger // logger for whole bot application
-
-            isStatRecord: boolean // TRUE means that recording stats now
+            adminPassword: string
             isGamingNow: boolean // is playing now?
             isMuteAll: boolean // is All players muted?
-            playerList: Map<number, Player> // player list (key: player.id, value: Player), usage: playerList.get(player.id).name
+            playerList: PlayersSet // player list (key: player.id, value: Player), usage: playerList.get(player.id).name
+            playerRoles: Map<number, PlayerRole>
 
             ballStack: KickStack // stack for ball tracing
 
-            banVoteCache: number[] // top voted players list, value: player.id
-
-            winningStreak: { // how many wins straight (streak)
-                count: number
-                teamID: TeamID
-            }
-
-            antiTrollingOgFloodCount: number[] // flood counter for OG (player id: number)
-            antiTrollingChatFloodCount: number[] // flood counter for chat. (player id: number)
-            antiInsufficientStartAbusingCount: number[] // ID record for start with insufficient players (player id: number)
-            antiPlayerKickAbusingCount: AdminKickTrace[] // ID and Timestamp record for abusing kick other players (id:number, register date:number)
+            antiTrollingChatFloodMap: ChatActivityMap // map<playerId, chatActivityTimestamp[]>
 
             notice: string // Notice Message
 
@@ -105,16 +97,16 @@ declare global {
         async _updatePlayerDB(ruid: string, player: PlayerStorage): Promise<void>
         async _deletePlayerDB(ruid: string, playerAuth: string): Promise<void>
 
+        async _getPlayerRoleDB(auth: string): Promise<PlayerRole | undefined>
+        async _createPlayerRoleDB(playerRole: PlayerRole): Promise<void>
+        async _setPlayerRoleDB(playerRole: PlayerRole): Promise<void>
+        async _deletePlayerRoleDB(playerRole: PlayerRole): Promise<void>
+
         async _createBanlistDB(ruid: string, banList: BanList): Promise<void>
+        async _getAllBansDB(ruid: string): Promise<BanList[]>
         async _readBanlistDB(ruid: string, playerConn: string): Promise<BanList | undefined>
         async _updateBanlistDB(ruid: string, banList: BanList): Promise<void>
         async _deleteBanlistDB(ruid: string, playerConn: string): Promise<void>
-
-        async _createSuperadminDB(ruid: string, key: string, description: string): Promise<void>
-        async _readSuperadminDB(ruid: string, key: string): Promise<string | undefined>
-        //async updateSuperadminDB is not implemented.
-        async _deleteSuperadminDB(ruid: string, key: string): Promise<void>
-        // ==============================
 
         // ==============================
         // Haxball Headless Initial Methods

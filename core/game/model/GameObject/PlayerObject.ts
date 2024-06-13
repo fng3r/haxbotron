@@ -34,21 +34,6 @@ export interface PlayerMatchRecord { // Temporary stat record for current match
     goals: number; // not contains OGs.
     assists: number; // count for assist goal
     ogs: number; // it means 'own goal' (in Korean, '자책골')
-    losePoints: number; // it means the points this player lost (in Korean, '실점')
-    balltouch: number; // total count of touch(kick) ball
-    passed: number; // total count of pass success
-    factorK: number; // K Factor for HElo rating
-}
-
-export interface PlayerStats {
-    rating: number; // HElo Rating points
-    totals: number; // total games include wins and disconns
-    disconns: number; // disconnected games
-    wins: number; // the game wins
-    goals: number; // not contains OGs.
-    assists: number; // count for assist goal
-    ogs: number; // it means 'own goal' (in Korean, '자책골')
-    losePoints: number; // it means the points this player lost (in Korean, '실점')
     balltouch: number; // total count of touch(kick) ball
     passed: number; // total count of pass success
 }
@@ -61,17 +46,8 @@ export interface PlayerPosition {
 export interface PlayerPermissions {
     mute: boolean; // Is this player muted? If true, his/her messages will ignored.
     muteExpire: number; // expiration date of mute. -1 means Permanent mute.. (unix timestamp)
-    afkmode: boolean; // Is this player away from keyboards? If the player sets afk mode, the value is true. It is not a mean for auto dectecting and kicking afk players.
-    afkreason: string; // the reason why this player is idle(afk) status.
-    afkdate: number; // afk begin time stamp. 0 means no data.
     malActCount: number; // count for malicious behaviour like Brute force attack
-    superadmin: boolean; // Is this player super admin? It doesn't matter whether he/she is an admin.
     // admin permission is already decleared by admin: boolean.
-}
-
-export interface PlayerAfkTrace {
-    exemption: boolean; // deprecated // is this player exempted from detecting and tracing afk players?
-    count: number; // afk detection count
 }
 
 export interface PlayerEntryTime {
@@ -85,21 +61,12 @@ export interface PlayerStorage {
     auth: string; // same meaning as in PlayerObject. It can used for identify each of players.
     conn: string; // same meaning as in PlayerObject.
     name: string; // player's name used in previous game.
-    rating: number; // HElo Rating points
-    totals: number; // total games include wins and disconns
-    disconns: number; // disconnected games
-    wins: number; // the game wins
-    goals: number; // not contains OGs.
-    assists: number; // count for assist goal
-    ogs: number; // it means 'own goal' (in Korean, '자책골')
-    losePoints: number; // it means the points this player lost (in Korean, '실점')
-    balltouch: number; // total count of touch(kick) ball
-    passed: number; // total count of pass success
     mute: boolean; // is this player muted?
     muteExpire: number; // expiration date of mute. -1 means Permanent mute.. (unix timestamp)
     //superadmin: boolean; // is this player super admin? // not save
     rejoinCount: number; // How many rejoins this player has made.
     joinDate: number; // player join time
     leftDate: number; // player left time
+    nicknames: string[];
     malActCount: number; // count for malicious behaviour like Brute force attack
 }

@@ -1,13 +1,13 @@
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { recuritBothTeamFully } from "../../model/OperateHelper/Quorum";
+import * as Translator from "../Translator";
+import * as LangRes from "../../resource/strings";
 
 export function onGameUnpauseListener(byPlayer: PlayerObject | null): void {
     window.gameRoom.isGamingNow = true; // turn on
+    const announcementText = Translator.maketext(
+        LangRes.onGameUnpause.unpausedByPlayer,
+        {player: byPlayer?.name}
+    );
 
-    // if auto emcee mode is enabled
-    if(window.gameRoom.config.rules.autoOperating === true) {
-        if(window.gameRoom.isGamingNow === true) { // when game is in match
-            recuritBothTeamFully();
-        }
-    }
+    window.gameRoom._room.sendAnnouncement(announcementText, null, 0xFFFFFF, "normal", 2);
 }

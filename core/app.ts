@@ -35,13 +35,10 @@ const buildOutputDirectory = path.resolve(__dirname, "../public");
 const whiteListIPs: string[] = process.env.SERVER_WHITELIST_IP?.split(",") || ['127.0.0.1'];
 
 nodeStorage.init();
-
 browser.attachSIOserver(sio);
 
 // ========================================================
 router
-    //.use('/', indexRouter.routes())
-    //.use('/install', installRouter.routes())
     .use('/api/v1', indexAPIRouter.routes());
 
 app

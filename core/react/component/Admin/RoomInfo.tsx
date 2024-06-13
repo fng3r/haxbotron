@@ -10,7 +10,7 @@ import client from '../../lib/client';
 import { useParams } from 'react-router-dom';
 import Alert from '../common/Alert';
 import { Button, Divider, TextField } from '@material-ui/core';
-import { BrowserHostRoomCommands, BrowserHostRoomConfig, BrowserHostRoomGameRule, BrowserHostRoomHEloConfig, BrowserHostRoomSettings } from '../../../lib/browser.hostconfig';
+import { BrowserHostRoomConfig, BrowserHostRoomGameRule, BrowserHostRoomSettings } from '../../../lib/browser.hostconfig';
 import { WSocketContext } from '../../context/ws';
 
 interface styleClass {
@@ -30,8 +30,6 @@ interface roomInfo {
     _roomConfig: BrowserHostRoomConfig
     _settings: BrowserHostRoomSettings
     _rules: BrowserHostRoomGameRule
-    _HElo: BrowserHostRoomHEloConfig
-    _commands: BrowserHostRoomCommands
 }
 
 export default function RoomInfo({ styleClass }: styleClass) {
@@ -49,6 +47,7 @@ export default function RoomInfo({ styleClass }: styleClass) {
     const [roomInfoJSON, setRoomInfoJSON] = useState({} as roomInfo);
     const [roomInfoJSONText, setRoomInfoJSONText] = useState('');
 
+    const [adminPassword, setAdminPassword] = useState('');
     const [plainPassword, setPlainPassword] = useState('');
     const [freezeStatus, setFreezeStatus] = useState(false);
 
@@ -75,6 +74,7 @@ export default function RoomInfo({ styleClass }: styleClass) {
             if (result.status === 200) {
                 setRoomInfoJSON(result.data);
                 setPlainPassword(result.data._roomConfig.password || '');
+                setAdminPassword(result.data.adminPassword);
             }
         } catch (error) {
             if (error.response.status === 404) {
@@ -227,6 +227,11 @@ export default function RoomInfo({ styleClass }: styleClass) {
                                         <Button size="small" type="submit" variant="contained" color="primary" className={classes.submit}>Set</Button>
                                         <Button size="small" type="button" variant="contained" color="secondary" className={classes.submit} onClick={handleClearPassword}>Clear</Button>
                                     </form>
+
+                                    <TextField
+                                        variant="outlined" margin="normal" required size="small" value={adminPassword}
+                                        id="admin-password" label="Admin password" name="admin-password" InputProps={{readOnly: true}}
+                                    />
                                 </Grid>
                             </Grid>
                             <Divider />

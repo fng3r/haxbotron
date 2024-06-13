@@ -88,10 +88,9 @@ function OnlinePlayerRow(props: { ruid: string, row: Player }) {
         return 'Spec';
     }
 
-    const makePermissionsText = (admin: boolean, superAdmin: boolean): string => {
+    const makePermissionsText = (admin: boolean): string => {
         let text: string[] = [];
         if (admin) text.push('Admin');
-        if (superAdmin) text.push('SuperAdmin');
         return text.join(',');
     }
 
@@ -266,53 +265,17 @@ function OnlinePlayerRow(props: { ruid: string, row: Player }) {
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Permissions</TableCell>
-                                        <TableCell>AFK</TableCell>
                                         <TableCell>Mute</TableCell>
                                         <TableCell>Mute Expiration</TableCell>
-                                        <TableCell>Voted</TableCell>
                                         <TableCell>Join Date</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     <TableRow key={row.id}>
-                                        <TableCell component="th" scope="row">{makePermissionsText(row.admin, row.permissions.superadmin)}</TableCell>
-                                        <TableCell>{row.permissions.afkmode ? 'Yes' : 'No'}</TableCell>
+                                        <TableCell component="th" scope="row">{makePermissionsText(row.admin)}</TableCell>
                                         <TableCell>{row.permissions.mute ? 'Yes' : 'No'}</TableCell>
                                         <TableCell>{row.permissions.muteExpire === 0 ? '-' : convertDate(row.permissions.muteExpire)}</TableCell>
-                                        <TableCell>{row.voteGet}</TableCell>
                                         <TableCell>{convertDate(row.entrytime.joinDate)}</TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-
-                            <Typography variant="h6" gutterBottom component="div">
-                                Statistics
-                            </Typography>
-                            <Table size="small" aria-label="statistics">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Rating</TableCell>
-                                        <TableCell>Wins/Totals</TableCell>
-                                        <TableCell>Goals</TableCell>
-                                        <TableCell>Assists</TableCell>
-                                        <TableCell>OGs</TableCell>
-                                        <TableCell>Lose Points</TableCell>
-                                        <TableCell>Pass Succ</TableCell>
-                                        <TableCell>Disconnections</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    <TableRow key={row.id}>
-                                        <TableCell component="th" scope="row">
-                                            {row.stats.rating}
-                                        </TableCell>
-                                        <TableCell>{row.stats.wins}/{row.stats.totals} ({Math.round(row.stats.wins / row.stats.totals * 100) || 0}%)</TableCell>
-                                        <TableCell>{row.stats.goals}</TableCell>
-                                        <TableCell>{row.stats.assists}</TableCell>
-                                        <TableCell>{row.stats.ogs}</TableCell>
-                                        <TableCell>{row.stats.losePoints}</TableCell>
-                                        <TableCell>{Math.round(row.stats.passed / row.stats.balltouch * 100) || 0}%</TableCell>
-                                        <TableCell>{row.stats.disconns}</TableCell>
                                     </TableRow>
                                 </TableBody>
                             </Table>

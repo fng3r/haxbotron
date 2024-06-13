@@ -1,9 +1,9 @@
 import * as Tst from "../Translator";
 import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
-import { recuritBothTeamFully } from "../../model/OperateHelper/Quorum";
+import { TeamID } from "../../model/GameObject/TeamID";
 import { setDefaultRoomLimitation, setDefaultStadiums } from "../RoomTools";
+import moment from "moment";
 
 
 export function onGameStopListener(byPlayer: PlayerObject): void {
@@ -15,14 +15,8 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     var placeholderStop = {
         playerID: 0,
         playerName: '',
-        gameRuleName: window.gameRoom.config.rules.ruleName,
-        gameRuleLimitTime: window.gameRoom.config.rules.requisite.timeLimit,
-        gameRuleLimitScore: window.gameRoom.config.rules.requisite.scoreLimit,
-        gameRuleNeedMin: window.gameRoom.config.rules.requisite.minimumPlayers,
         possTeamRed: window.gameRoom.ballStack.possCalculate(TeamID.Red),
-        possTeamBlue: window.gameRoom.ballStack.possCalculate(TeamID.Blue),
-        streakTeamName: convertTeamID2Name(window.gameRoom.winningStreak.teamID),
-        streakTeamCount: window.gameRoom.winningStreak.count
+        possTeamBlue: window.gameRoom.ballStack.possCalculate(TeamID.Blue)
     };
     if(byPlayer !== null) {
         placeholderStop.playerID = byPlayer.id;
@@ -37,8 +31,8 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     }
     window.gameRoom.logger.i('onGameStop', msg);
     
-    setDefaultStadiums(); // check number of players and auto-set stadium
-    setDefaultRoomLimitation(); // score, time, teamlock set
+    // setDefaultStadiums(); // check number of players and auto-set stadium
+    // setDefaultRoomLimitation(); // score, time, teamlock set
 
     window.gameRoom.ballStack.initTouchInfo(); // clear touch info
     window.gameRoom.ballStack.clear(); // clear the stack.
@@ -47,21 +41,18 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     // stop replay record and send it
     const replay = window.gameRoom._room.stopRecording();
     
-    if(replay && window.gameRoom.social.discordWebhook.feed && window.gameRoom.social.discordWebhook.replayUpload && window.gameRoom.social.discordWebhook.id && window.gameRoom.social.discordWebhook.token) {
+    if(replay && window.gameRoom.social.discordWebhook.feed && window.gameRoom.social.discordWebhook.replayUpload && window.gameRoom.social.discordWebhook.replaysWebhookId && window.gameRoom.social.discordWebhook.replaysWebhookToken) {
+        const roomId = window.gameRoom.config._RUID;
+        const replayDate = moment(Date.now()).format('DD-MM-YYTHH-mm-ss');
         const placeholder = {
-            roomName: window.gameRoom.config._config.roomName
-            ,replayDate: Date().toLocaleString()
-        }
+            roomId: roomId
+            ,replayDate: replayDate
+        };
 
-        window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.id, window.gameRoom.social.discordWebhook.token, "replay", {
+        window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.replaysWebhookId, window.gameRoom.social.discordWebhook.replaysWebhookToken, "replay", {
             message: Tst.maketext(LangRes.onStop.feedSocialDiscordWebhook.replayMessage, placeholder)
+            ,filename: `${roomId}_${replayDate}.hbr2`
             ,data: JSON.stringify(Array.from(replay))
         });
-    }
-
-    // when auto emcee mode is enabled
-    if(window.gameRoom.config.rules.autoOperating === true) {
-        recuritBothTeamFully();
-        window.gameRoom._room.startGame(); // start next new game
     }
 }

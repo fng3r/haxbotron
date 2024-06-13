@@ -1,8 +1,10 @@
 import "dotenv/config";
 import axios from "axios";
 import { PlayerStorage } from "../game/model/GameObject/PlayerObject";
+import { PlayerRole } from "../game/model/PlayerRole/PlayerRole";
 import { winstonLogger } from "../winstonLoggerSystem";
 import { BanList } from "../game/model/PlayerBan/BanList";
+
 
 // These functions will be injected into bot script on puppeteer
 
@@ -80,12 +82,25 @@ export async function createBanlistDB(ruid: string, banList: BanList): Promise<v
     }
 }
 
+export async function getAllBansDB(ruid: string): Promise<BanList[] | undefined> {
+    try {
+        const result = await axios.get(`${dbConnAddr}room/${ruid}/banlist`);
+        if (result.status === 200 && result.data) {
+            winstonLogger.info(`200 Succeed on getAllBansDB: Read.`);
+            return result.data;
+        }
+    } catch (error) {
+        winstonLogger.error(`Error caught on getAllBansDB: ${error}`);
+    }
+}
+
 export async function readBanlistDB(ruid: string, playerConn: string): Promise<BanList | undefined> {
     try {
         const result = await axios.get(`${dbConnAddr}room/${ruid}/banlist/${playerConn}`);
         if (result.status === 200 && result.data) {
             const banlist: BanList = {
                 conn: result.data.conn,
+                auth: result.data.auth,
                 reason: result.data.reason,
                 register: result.data.register,
                 expire: result.data.expire
@@ -155,21 +170,12 @@ export async function readPlayerDB(ruid: string, playerAuth: string): Promise<Pl
                 auth: result.data.auth,
                 conn: result.data.conn,
                 name: result.data.name,
-                rating: result.data.rating,
-                totals: result.data.totals,
-                disconns: result.data.disconns,
-                wins: result.data.wins,
-                goals: result.data.goals,
-                assists: result.data.assists,
-                ogs: result.data.ogs,
-                losePoints: result.data.losePoints,
-                balltouch: result.data.balltouch,
-                passed: result.data.passed,
                 mute: result.data.mute,
                 muteExpire: result.data.muteExpire,
                 rejoinCount: result.data.rejoinCount,
                 joinDate: result.data.joinDate,
                 leftDate: result.data.leftDate,
+                nicknames: result.data.nicknames,
                 malActCount: result.data.malActCount
             }
             winstonLogger.info(`${result.status} Succeed on readPlayerDB: Read. auth(${playerAuth})`);
@@ -210,6 +216,72 @@ export async function deletePlayerDB(ruid: string, playerAuth: string): Promise<
             winstonLogger.info(`${error.response.status} Failed on deletePlayerDB: No exist. auth(${playerAuth})`);
         } else {
             winstonLogger.error(`Error caught on deletePlayerDB: ${error}`);
+        }
+    }
+}
+
+export async function getPlayerRoleDB(playerAuth: string): Promise<PlayerRole | undefined> {
+    try {
+        const result = await axios.get(`${dbConnAddr}player-roles/${playerAuth}`);
+        if (result.status === 200 && result.data) {
+            winstonLogger.info(`${result.status} Succeed on getPlayerRoleDB: Updated. auth(${playerAuth})`);
+            const playerRole: PlayerRole = {
+                auth: result.data.auth,
+                name: result.data.name,
+                role: result.data.role
+            }
+            return playerRole;
+        }
+    } catch(error) {
+        if(error.response && error.response.status === 404) {
+            winstonLogger.info(`${error.response.status} Failed on getPlayerRoleDB: No exist. auth(${playerAuth})`);
+        } else {
+            winstonLogger.error(`Error caught on getPlayerRoleDB: ${error}`);
+        }
+    }
+}
+
+export async function createPlayerRoleDB(playerRole: PlayerRole): Promise<void> {
+    try {
+        const result = await axios.post(`${dbConnAddr}player-roles/${playerRole.auth}?name=${playerRole.name}&role=${playerRole.role}`);
+        if (result.status === 204) {
+            winstonLogger.info(`${result.status} Succeed on setPlayerRoleDB: Updated. auth(${playerRole.auth})`);
+        }
+    } catch(error) {
+        if(error.response && error.response.status === 409) {
+            winstonLogger.info(`${error.response.status} Failed on createPlayerRoleDB: Already exist. auth(${playerRole.auth})`);
+        } else {
+            winstonLogger.error(`Error caught on createPlayerRoleDB: ${error}`);
+        }
+    }
+}
+
+export async function setPlayerRoleDB(playerRole: PlayerRole): Promise<void> {
+    try {
+        const result = await axios.put(`${dbConnAddr}player-roles/${playerRole.auth}?name=${playerRole.name}&role=${playerRole.role}`);
+        if (result.status === 204) {
+            winstonLogger.info(`${result.status} Succeed on setPlayerRoleDB: Updated. auth(${playerRole.auth})`);
+        }
+    } catch(error) {
+        if(error.response && error.response.status === 404) {
+            winstonLogger.info(`${error.response.status} Failed on setPlayerRoleDB: No exist. auth(${playerRole.auth})`);
+        } else {
+            winstonLogger.error(`Error caught on setPlayerRoleDB: ${error}`);
+        }
+    }
+}
+
+export async function deletePlayerRoleDB(playerRole: PlayerRole): Promise<void> {
+    try {
+        const result = await axios.delete(`${dbConnAddr}player-roles/${playerRole.auth}?name=${playerRole.name}`);
+        if (result.status === 204) {
+            winstonLogger.info(`${result.status} Succeed on deletePlayerRoleDB: Deleted. auth(${playerRole.auth})`);
+        }
+    } catch (error) {
+        if(error.response && error.response.status === 404) {
+            winstonLogger.info(`${error.response.status} Failed on deletePlayerRoleDB: No exist. auth(${playerRole.auth})`);
+        } else {
+            winstonLogger.error(`Error caught on deletePlayerRoleDB: ${error}`);
         }
     }
 }

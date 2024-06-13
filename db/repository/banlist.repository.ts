@@ -12,7 +12,6 @@ export class BanListRepository implements IRepository<BanList> {
         } else {
             banlist = await repository.find({ ruid: ruid });
         }
-        if (banlist.length === 0) throw new Error('There are no banned players.');
         return banlist;
     }
 
@@ -30,6 +29,7 @@ export class BanListRepository implements IRepository<BanList> {
             newBan = new BanList();
             newBan.ruid = ruid;
             newBan.conn = banlist.conn;
+            newBan.auth = banlist.auth;
             newBan.reason = banlist.reason;
             newBan.register = banlist.register;
             newBan.expire = banlist.expire;
@@ -45,6 +45,7 @@ export class BanListRepository implements IRepository<BanList> {
         if (newBan !== undefined) {
             newBan.ruid = ruid;
             newBan.conn = banlist.conn;
+            newBan.auth = banlist.auth;
             newBan.reason = banlist.reason;
             newBan.register = banlist.register;
             newBan.expire = banlist.expire;

@@ -9,9 +9,14 @@ export class BanList {
     ruid!: string;
 
     @Column()
-    conn!: string; 
+    conn!: string;
 
     @Column()
+    auth!: string;
+
+    @Column({
+        default: ''
+    })
     reason!: string;
 
     @Column()

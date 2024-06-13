@@ -2,7 +2,9 @@ import Joi from 'joi';
 
 export const discordWebhookConfigSchema = Joi.object().keys({
     feed: Joi.boolean().required()
-    ,id: Joi.string().optional().allow(null, '')
-    ,token: Joi.string().optional().allow(null, '')
+    ,passwordWebhookId: Joi.string().optional().allow(null, '')
+    ,passwordWebhookToken: Joi.string().optional().allow(null, '')
+    ,replaysWebhookId: Joi.string().optional().allow(null, '')
+    ,replaysWebhookToken: Joi.string().optional().allow(null, '')
     ,replayUpload: Joi.boolean().required()
 });

@@ -16,4 +16,3 @@ export { onRoomLinkListener } from "./onRoomLink";
 export { onTeamGoalListener } from "./onTeamGoal";
 export { onTeamVictoryListener } from "./onTeamVictory";
 export { onPlayerChatListener } from "./onPlayerChat";
-export { onKickRateLimitSetListener } from "./onKickRateLimitSet";

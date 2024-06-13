@@ -28,13 +28,15 @@ import MainboardSideMenu from './SideMenu/Mainboard.SideMenu';
 import RoomListSideMenu from './SideMenu/RoomList.SideMenu';
 import RoomInfoSideMenu from './SideMenu/RoomInfo.SideMenu';
 import RoomPower from './RoomPower';
-import RoomSuperAdmin from './RoomSuperAdmin';
 import RoomInfo from './RoomInfo';
 import RoomBanList from './RoomBanList';
 import RoomPlayerList from './RoomPlayerList';
 import RoomSocial from './RoomSocial';
 import RoomTextFilter from './RoomTextFilter';
 import RoomAssets from './RoomAssets';
+import PlayerRoles from './PlayerRolesList';
+import PlayerRolesSideMenu from "./SideMenu/PlayerRoles.SideMenu";
+import NewRoomSideMenu from "./SideMenu/NewRoom.SideMenu";
 
 const drawerWidth = 240;
 
@@ -212,8 +214,9 @@ function Dashboard({ match }: RouteComponentProps) {
                 <Switch>
                     <Route path={match.path} exact><MainboardSideMenu /></Route>
                     <Route path={`${match.path}/roomlist`}><RoomListSideMenu /></Route>
-                    <Route path={`${match.path}/newroom`}><RoomListSideMenu /></Route>
+                    <Route path={`${match.path}/newroom`}><NewRoomSideMenu /></Route>
                     <Route path={`${match.path}/serverinfo`}><MainboardSideMenu /></Route>
+                    <Route path={`${match.path}/roleslist`}><PlayerRolesSideMenu /></Route>
                     <Route path={`${match.path}/superadmin/:ruid`} component={RoomInfoSideMenu} />
                     <Route path={`${match.path}/banlist/:ruid`} component={RoomInfoSideMenu} />
                     <Route path={`${match.path}/room/:ruid`} component={RoomInfoSideMenu} />
@@ -227,8 +230,8 @@ function Dashboard({ match }: RouteComponentProps) {
                     <Route path={`${match.path}/roomlist`} render={()=><RoomList styleClass={styleClass} />} />
                     <Route path={`${match.path}/newroom`} render={()=><RoomCreate styleClass={styleClass} />} />
                     <Route path={`${match.path}/serverinfo`} render={()=><ServerInfo styleClass={styleClass} />} />
-                    <Route path={`${match.path}/superadmin/:ruid`}><RoomSuperAdmin styleClass={styleClass} /></Route>
                     <Route path={`${match.path}/banlist/:ruid`} exact><RoomBanList styleClass={styleClass} /></Route>
+                    <Route path={`${match.path}/roleslist`} exact><PlayerRoles styleClass={styleClass} /></Route>
                     <Route path={`${match.path}/room/:ruid`} exact><RoomLog styleClass={styleClass} /></Route>
                     <Route path={`${match.path}/room/:ruid/info`}><RoomInfo styleClass={styleClass} /></Route>
                     <Route path={`${match.path}/room/:ruid/power`}><RoomPower styleClass={styleClass} /></Route>

@@ -4,7 +4,7 @@ import { winstonLogger } from "../winstonLoggerSystem";
 import { BrowserHostRoomInitConfig } from "./browser.hostconfig";
 import * as dbUtilityInject from "./db.injection";
 import { loadStadiumData } from "./stadiumLoader";
-import { Server as SIOserver, Socket as SIOsocket } from "socket.io";
+import { Server as SIOserver, } from "socket.io";
 import { TeamID } from "../game/model/GameObject/TeamID";
 import Discord from 'discord.js';
 import { DiscordWebhookConfig } from "./browser.interface";
@@ -52,26 +52,21 @@ export class HeadlessBrowser {
     */
     private async initBrowser() {
         const browserSettings = {
-            customArgs: ['--no-sandbox', '--disable-setuid-sandbox']
+            customArgs: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-features=WebRtcHideLocalIpsWithMdns']
             , openHeadless: true
         }
         if (process.env.TWEAKS_HEADLESSMODE && JSON.parse(process.env.TWEAKS_HEADLESSMODE.toLowerCase()) === false) {
             browserSettings.openHeadless = false;
         }
-        if (process.env.TWEAKS_WEBRTCANOYM && JSON.parse(process.env.TWEAKS_WEBRTCANOYM.toLowerCase()) === false) {
-            browserSettings.customArgs.push('--disable-features=WebRtcHideLocalIpsWithMdns');
-        }
 
-        //winstonLogger.info("[core] The browser is opened.");
+        winstonLogger.info("[core] The browser is opened.");
 
         this._BrowserContainer = await puppeteer.launch({ headless: browserSettings.openHeadless, args: browserSettings.customArgs });
 
         this._BrowserContainer.on('disconnected', () => {
-            //winstonLogger.info("[core] The browser is closed. Core server will open new one automatically.");
             winstonLogger.info("[core] The browser is closed.");
             this._BrowserContainer!.close();
             this._BrowserContainer = undefined;
-            //this.initBrowser();
             return;
         });
     }
@@ -106,6 +101,15 @@ export class HeadlessBrowser {
                 , lat: parseFloat(process.env.TWEAKS_GEOLOCATIONOVERRIDE_LAT || "37.5665")
                 , lon: parseFloat(process.env.TWEAKS_GEOLOCATIONOVERRIDE_LON || "126.978")
             }
+        }
+
+        const discordWebhookConfig = {
+            feed: JSON.parse(process.env.DISCORD_WEBHOOK_FEED || false.toString())
+            ,replayUpload: JSON.parse(process.env.DISCORD_WEBHOOK_REPLAY_UPLOAD || false.toString())
+            ,replaysWebhookId: process.env.DISCORD_REPLAYS_WEBHOOK_ID
+            ,replaysWebhookToken: process.env.DISCORD_REPLAYS_WEBHOOK_TOKEN
+            ,passwordWebhookId: process.env.DISCORD_PASSWORD_WEBHOOK_ID
+            ,passwordWebhookToken: process.env.DISCORD_PASSWORD_WEBHOOK_TOKEN
         }
 
         if (!this._BrowserContainer) await this.initBrowser(); // open if browser isn't exist.
@@ -157,11 +161,12 @@ export class HeadlessBrowser {
         });
 
         // convey configuration values via html5 localStorage
-        await page.evaluate((initConfig: string, defaultMap: string, readyMap: string) => {
+        await page.evaluate((initConfig: string, defaultMap: string, readyMap: string, discordWebhookConfig: string) => {
             localStorage.setItem('_initConfig', initConfig);
             localStorage.setItem('_defaultMap', defaultMap);
             localStorage.setItem('_readyMap', readyMap);
-        }, JSON.stringify(initConfig), loadStadiumData(initConfig.rules.defaultMapName), loadStadiumData(initConfig.rules.readyMapName));
+            localStorage.setItem('_discordWebhookConfig', discordWebhookConfig);
+        }, JSON.stringify(initConfig), loadStadiumData(initConfig.rules.defaultMapName), loadStadiumData(initConfig.rules.readyMapName), JSON.stringify(discordWebhookConfig));
 
         // add event listeners ============================================================
         page.addListener('_SIO.Log', (event: any) => {
@@ -179,13 +184,16 @@ export class HeadlessBrowser {
             switch (event.type as string) {
                 case "replay": {
                     const bufferData = Buffer.from(JSON.parse(event.content.data));
-                    const date = Date.now().toLocaleString();
                     const attachment = new Discord.MessageAttachment(
                         bufferData
-                        , `${date}.hbr2`);
+                        ,event.content.filename);
                     webhookClient.send(event.content.message, {
                         files: [attachment],
                     });
+                    break;
+                }
+                case "password": {
+                    webhookClient.send(event.content.message);
                     break;
                 }
             }
@@ -207,18 +215,18 @@ export class HeadlessBrowser {
             page.emit('_SOCIAL.DiscordWebhook', { id: id, token: token, type: type, content: content });
         });
 
-        // inject functions for CRUD with DB Server ====================================
-        await page.exposeFunction('_createSuperadminDB', dbUtilityInject.createSuperadminDB);
-        await page.exposeFunction('_readSuperadminDB', dbUtilityInject.readSuperadminDB);
-        //await page.exposeFunction('updateSuperadminDB', dbUtilityInject.updateSuperadminDB); //this function is not implemented.
-        await page.exposeFunction('_deleteSuperadminDB', dbUtilityInject.deleteSuperadminDB);
-
         await page.exposeFunction('_createPlayerDB', dbUtilityInject.createPlayerDB);
         await page.exposeFunction('_readPlayerDB', dbUtilityInject.readPlayerDB);
         await page.exposeFunction('_updatePlayerDB', dbUtilityInject.updatePlayerDB);
         await page.exposeFunction('_deletePlayerDB', dbUtilityInject.deletePlayerDB);
 
+        await page.exposeFunction('_getPlayerRoleDB', dbUtilityInject.getPlayerRoleDB);
+        await page.exposeFunction('_createPlayerRoleDB', dbUtilityInject.createPlayerRoleDB);
+        await page.exposeFunction('_setPlayerRoleDB', dbUtilityInject.setPlayerRoleDB);
+        await page.exposeFunction('_deletePlayerRoleDB', dbUtilityInject.deletePlayerRoleDB);
+
         await page.exposeFunction('_createBanlistDB', dbUtilityInject.createBanlistDB);
+        await page.exposeFunction('_getAllBansDB', dbUtilityInject.getAllBansDB);
         await page.exposeFunction('_readBanlistDB', dbUtilityInject.readBanlistDB);
         await page.exposeFunction('_updateBanlistDB', dbUtilityInject.updateBanlistDB);
         await page.exposeFunction('_deleteBanlistDB', dbUtilityInject.deleteBanlistDB);
@@ -330,7 +338,7 @@ export class HeadlessBrowser {
             return await this._PageContainer.get(ruid)!.evaluate(() => {
                 return {
                     roomName: window.gameRoom.config._config.roomName,
-                    onlinePlayers: window.gameRoom.playerList.size
+                    onlinePlayers: window.gameRoom.playerList.size()
                 }
             });
         } else {
@@ -347,13 +355,12 @@ export class HeadlessBrowser {
             return await this._PageContainer.get(ruid)!.evaluate(() => {
                 return {
                     roomName: window.gameRoom.config._config.roomName,
-                    onlinePlayers: window.gameRoom.playerList.size,
+                    onlinePlayers: window.gameRoom.playerList.size(),
+                    adminPassword: window.gameRoom.adminPassword,
                     _link: window.gameRoom.link,
                     _roomConfig: window.gameRoom.config._config,
                     _settings: window.gameRoom.config.settings,
-                    _rules: window.gameRoom.config.rules,
-                    _HElo: window.gameRoom.config.HElo,
-                    _commands: window.gameRoom.config.commands
+                    _rules: window.gameRoom.config.rules
                 }
             });
         } else {
@@ -407,6 +414,7 @@ export class HeadlessBrowser {
             if (window.gameRoom.playerList.has(id)) {
                 const banItem = {
                     conn: window.gameRoom.playerList.get(id)!.conn,
+                    auth: window.gameRoom.playerList.get(id)!.auth,
                     reason: message,
                     register: Math.floor(Date.now()),
                     expire: Math.floor(Date.now()) + (seconds * 1000)
@@ -662,7 +670,14 @@ export class HeadlessBrowser {
      * @param ruid ruid Game room's UID
      * @param config discord webhook configuration
      */
-    public async setDiscordWebhookConfig(ruid: string, config: DiscordWebhookConfig) {
+    public async setDiscordWebhookConfig(ruid: string, config: {
+        feed: any;
+        passwordWebhookToken: any;
+        passwordWebhookId: any;
+        replaysWebhookId: any;
+        replayUpload: any;
+        replaysWebhookToken: any
+    }) {
         await this._PageContainer.get(ruid)!.evaluate((config: DiscordWebhookConfig) => {
             window.gameRoom.social.discordWebhook = config;
         }, config);

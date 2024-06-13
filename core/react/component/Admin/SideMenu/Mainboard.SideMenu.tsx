@@ -9,13 +9,14 @@ import SportsEsportsIcon from '@material-ui/icons/SportsEsports';
 import List from '@material-ui/core/List';
 import Divider from '@material-ui/core/Divider';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
+import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 
 export default function MainboardSideMenu() {
     return (
         <>
             <List>
                 <div>
-                    <ListItem button component={RouterLink} to="/admin">
+                    <ListItem button style={{ backgroundColor: "#3f51b5" }} component={RouterLink} to="/admin">
                         <ListItemIcon>
                             <DashboardIcon />
                         </ListItemIcon>
@@ -38,6 +39,12 @@ export default function MainboardSideMenu() {
                             <SportsEsportsIcon />
                         </ListItemIcon>
                         <ListItemText primary="Room List" />
+                    </ListItem>
+                    <ListItem button component={RouterLink} to="/admin/roleslist">
+                        <ListItemIcon>
+                            <SupervisedUserCircleIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Player Roles" />
                     </ListItem>
                 </div>
             </List>

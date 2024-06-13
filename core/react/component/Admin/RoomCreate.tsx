@@ -6,18 +6,19 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Copyright from '../common/Footer.Copyright';
 import Title from './common/Widget.Title';
-import { BrowserHostRoomCommands, BrowserHostRoomConfig, BrowserHostRoomGameRule, BrowserHostRoomHEloConfig, BrowserHostRoomSettings, ReactHostRoomInfo } from '../../../lib/browser.hostconfig';
+import { BrowserHostRoomConfig, BrowserHostRoomGameRule, BrowserHostRoomSettings, ReactHostRoomInfo } from '../../../lib/browser.hostconfig';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import * as DefaultConfigSet from "../../lib/defaultroomconfig.json";
 import { useHistory } from 'react-router-dom';
-import { Divider, IconButton, Switch } from '@material-ui/core';
+import { Divider, IconButton, Switch, Tooltip } from '@material-ui/core';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import client from '../../lib/client';
 import Alert, { AlertColor } from '../common/Alert';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import { isNumber } from '../../lib/numcheck';
+import {LiveHelp} from "@material-ui/icons";
 
 interface styleClass {
     styleClass: any
@@ -44,20 +45,13 @@ export default function RoomCreate({ styleClass }: styleClass) {
 
     const [rulesFormField, setRulesFormField] = useState({} as BrowserHostRoomGameRule); // Game Rule Configuration Form
     const [rulesTeamLockField, setRulesTeamLockField] = useState(true); // Team Lock Field in Game Rule configuration form
-    const [rulesSwitchesFormField, setRulesSwitchesFormField] = useState({ // three switches(auitoAdmin, autoOpertaing, statsRecrod)
+    const [rulesSwitchesFormField, setRulesSwitchesFormField] = useState({ // two switches(auitoAdmin, whitelistEnabled)
         autoAdmin: false // auto appointment admin
-        ,autoOperating: true // auto emcee mode
-        ,statsRecord: true // record game results on statistics system.
+        ,whitelistEnabled: true // auto emcee mode
     });
 
     const [settingsFormField, setSettingsFormField] = useState({} as BrowserHostRoomSettings); // Bot Settings Configuration Form
     const [settingsFormStringifiedField, setSettingsFormStringifiedField] = useState(''); // JSON Stringified Bot Settings Configuration Form
-
-    const [heloFormField, setHeloFormField] = useState({} as BrowserHostRoomHEloConfig); // HElo System Configruation Form
-    const [heloFormStringifiedField, setHeloFormStringifiedField] = useState(''); // JSON Stringified HElo System Configruation Form
-
-    const [commandsFormField, setCommandsFormField] = useState({} as BrowserHostRoomCommands); // Ingame Commands Configuration Form
-    const [commandsFormStringifiedField, setCommandsFormStringifiedField] = useState(''); // JSON Stringified Ingame Commands Configuration Form
 
     useEffect(() => {
         // LOAD DEFAULT OR LASTEST SETTINGS WHEN THIS COMPONENT IS LOADED
@@ -70,16 +64,10 @@ export default function RoomCreate({ styleClass }: styleClass) {
         
         setRulesFormField(loadedDefaultSettings.rules);
         setRulesTeamLockField(loadedDefaultSettings.rules.requisite.teamLock); // switch toggle component
-        setRulesSwitchesFormField({autoAdmin: loadedDefaultSettings.rules.autoAdmin, autoOperating: loadedDefaultSettings.rules.autoOperating, statsRecord: loadedDefaultSettings.rules.statsRecord}); // switch toggle component
+        setRulesSwitchesFormField({autoAdmin: loadedDefaultSettings.rules.autoAdmin, whitelistEnabled: loadedDefaultSettings.rules.whitelistEnabled}); // switch toggle component
         
         setSettingsFormField(loadedDefaultSettings.settings);
         setSettingsFormStringifiedField(JSON.stringify(loadedDefaultSettings.settings,null,4));
-        
-        setHeloFormField(loadedDefaultSettings.helo);
-        setHeloFormStringifiedField(JSON.stringify(loadedDefaultSettings.helo,null,4));
-        
-        setCommandsFormField(loadedDefaultSettings.commands);
-        setCommandsFormStringifiedField(JSON.stringify(loadedDefaultSettings.commands,null,4));
 
         
 
@@ -92,16 +80,10 @@ export default function RoomCreate({ styleClass }: styleClass) {
             
             setRulesFormField(loadedDefaultSettings.rules);
             setRulesTeamLockField(loadedDefaultSettings.rules.requisite.teamLock); // switch toggle component
-            setRulesSwitchesFormField({autoAdmin: loadedDefaultSettings.rules.autoAdmin, autoOperating: loadedDefaultSettings.rules.autoOperating, statsRecord: loadedDefaultSettings.rules.statsRecord}); // switch toggle component
+            setRulesSwitchesFormField({autoAdmin: loadedDefaultSettings.rules.autoAdmin, whitelistEnabled: loadedDefaultSettings.rules.whitelistEnabled}); // switch toggle component
             
             setSettingsFormField(loadedDefaultSettings.settings);
             setSettingsFormStringifiedField(JSON.stringify(loadedDefaultSettings.settings));
-        
-            setHeloFormField(loadedDefaultSettings.helo);
-            setHeloFormStringifiedField(JSON.stringify(loadedDefaultSettings.helo));
-        
-            setCommandsFormField(loadedDefaultSettings.commands);
-            setCommandsFormStringifiedField(JSON.stringify(loadedDefaultSettings.commands));
         }
     }, []);
 
@@ -115,31 +97,22 @@ export default function RoomCreate({ styleClass }: styleClass) {
                 ...rulesFormField
                 ,requisite: { ...rulesFormField.requisite, teamLock: rulesTeamLockField }
                 ,autoAdmin: rulesSwitchesFormField.autoAdmin
-                ,autoOperating: rulesSwitchesFormField.autoOperating
-                ,statsRecord: rulesSwitchesFormField.statsRecord
-            },
-            helo: heloFormField,
-            commands: commandsFormField
+                ,whitelistEnabled: rulesSwitchesFormField.whitelistEnabled
+            }
         });
     }, [roomUIDFormField, roomPublicFormField, configFormField, // include switch toggle component
         rulesFormField, rulesTeamLockField, rulesSwitchesFormField,
-        settingsFormField, heloFormField, commandsFormField
+        settingsFormField
     ]); 
 
     useEffect(() => {
         try {
             const parsedSettings: BrowserHostRoomSettings = JSON.parse(settingsFormStringifiedField);
             setSettingsFormField(parsedSettings);
-
-            const parsedHElo: BrowserHostRoomHEloConfig = JSON.parse(heloFormStringifiedField);
-            setHeloFormField(parsedHElo);
-
-            const parsedCommands: BrowserHostRoomCommands = JSON.parse(commandsFormStringifiedField);
-            setCommandsFormField(parsedCommands);
         } catch(e) {
             //console.log("PARSING ERROR!!");
         }
-    }, [settingsFormStringifiedField,heloFormStringifiedField,commandsFormStringifiedField])
+    }, [settingsFormStringifiedField])
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -195,8 +168,6 @@ export default function RoomCreate({ styleClass }: styleClass) {
 
         try {
             setSettingsFormStringifiedField(JSON.stringify(settingsFormField,null,4));
-            setHeloFormStringifiedField(JSON.stringify(heloFormField,null,4));
-            setCommandsFormStringifiedField(JSON.stringify(commandsFormField,null,4));
         } catch (error) {
             //console.log("JSON Beautify Error : \n" + error);
         }
@@ -272,14 +243,6 @@ export default function RoomCreate({ styleClass }: styleClass) {
         switch(name) {
             case 'botSettings': {
                 setSettingsFormStringifiedField(value);
-                break;
-            }
-            case 'heloConfig': {
-                setHeloFormStringifiedField(value);
-                break;
-            }
-            case 'gameCommands': {
-                setCommandsFormStringifiedField(value);
                 break;
             }
         }
@@ -405,14 +368,8 @@ export default function RoomCreate({ styleClass }: styleClass) {
                                     </Grid>
                                     <Grid item xs={4} sm={2}>
                                         <FormControlLabel
-                                            control={<Switch onChange={onChangeRulesSwitch} checked={rulesSwitchesFormField.autoOperating} id="autoOperating" name="autoOperating" size="small" color="primary" />}
-                                            label="Auto Operating" labelPlacement="start"
-                                        />
-                                    </Grid>
-                                    <Grid item xs={4} sm={2}>
-                                        <FormControlLabel
-                                            control={<Switch onChange={onChangeRulesSwitch} checked={rulesSwitchesFormField.statsRecord} id="statsRecord" name="statsRecord" size="small" color="primary" />}
-                                            label="Stats Recording" labelPlacement="start"
+                                            control={<Switch onChange={onChangeRulesSwitch} checked={rulesSwitchesFormField.whitelistEnabled} id="whitelistEnabled" name="whitelistEnabled" size="small" color="primary" />}
+                                            label="Whitelist" labelPlacement="start"
                                         />
                                     </Grid>
                                 </Grid>
@@ -428,7 +385,12 @@ export default function RoomCreate({ styleClass }: styleClass) {
                                         />
                                     </Grid>
                                     <Grid item xs={4} sm={2}>
-                                        <Button startIcon={<OpenInNewIcon />} type="button" variant="text" color="default" className={classes.submit} onClick={() => window.open('https://github.com/dapucita/haxbotron/wiki/Available-built-in-maps-name-tags', '_blank')}>AVAILABLE MAPS</Button>
+                                        <Tooltip placement="top-start"
+                                                 title="Available maps: big, bigeasy, classic, gbhotclassic, gbhotbig, realsoccer, futsal1v1, futsal4v4, bff4v4, icebear, 6man">
+                                            <IconButton>
+                                                <LiveHelp />
+                                            </IconButton>
+                                        </Tooltip>
                                     </Grid>
                                 </Grid>
                                 <Divider />
@@ -438,26 +400,6 @@ export default function RoomCreate({ styleClass }: styleClass) {
                                     <Grid item xs={12} sm={12}>
                                         <TextField
                                             fullWidth value={settingsFormStringifiedField} onChange={onChangeStringifiedField} id="botSettings" name="botSettings" label="JSON Data" variant="outlined" margin="normal" required multiline
-                                        />
-                                    </Grid>
-                                </Grid>
-                                <Divider />
-
-                                <Typography component="h2" variant="subtitle1" color="primary" gutterBottom>HElo Configuration</Typography>
-                                <Grid container spacing={2}>
-                                    <Grid item xs={12} sm={12}>
-                                        <TextField
-                                            fullWidth value={heloFormStringifiedField} onChange={onChangeStringifiedField} id="heloConfig" name="heloConfig" label="JSON Data" variant="outlined" margin="normal" required multiline
-                                        />
-                                    </Grid>
-                                </Grid>
-                                <Divider />
-
-                                <Typography component="h2" variant="subtitle1" color="primary" gutterBottom>Game Commands</Typography>
-                                <Grid container spacing={2}>
-                                    <Grid item xs={12} sm={12}>
-                                        <TextField
-                                            fullWidth value={commandsFormStringifiedField} onChange={onChangeStringifiedField} id="gameCommands" name="gameCommands" label="JSON Data" variant="outlined" margin="normal" required multiline
                                         />
                                     </Grid>
                                 </Grid>
