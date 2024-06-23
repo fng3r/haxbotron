@@ -1,7 +1,7 @@
 {
-	"ruid": "haxbotron-room-default",
+	"ruid": "cis1",
 	"_config": {
-		"roomName": "Play with 𝙃𝙖𝙭𝙗𝙤𝙩𝙧𝙤𝙣 🤖",
+		"roomName": "🏆 cis-haxball.com | Room #1",
 		"playerName": "🤖",
 		"password": "",
 		"maxPlayers": 15,
@@ -24,7 +24,7 @@
 	},
 	"rules": {
 		"ruleName": "default-rule",
-		"ruleDescription": "this is default rule. (Auto+Relay+Shuffle)",
+		"ruleDescription": "this is default rule",
 		"requisite": {
 			"minimumPlayers": 8,
 			"eachTeamPlayers": 4,
@@ -34,7 +34,7 @@
 		},
 		"autoAdmin": false,
 		"whitelistEnabled": true,
-		"defaultMapName": "bigeasy",
-		"readyMapName": "clssic"
+		"defaultMapName": "futsal4v4",
+		"readyMapName": "futsal4v4"
 	}
 }
