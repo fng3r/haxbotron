@@ -26,8 +26,8 @@ axios.defaults.withCredentials = true;
 export async function getAllList(ctx: Context) {
     const { searchQuery, start, count } = ctx.request.query;
     let apiPath: string = (start && count)
-        ? `${dbConnAddr}player-roles/search?searchQuery=${searchQuery}&start=${start}&count=${count}`
-        : `${dbConnAddr}player-roles/search?searchQuery=${searchQuery}`;
+        ? `${dbConnAddr}player-roles/search?searchQuery=${encodeURIComponent(searchQuery)}&start=${start}&count=${count}`
+        : `${dbConnAddr}player-roles/search?searchQuery=${encodeURIComponent(searchQuery)}`;
 
     try {
         const getRes = await client.get(apiPath)
