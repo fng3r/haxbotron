@@ -84,7 +84,9 @@ makeRoom();
 // set scheduling timers
 
 const advertisementTimer = setInterval(() => {
-    window.gameRoom._room.sendAnnouncement(LangRes.scheduler.advertise, null, 0xF4F4F4, "normal", 0); // advertisement
+    if (LangRes.scheduler.advertise) {
+        window.gameRoom._room.sendAnnouncement(LangRes.scheduler.advertise, null, 0xF4F4F4, "normal", 0); // advertisement
+    }
 }, 600_000); // 10 mins
 
 const autoUnmuteTimer = setInterval(() => {
@@ -109,17 +111,6 @@ const autoUnmuteTimer = setInterval(() => {
         }
     });
 }, 5000); // 5 secs
-
-const rotateAdminPasswordTimer = setInterval(() => {
-    window.gameRoom.adminPassword = generateRandomString();
-    window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.passwordWebhookId, window.gameRoom.social.discordWebhook.passwordWebhookToken, "password", {
-        message: Tst.maketext(
-            LangRes.onStop.feedSocialDiscordWebhook.adminPasswordMessage, {
-            roomId: window.gameRoom.config._RUID
-            ,password: window.gameRoom.adminPassword
-        })
-    });
-}, 1_800_000); // 30 mins
 
 // ====================================================================================================
 // set defaults and register event handlers

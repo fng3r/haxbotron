@@ -45,4 +45,10 @@ export function onPlayerKickedListener(kickedPlayer: PlayerObject, reason: strin
     }
 
     window.gameRoom._room.clearBan(kickedPlayer.id); // Remove ban in the room since we added player in banlist so he would be kicked on join otherwise.
+
+    const playersCount = window.gameRoom._room.getPlayerList().length;
+    // reset password to default one when more than one slot become available
+    if (playersCount === window.gameRoom.config._config.maxPlayers! - 2) {
+        window.gameRoom._room.setPassword(window.gameRoom.config._config.password || null);
+    }
 }
