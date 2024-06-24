@@ -18,6 +18,7 @@ const parserLanguage = P.createLanguage({
         .alt(
             lang.helpCommand,
             lang.aboutCommand,
+            lang.admCommand,
             lang.authCommand,
             lang.bbCommand,
             lang.deanonCommand,
@@ -38,6 +39,8 @@ const parserLanguage = P.createLanguage({
         .skip(P.all),
 
     aboutCommand: _ => customParsers.command(GameCommands.about),
+
+    admCommand: _ => customParsers.command(GameCommands.adm),
 
     authCommand: lang => P.seq(
         customParsers.command(GameCommands.auth),

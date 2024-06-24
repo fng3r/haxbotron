@@ -1,5 +1,6 @@
 export enum GameCommands {
     about = 'about',
+    adm = 'adm',
     auth = 'auth',
     deanon = 'deanon',
     freeze = 'freeze',

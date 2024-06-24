@@ -16,6 +16,7 @@ import {cmdTeamChat} from "./teamchat";
 import {cmdDeanon} from "./deanon";
 import {cmdMap} from "./map";
 import {buildHelpCommand} from "./help";
+import { cmdAdm } from "./adm";
 
 export class CommandExecutor {
     private readonly _commandHandlers: Map<GameCommands, Function>;
@@ -83,6 +84,7 @@ export class CommandExecutorBuilder {
 
 export const commandExecutor = CommandExecutorBuilder.new()
     .addCommand(GameCommands.about, LangRes.command.helpman.about, (byPlayer) => cmdAbout(byPlayer))
+    .addCommand(GameCommands.adm, LangRes.command.helpman.adm, (byPlayer) => cmdAdm(byPlayer))
     .addCommand(GameCommands.auth, LangRes.command.helpman.auth, (byPlayer, commandArgs) => {
         const [playerId] = commandArgs;
         cmdAuth(byPlayer, playerId);
