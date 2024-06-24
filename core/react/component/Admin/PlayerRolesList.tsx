@@ -240,7 +240,7 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                                 <Grid container spacing={1}>
                                     <Grid item xs={8} sm={4}>
                                         <TextField
-                                            variant="outlined" margin="normal" required size="small" value={searchQuery} onChange={onChangeSearchQuery}
+                                            variant="outlined" margin="normal" size="small" value={searchQuery} onChange={onChangeSearchQuery}
                                             id="searchQuery" label="Search query" name="searchQuery" fullWidth
                                         />
                                         <Typography>Page {pagingOrder}</Typography>
