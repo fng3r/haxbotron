@@ -1,0 +1,13 @@
+[Unit]
+Description=Haxbotronic db app
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/haxbotronic/db
+ExecStart=/root/.nvm/versions/node/v14.15.1/bin/node out/app.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
