@@ -1,4 +1,4 @@
-import React, {ChangeEvent, useContext, useEffect, useState} from 'react';
+import React, {ChangeEvent, useEffect, useState} from 'react';
 import clsx from 'clsx';
 import Box from '@material-ui/core/Box';
 import Container from '@material-ui/core/Container';
@@ -12,10 +12,11 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Title from './common/Widget.Title';
 import client from '../../lib/client';
-import {Button, IconButton, makeStyles, MenuItem, Select, TextField, Typography} from '@material-ui/core';
+import {Button, Divider, IconButton, makeStyles, MenuItem, Select, TextField, Typography} from '@material-ui/core';
 import Alert, { AlertColor } from '../common/Alert';
 import { isNumber } from '../../lib/numcheck';
 import BackspaceIcon from "@material-ui/icons/Backspace";
+import { AddCircle, Cancel, Help, QuestionAnswer, Refresh, SvgIconComponent } from '@material-ui/icons';
 
 
 interface styleClass {
@@ -34,6 +35,20 @@ interface PlayerRole {
     role: string
 }
 
+enum PlayerRoleEventType {
+    addRole = 'addrole',
+    removeRole = 'rmrole',
+    updateRole = 'updaterole'
+}
+
+interface PlayerRoleEvent {
+    type: PlayerRoleEventType;
+    auth: string;
+    name: string;
+    role: string;
+    timestamp: number;
+}
+
 const useRowStyles = makeStyles({
     root: {
         '& > *': {
@@ -42,9 +57,46 @@ const useRowStyles = makeStyles({
     },
 });
 
+const useDividerStyle = makeStyles({
+    root: {
+        marginBottom: 10
+    }
+});
+
+const convertDate = (timestamp: number): string => {
+    return new Date(timestamp).toLocaleString();
+}
+
+const convertEventToString = (event: PlayerRoleEvent): string => {
+    switch (event.type) {
+        case PlayerRoleEventType.addRole:
+            return `Player ${event.name} with id ${event.auth} was added with role '${event.role}'`;
+        case PlayerRoleEventType.updateRole:
+            return `Player's ${event.name} (id: ${event.auth}) role was updated to '${event.role}'`;
+        case PlayerRoleEventType.removeRole:
+                return `Player ${event.name} with id ${event.auth} was removed`;
+        default:
+            throw new Error(`Unknown event type: ${event.type}`);
+    }
+}
+
+const convertEventTypeToIcon = (eventType: PlayerRoleEventType): any => {
+    switch (eventType) {
+        case PlayerRoleEventType.addRole:
+            return <AddCircle titleAccess='Player added' htmlColor='green' />;
+        case PlayerRoleEventType.updateRole:
+            return <Refresh titleAccess='Role updated' htmlColor='blue' />;
+        case PlayerRoleEventType.removeRole:
+            return <Cancel titleAccess='Player removed' htmlColor='red' />;
+        default:
+            return <Help />
+    }
+}
+
 export default function RoomPlayerList({ styleClass }: styleClass) {
     const classes = styleClass;
     const rowStyles = useRowStyles();
+    const titleStyles = useDividerStyle();
 
     const fixedHeightPaper = clsx(classes.paper, classes.fullHeight);
 
@@ -58,6 +110,11 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
 
     const [playerRolesList, setPlayerRolesList] = useState([] as PlayerRole[]);
     const [newRole, setNewRole] = useState({ auth: '', name: '', role: 'player' } as newRoleFields);
+
+    const [eventsPagingOrder, setEventsPagingOrder] = useState(1);
+    const [eventsPagingCount, setEventsPagingCount] = useState(10);
+    const [eventsPagingCountInput, setEventsPagingCountInput] = useState('10');
+    const [playerRolesEventsList, setPlayerRolesEventsList] = useState([] as PlayerRoleEvent[]);
 
     const showAlert = (status: AlertColor, message: string, hideAfter: number | null = 3000) => {
         setFlashMessage(message);
@@ -91,7 +148,8 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
         const query = e.target.value;
         setSearchQuery(query);
 
-        getPlayersRoles(pagingOrder, query)
+        getPlayersRoles(pagingOrder, query);
+        getPlayersRolesEvents(eventsPagingOrder, query);
     }
 
     const onChangeNewRole = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +176,40 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
         }
     }
 
+    const onClickEventsPaging = (move: number) => {
+        if (eventsPagingOrder + move >= 1) {
+            setEventsPagingOrder(eventsPagingOrder + move);
+            getPlayersRolesEvents(eventsPagingOrder + move);
+        }
+    }
+
+    const onChangeEventsPagingCountInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setEventsPagingCountInput(e.target.value);
+
+        if (isNumber(parseInt(e.target.value))) {
+            const count: number = parseInt(e.target.value);
+            if (count >= 1) {
+                setEventsPagingCount(count);
+            }
+        }
+
+        getPlayersRolesEvents(eventsPagingOrder, searchQuery);
+    }
+
+    const getPlayersRolesEvents = async (page: number, searchQuery: string = '') => {
+        const index: number = (page - 1) * eventsPagingCount;
+        try {
+            const result = await client.get(`/api/v1/roleslist/events?searchQuery=${searchQuery}&start=${index}&count=${eventsPagingCount}`);
+            if (result.status === 200) {
+                const playerRoles: PlayerRoleEvent[] = result.data;
+
+                setPlayerRolesEventsList(playerRoles);
+            }
+        } catch (e) {
+            showAlert('error', 'Failed to load roles events list.', null);
+        }
+    }
+
     const addRole = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         try {
@@ -137,7 +229,9 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                 showAlert('error', 'Failed to add new role.');
             }
         }
-        getPlayersRoles(pagingOrder);
+
+        getPlayersRoles(pagingOrder, searchQuery);
+        getPlayersRolesEvents(eventsPagingOrder, searchQuery);
     }
 
     const updateRole = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, playerIndex: number) => {
@@ -159,28 +253,34 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                     })
                 );
             }
+
+            getPlayersRolesEvents(eventsPagingOrder, searchQuery);
         } catch (error) {
             showAlert('error', 'Failed to update player role.');
         }
     }
 
-    const deleteRole = async (auth: string) => {
+    const deleteRole = async (auth: string, name: string) => {
         try {
-            const result = await client.delete(`/api/v1/roleslist/${auth}`);
+            const result = await client.delete(`/api/v1/roleslist/${auth}?name=${name}`);
             if (result.status === 204) {
                 showAlert('success', 'Successfully deleted role.');
             }
         } catch (error) {
             showAlert('error', 'Failed to delete player role.');
         }
-        getPlayersRoles(pagingOrder);
+
+        getPlayersRoles(pagingOrder, searchQuery);
+        getPlayersRolesEvents(eventsPagingOrder, searchQuery);
     }
 
     useEffect(() => {
         getPlayersRoles(1);
+        getPlayersRolesEvents(1);
 
         return (() => {
             setPlayerRolesList([]);
+            setPlayerRolesEventsList([]);
         });
     }, []);
 
@@ -274,7 +374,7 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                                                         </TextField>
                                                     </TableCell>
                                                     <TableCell align="left">
-                                                        <IconButton name={item.auth} onClick={() => deleteRole(item.auth)} aria-label="delete">
+                                                        <IconButton name={item.auth} onClick={() => deleteRole(item.auth, item.name)} aria-label="delete">
                                                             <BackspaceIcon fontSize="small" />
                                                         </IconButton>
                                                     </TableCell>
@@ -285,6 +385,58 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                                 </Table>
                             </Grid>
                         </React.Fragment>
+
+                        <Divider className={titleStyles.root} />
+
+                        <React.Fragment>
+                            <Title>Event log</Title>
+
+                            <Grid container spacing={1}>
+                                <Grid item xs={8} sm={4}>
+                                    {/* previous page */}
+                                    <Button onClick={() => onClickEventsPaging(-1)} size="small" type="button" variant="outlined" color="inherit" className={classes.submit}>&lt;&lt;</Button>
+                                    {/* next page */}
+                                    <Button onClick={() => onClickEventsPaging(1)} size="small" type="button" variant="outlined" color="inherit" className={classes.submit}>&gt;&gt;</Button>
+
+                                    <TextField
+                                        variant="outlined"
+                                        margin="normal"
+                                        size="small"
+                                        id="eventsPagingCountInput"
+                                        label="Paging Items Count"
+                                        name="pagingCountInput"
+                                        type="number"
+                                        value={eventsPagingCountInput}
+                                        onChange={onChangeEventsPagingCountInput}
+                                    />
+
+                                    <Typography>Page {eventsPagingOrder}</Typography>
+
+                                </Grid>
+
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell width="5%">Type</TableCell>
+                                            <TableCell width="75%">Event</TableCell>
+                                            <TableCell width="20%">Date</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {playerRolesEventsList && playerRolesEventsList.map((event, idx) => (
+                                            <React.Fragment>
+                                                <TableRow className={rowStyles.root}>
+                                                    <TableCell width="5%" component="th" scope="row">{convertEventTypeToIcon(event.type)}</TableCell>
+                                                    <TableCell width="75%" component="th" scope="row">{convertEventToString(event)}</TableCell>
+                                                    <TableCell width="20%">{convertDate(event.timestamp)}</TableCell>
+                                                </TableRow>
+                                            </React.Fragment>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </Grid>
+                        </React.Fragment>
+
                     </Paper>
                 </Grid>
             </Grid>

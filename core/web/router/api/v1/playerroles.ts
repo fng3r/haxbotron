@@ -8,3 +8,4 @@ playerRolesRouter.get('/', checkLoginMiddleware, playerRolesController.getAllLis
 playerRolesRouter.post('/:auth', checkLoginMiddleware, playerRolesController.addPlayerRole);
 playerRolesRouter.put('/:auth', checkLoginMiddleware, playerRolesController.updatePlayerRole)
 playerRolesRouter.delete('/:auth', checkLoginMiddleware, playerRolesController.deletePlayerRole);
+playerRolesRouter.get('/events', checkLoginMiddleware, playerRolesController.getEventsList);

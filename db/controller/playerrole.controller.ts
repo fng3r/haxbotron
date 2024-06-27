@@ -101,7 +101,7 @@ export class PlayerRoleController {
 
     public async deletePlayerRole(ctx: Context) {
         const {auth} = ctx.params;
-        const {name} = ctx.query;
+        const {name} = ctx.request.query;
 
         return this._repository
             .delete(auth, name as string)
@@ -112,6 +112,22 @@ export class PlayerRoleController {
             .catch((error) => {
                 ctx.status = 404;
                 ctx.body = {error: error.message};
+            });
+    }
+
+    public async searchEvents(ctx: Context) {
+        const { searchQuery, start, count } = ctx.request.query;
+
+        return this._repository
+            .searchEvents(searchQuery as string, { start: parseInt(<string>start), count: parseInt(<string>count) })
+            .then((events) => {
+                ctx.status = 200;
+                ctx.body = events;
+            })
+            .catch((error) => {
+                console.error(error)
+                ctx.status = 500;
+                ctx.body = { error: error.message };
             });
     }
 }

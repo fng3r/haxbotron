@@ -8,6 +8,20 @@ interface PlayerRole {
 
 }
 
+enum PlayerRoleEventType {
+    addRole = 'addrole',
+    removeRole = 'rmrole',
+    updateRole = 'updaterole'
+}
+
+interface PlayerRoleEvent {
+    type: PlayerRoleEventType;
+    auth: string;
+    name: string;
+    role: string;
+    timestamp: number;
+}
+
 const dbConnAddr: string = (
     'http://'
     + ((process.env.SERVER_CONN_DB_HOST) ? (process.env.SERVER_CONN_DB_HOST) : ('127.0.0.1'))
@@ -81,10 +95,11 @@ export async function updatePlayerRole(ctx: Context) {
 }
 
 export async function deletePlayerRole(ctx: Context) {
-    const { auth, name, role } = ctx.params;
+    const { auth } = ctx.params;
+    const { name } = ctx.request.query;
 
     try {
-        await client.delete(`${dbConnAddr}player-roles/${auth}`)
+        await client.delete(`${dbConnAddr}player-roles/${auth}?name=${encodeURIComponent(name)}`)
             .then((response) => {
             })
             .catch((error) => {
@@ -92,6 +107,27 @@ export async function deletePlayerRole(ctx: Context) {
             });
 
         ctx.status = 204;
+    } catch (error) {
+        ctx.status = error;
+    }
+}
+
+export async function getEventsList(ctx: Context) {
+    const { searchQuery, start, count } = ctx.request.query;
+    let apiPath: string = (start && count)
+        ? `${dbConnAddr}player-roles/events?searchQuery=${encodeURIComponent(searchQuery)}&start=${start}&count=${count}`
+        : `${dbConnAddr}player-roles/events?searchQuery=${encodeURIComponent(searchQuery)}`;
+
+    try {
+        const getRes = await client.get(apiPath)
+            .then((response) => {
+                return response.data as PlayerRoleEvent[];
+            })
+            .catch((error) => {
+                throw(error.response.status || 500);
+            });
+        ctx.body = getRes;
+        ctx.status = 200;
     } catch (error) {
         ctx.status = error;
     }

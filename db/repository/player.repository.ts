@@ -35,6 +35,7 @@ export class PlayerRepository implements IPlayerRepository {
             where: [
                 { ruid: ruid, auth: Like(`%${searchQuery}%`)},
                 { ruid: ruid, name: Like(`%${searchQuery}%`)},
+                { ruid: ruid, conn: Like(`%${searchQuery}%`)},
             ],
             skip: pagination.start,
             take: pagination.count

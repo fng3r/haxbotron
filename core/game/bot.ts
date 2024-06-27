@@ -65,9 +65,6 @@ window.gameRoom = {
     ,onEmergency: EmergencyTools
 }
 
-window.gameRoom.logger.i('abc', discordWebhook);
-window.gameRoom.logger.i('abc', JSON.stringify(window.gameRoom.social.discordWebhook));
-
 // clear localStorage
 localStorage.removeItem('_initConfig');
 localStorage.removeItem('_defaultMap');
