@@ -132,8 +132,8 @@ export const onJoin = {
     ,bannedNickname: '🚫 Banned nickname.'
     ,includeSeperator: '🚫 Chat message includes banned word. (|,|)'
     ,banList: {
-        permanentBan: '{playerName} is banned permanently ({banListReason})'
-        ,fixedTermBan: '{playerName} is banned until {banExpirationDate} ({banListReason})'
+        permanentBan: '{playerName} is banned permanently'
+        ,fixedTermBan: '{playerName} is banned until {banExpirationDate}'
     }
 }
 
