@@ -3,7 +3,7 @@
 	"_config": {
 		"roomName": "🏆 cis-haxball.com | Room #1",
 		"playerName": "🤖",
-		"password": "",
+		"password": "2552",
 		"maxPlayers": 15,
 		"public": true,
 		"token": "",
@@ -28,8 +28,8 @@
 		"requisite": {
 			"minimumPlayers": 8,
 			"eachTeamPlayers": 4,
-			"timeLimit": 3,
-			"scoreLimit": 3,
+			"timeLimit": 5,
+			"scoreLimit": 5,
 			"teamLock": true
 		},
 		"autoAdmin": false,
