@@ -198,8 +198,8 @@ export class HeadlessBrowser {
 
                     const embed = new Discord.MessageEmbed();
                     embed.setColor('WHITE');
-                    embed.setAuthor('CIS-HAXBALL', 'https://www.cis-haxball.com/static/img/logo_try.png', 'https://www.cis-haxball.com/')
-                    embed.setThumbnail('https://www.cis-haxball.com/static/img/logo_try.png')
+                    embed.setAuthor('CIS-HAXBALL', 'https://cis-haxball.ru/static/img/logo_try.png', 'https://cis-haxball.ru/')
+                    embed.setThumbnail('https://cis-haxball.ru/static/img/logo_try.png')
                     embed.setTitle(`${roomId} | ${matchStartString}`);
                     embed.setDescription(`[${matchDurationString}]  ${matchScoreString}\n`);
                     embed.addFields([
