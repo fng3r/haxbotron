@@ -40,7 +40,7 @@ export default function ServerInfo({ styleClass }: styleClass) {
                 if (result.status === 200) {
                     setServerInfo(result.data);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 if (e.status === 401) { }
             }
         }

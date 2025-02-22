@@ -77,7 +77,7 @@ export default function SignUp({ installed }: checkProps) {
                         history.push('/admin');
                     }, 5000);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 setAlertStatus('error');
                 switch(e.response.status) {
                     case 400: {

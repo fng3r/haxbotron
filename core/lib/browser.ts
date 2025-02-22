@@ -6,7 +6,7 @@ import * as dbUtilityInject from "./db.injection";
 import { loadStadiumData } from "./stadiumLoader";
 import { Server as SIOserver, } from "socket.io";
 import { TeamID } from "../game/model/GameObject/TeamID";
-import Discord, {MessageEmbed} from 'discord.js';
+import { AttachmentBuilder, EmbedBuilder, WebhookClient } from 'discord.js';
 import { DiscordWebhookConfig } from "./browser.interface";
 import moment from "moment";
 import {PlayerObject} from "../game/model/GameObject/PlayerObject";
@@ -181,7 +181,10 @@ export class HeadlessBrowser {
             this._SIOserver?.sockets.emit('statuschange', { ruid: ruid, playerID: event.playerID });
         });
         page.addListener('_SOCIAL.DiscordWebhook', (event: any) => {
-            const webhookClient = new Discord.WebhookClient(event.id, event.token);
+            const webhookClient = new WebhookClient({
+                id: event.id,
+                token: event.token
+            });
 
             switch (event.type as string) {
                 case "replay": {
@@ -194,36 +197,47 @@ export class HeadlessBrowser {
                     const bufferData = Buffer.from(JSON.parse(event.content.data));
                     const replayDateString = moment(matchStats.startedAt).format('DD-MM-YYTHH-mm-ss');
                     const filename = `${roomId}_${replayDateString}.hbr2`;
-                    const attachment = new Discord.MessageAttachment(bufferData, filename);
+                    const attachment = new AttachmentBuilder(bufferData, { name: filename });
 
-                    const embed = new Discord.MessageEmbed();
-                    embed.setColor('WHITE');
-                    embed.setAuthor('CIS-HAXBALL', 'https://cis-haxball.ru/static/img/logo_try.png', 'https://cis-haxball.ru/')
-                    embed.setThumbnail('https://cis-haxball.ru/static/img/logo_try.png')
-                    embed.setTitle(`${roomId} | ${matchStartString}`);
-                    embed.setDescription(`[${matchDurationString}]  ${matchScoreString}\n`);
-                    embed.addFields([
-                        {
-                            name: '🔴\t\tRed Team\t\t\t\n-----------------------',
-                            value: matchStats.startingLineup.red.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
-                            inline: true
-                        },
-                        {
-                            name: '🔵\t\tBlue Team\t\t\t\n-----------------------',
-                            value: matchStats.startingLineup.blue.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
-                            inline: true
-                        }
-                    ]);
-                    embed.addField(' ', '-------------------------------------------------');
-                    embed.setFooter(`Replay: ${filename}`);
-                    embed.setTimestamp(moment.now());
+                    const embed = new EmbedBuilder()
+                        .setColor('White')
+                        .setAuthor({ name: 'CIS-HAXBALL', iconURL: 'https://cis-haxball.ru/static/img/logo_try.png', url: 'https://cis-haxball.ru/' })
+                        .setThumbnail('https://cis-haxball.ru/static/img/logo_try.png')
+                        .setTitle(`${roomId} | ${matchStartString}`)
+                        .setDescription(`[${matchDurationString}]  ${matchScoreString}\n`)
+                        .addFields([
+                            {
+                                name: '🔴\t\tRed Team\t\t\t\n-----------------------',
+                                value: matchStats.startingLineup.red.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
+                                inline: true
+                            },
+                            {
+                                name: '🔵\t\tBlue Team\t\t\t\n-----------------------',
+                                value: matchStats.startingLineup.blue.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
+                                inline: true
+                            },
+                            {
+                                name: ' ',
+                                value: '-------------------------------------------------'
+                            }
+                        ])
+                        .setFooter({ text: `Replay: ${filename}` })
+                        .setTimestamp();
 
-                    webhookClient.send({embeds: [embed]});
-                    webhookClient.send({files: [attachment]});
+                    try {
+                        webhookClient.send({embeds: [embed]});
+                        webhookClient.send({files: [attachment]});
+                    } catch (error) {
+                        winstonLogger.error(`[core] Error on sending data to discord webhook: ${error}`);
+                    }
                     break;
                 }
                 case "password": {
-                    webhookClient.send(event.content.message);
+                    try {
+                        webhookClient.send(event.content.message);
+                    } catch (error) {
+                        winstonLogger.error(`[core] Error on sending data to discord webhook: ${error}`);
+                    }
                     break;
                 }
             }

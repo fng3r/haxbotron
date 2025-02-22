@@ -42,7 +42,7 @@ export default function RoomPower({ styleClass }: styleClass) {
                 setAlertStatus('success');
                 history.push('/admin/roomlist');
             }
-        } catch (e) {
+        } catch (e: any) {
             setAlertStatus('error');
             switch (e.response.status) {
                 case 401: {

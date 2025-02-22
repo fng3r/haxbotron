@@ -57,7 +57,7 @@ export default function RoomInfo({ styleClass }: styleClass) {
             if (result.status === 200) {
                 setFreezeStatus(result.data.freezed);
             }
-        } catch (error) {
+        } catch (error: any) {
             if (error.response.status === 404) {
                 setFlashMessage('Failed to load status of chat');
                 setAlertStatus("error");
@@ -76,7 +76,7 @@ export default function RoomInfo({ styleClass }: styleClass) {
                 setPlainPassword(result.data._roomConfig.password || '');
                 setAdminPassword(result.data.adminPassword);
             }
-        } catch (error) {
+        } catch (error: any) {
             if (error.response.status === 404) {
                 setFlashMessage('Failed to load information.');
                 setAlertStatus("error");
@@ -107,7 +107,7 @@ export default function RoomInfo({ styleClass }: styleClass) {
 
                 getRoomInfo();
             }
-        } catch (error) {
+        } catch (error: any) {
             //error.response.status
             setFlashMessage('Failed to set password.');
             setAlertStatus('error');
@@ -144,7 +144,7 @@ export default function RoomInfo({ styleClass }: styleClass) {
                 }
             }
 
-        } catch (error) {
+        } catch (error: any) {
             //error.response.status
             setFlashMessage('Failed to freeze whole chat.');
             setAlertStatus('error');
@@ -168,7 +168,7 @@ export default function RoomInfo({ styleClass }: styleClass) {
 
                 getRoomInfo();
             }
-        } catch (error) {
+        } catch (error: any) {
             //error.response.status
             setFlashMessage('Failed to clear password.');
             setAlertStatus('error');
@@ -186,7 +186,7 @@ export default function RoomInfo({ styleClass }: styleClass) {
     useEffect(() => {
         try {
             setRoomInfoJSONText(JSON.stringify(roomInfoJSON, null, 4));
-        } catch (error) {
+        } catch (error: any) {
             setFlashMessage('Failed to load text.');
             setAlertStatus("error");
         }

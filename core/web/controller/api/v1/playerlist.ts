@@ -54,7 +54,7 @@ export async function getAllList(ctx: Context) {
         });
         ctx.body = playerList;
         ctx.status = 200;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error;
     }
 }
@@ -64,12 +64,12 @@ export async function getPlayerInfo(ctx: Context) {
 
     try {
         const getRes = await client.get(`${dbConnAddr}room/${ruid}/player/${auth}`)
-        .then((response) => {
-            return response.data as PlayerStorageList;
-        })
-        .catch((error) => {
-            throw(error.response.status || 500);
-        });
+            .then((response) => {
+                return response.data as PlayerStorageList;
+            })
+            .catch((error) => {
+                throw(error.response.status || 500);
+            });
         
         const playerInfo: PlayerStorage = ((res) => {
             const { uid, ruid, ...rest} = res;
@@ -78,7 +78,7 @@ export async function getPlayerInfo(ctx: Context) {
 
         ctx.body = playerInfo
         ctx.status = 200;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error;
     }
 }

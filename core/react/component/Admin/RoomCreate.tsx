@@ -109,7 +109,7 @@ export default function RoomCreate({ styleClass }: styleClass) {
         try {
             const parsedSettings: BrowserHostRoomSettings = JSON.parse(settingsFormStringifiedField);
             setSettingsFormField(parsedSettings);
-        } catch(e) {
+        } catch(e: any) {
             //console.log("PARSING ERROR!!");
         }
     }, [settingsFormStringifiedField])
@@ -130,7 +130,7 @@ export default function RoomCreate({ styleClass }: styleClass) {
                     // redirect to room list page
                     history.push('/admin/roomlist');
                 }
-            } catch (error) {
+            } catch (error: any) {
                 setFlashMessage('Unexpected error is caused. Please try again.');
                 setAlertStatus("error");
                 switch (error.response?.status) {
@@ -168,7 +168,7 @@ export default function RoomCreate({ styleClass }: styleClass) {
 
         try {
             setSettingsFormStringifiedField(JSON.stringify(settingsFormField,null,4));
-        } catch (error) {
+        } catch (error: any) {
             //console.log("JSON Beautify Error : \n" + error);
         }
     }

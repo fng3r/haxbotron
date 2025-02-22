@@ -68,7 +68,7 @@ export default function RoomBanList({ styleClass }: styleClass) {
                 const banList: banListItem[] = result.data;
                 setBanList(banList);
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             if (error.response.status === 404) {
                 setFlashMessage('Failed to load list.');
@@ -89,7 +89,7 @@ export default function RoomBanList({ styleClass }: styleClass) {
                     setFlashMessage('');
                 }, 3000);
             }
-        } catch (error) {
+        } catch (error: any) {
             //error.response.status
             setFlashMessage('Failed to delete the ban.');
             setTimeout(() => {
@@ -149,7 +149,7 @@ export default function RoomBanList({ styleClass }: styleClass) {
                     setFlashMessage('');
                 }, 3000);
             }
-        } catch (error) {
+        } catch (error: any) {
             //error.response.status
             setFlashMessage('Failed to ban.');
             setAlertStatus('error');

@@ -27,7 +27,7 @@ export default function ServerInfoWidget() {
                 if (result.status === 200) {
                     setServerInfo(result.data);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 if (e.status === 401) { }
             }
         }

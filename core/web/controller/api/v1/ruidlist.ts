@@ -23,15 +23,15 @@ axios.defaults.withCredentials = true;
 export async function getAllList(ctx: Context) {
     try {
         const getRes = await client.get(`${dbConnAddr}ruidlist`)
-        .then((response) => {
-            return response.data as ruidListItem[];
-        })
-        .catch((error) => {
-            throw(error.response.status || 500);
-        });
+            .then((response) => {
+                return response.data as ruidListItem[];
+            })
+            .catch((error) => {
+                throw(error.response.status || 500);
+            });
         ctx.body = getRes;
         ctx.status = 200;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error;
     }
 }

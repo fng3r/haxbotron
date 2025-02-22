@@ -63,8 +63,7 @@ export default function RoomTextFilter({ styleClass }: styleClass) {
                     setFlashMessage('');
                 }, 3000);
             }
-        } catch (error) {
-            //error.response.status
+        } catch (error: any) {
             setFlashMessage('Failed to clear.');
             setAlertStatus('error');
             setTimeout(() => {
@@ -94,7 +93,7 @@ export default function RoomTextFilter({ styleClass }: styleClass) {
                     setFlashMessage('');
                 }, 3000);
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             switch (error.response.status) {
                 case 400: {
@@ -135,7 +134,7 @@ export default function RoomTextFilter({ styleClass }: styleClass) {
                 const textPool: string = result.data.pool;
                 setterFunction(textPool);
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             if (error.response.status === 404) {
                 setFlashMessage('Failed to load filtering pool.');

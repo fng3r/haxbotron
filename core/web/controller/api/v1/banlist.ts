@@ -39,12 +39,12 @@ export async function getAllList(ctx: Context) {
     
     try {
         const getRes = await client.get(apiPath)
-        .then((response) => {
-            return response.data as BanList[];
-        })
-        .catch((error) => {
-            throw(error.response.status || 500);
-        });
+            .then((response) => {
+                return response.data as BanList[];
+            })
+            .catch((error) => {
+                throw(error.response.status || 500);
+            });
         const banListItems: BanListItem[] = [];
         getRes.forEach((item: BanList) => {
             banListItems.push({
@@ -56,7 +56,7 @@ export async function getAllList(ctx: Context) {
         });
         ctx.body = banListItems;
         ctx.status = 200;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error;
     }
 }
@@ -66,15 +66,15 @@ export async function getBanInfo(ctx: Context) {
 
     try {
         const getRes = await client.get(`${dbConnAddr}room/${ruid}/banlist/${conn}`)
-        .then((response) => {
-            return response.data as BanList;
-        })
-        .catch((error) => {
-            throw(error.response.status || 500);
-        });
+            .then((response) => {
+                return response.data as BanList;
+            })
+            .catch((error) => {
+                throw(error.response.status || 500);
+            });
         ctx.body = { conn: getRes.conn, reason: getRes.reason, register: getRes.register, expire: getRes.expire} as BanListItem;
         ctx.status = 200;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error;
     }
 }
@@ -99,7 +99,7 @@ export async function banPlayer(ctx: Context) {
     try {
         await client.post(`${dbConnAddr}room/${ruid}/banlist`, submitItem);
         ctx.status = 204;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error.response.status || 500;
     }
 }
@@ -109,7 +109,7 @@ export async function unbanPlayer(ctx: Context) {
     try {
         await client.delete(`${dbConnAddr}room/${ruid}/banlist/${conn}`);
         ctx.status = 204;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error.response.status || 500;
     }
 }

@@ -72,7 +72,7 @@ export default function SignIn() {
                     }, 1000);*/
                     history.push('/admin');
                 }
-            } catch (e) {
+            } catch (e: any) {
                 setAlertStatus('error');
                 switch(e.response.status) {
                     case 401: {

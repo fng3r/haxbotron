@@ -42,7 +42,7 @@ router
     .use('/api/v1', indexAPIRouter.routes());
 
 app
-    .use(ip(whiteListIPs))
+    // .use(ip(whiteListIPs))
     .use(logger())
     .use(bodyParser())
     .use(jwtMiddleware)

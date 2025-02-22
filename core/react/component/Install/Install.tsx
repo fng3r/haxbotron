@@ -11,7 +11,7 @@ export default function Install() {
                 if(result.status === 204) {
                     setInstallAlready(true);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 if(e.response.status === 404) {
                     setInstallAlready(false);
                 }

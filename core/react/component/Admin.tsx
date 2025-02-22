@@ -15,7 +15,7 @@ export default function Admin(/* { match }: RouteComponentProps */) {
                 if(result.status === 200) {
                     setLoginCheck(true);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 if(e.response.status === 401) {
                     setLoginCheck(false);
                 }

@@ -43,7 +43,7 @@ export async function login(ctx: Context) {
             maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
             httpOnly: true,
         });
-    } catch (e) {
+    } catch (e: any) {
         ctx.throw(500, e);
     }
 };

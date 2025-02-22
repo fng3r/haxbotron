@@ -171,7 +171,7 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
 
                 setPlayerRolesList(playerRoles);
             }
-        } catch (e) {
+        } catch (e: any) {
             showAlert('error', 'Failed to load roles list.', null);
         }
     }
@@ -205,7 +205,7 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
 
                 setPlayerRolesEventsList(playerRoles);
             }
-        } catch (e) {
+        } catch (e: any) {
             showAlert('error', 'Failed to load roles events list.', null);
         }
     }
@@ -221,8 +221,7 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                 setNewRole({ auth: '', name: '', role: 'player' });
                 showAlert('success', 'Successfully added new role.');
             }
-        } catch (error) {
-            //error.response.status
+        } catch (error: any) {
             if (error.response.status === 409) {
                 showAlert('error', `Player '${newRole.name}' with public id '${newRole.auth}' already added`);
             } else {
@@ -255,7 +254,7 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
             }
 
             getPlayersRolesEvents(eventsPagingOrder, searchQuery);
-        } catch (error) {
+        } catch (error: any) {
             showAlert('error', 'Failed to update player role.');
         }
     }
@@ -266,7 +265,7 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
             if (result.status === 204) {
                 showAlert('success', 'Successfully deleted role.');
             }
-        } catch (error) {
+        } catch (error: any) {
             showAlert('error', 'Failed to delete player role.');
         }
 

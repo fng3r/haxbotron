@@ -122,7 +122,7 @@ export default function RoomAssets({ styleClass }: styleClass) {
 
                 getTeamColours();
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             if (error.response.status === 404) {
                 setFlashMessage('Failed to set team colours.');
@@ -143,7 +143,7 @@ export default function RoomAssets({ styleClass }: styleClass) {
                 setRedTeamColours(colours.red);
                 setBlueTeamColours(colours.blue);
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             if (error.response.status === 404) {
                 setFlashMessage('Failed to load team colours.');

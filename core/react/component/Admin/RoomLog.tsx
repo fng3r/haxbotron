@@ -57,7 +57,7 @@ export default function RoomLog({ styleClass }: styleClass) {
                     setFlashMessage('');
                 }, 3000);
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             switch (error.response.status) {
                 case 400: {

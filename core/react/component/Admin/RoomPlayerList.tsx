@@ -125,7 +125,7 @@ function OnlinePlayerRow(props: { ruid: string, row: Player }) {
                     setFlashMessage('');
                 }, 3000);
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             switch (error.response.status) {
                 case 400: {
@@ -169,7 +169,7 @@ function OnlinePlayerRow(props: { ruid: string, row: Player }) {
                     setFlashMessage('');
                 }, 3000);
             }
-        } catch (error) {
+        } catch (error: any) {
             //error.response.status
             setFlashMessage('Failed to kick.');
             setAlertStatus('error');
@@ -201,7 +201,7 @@ function OnlinePlayerRow(props: { ruid: string, row: Player }) {
                     }, 3000);
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             //error.response.status
             setFlashMessage('Failed to mute/unmute.');
             setAlertStatus('error');

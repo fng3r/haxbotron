@@ -53,7 +53,7 @@ export async function getAllList(ctx: Context) {
             });
         ctx.body = getRes;
         ctx.status = 200;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error;
     }
 }
@@ -71,7 +71,7 @@ export async function addPlayerRole(ctx: Context) {
             });
 
         ctx.status = 204;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error;
     }
 }
@@ -89,7 +89,7 @@ export async function updatePlayerRole(ctx: Context) {
             });
 
         ctx.status = 204;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error;
     }
 }
@@ -107,7 +107,7 @@ export async function deletePlayerRole(ctx: Context) {
             });
 
         ctx.status = 204;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error;
     }
 }
@@ -128,7 +128,7 @@ export async function getEventsList(ctx: Context) {
             });
         ctx.body = getRes;
         ctx.status = 200;
-    } catch (error) {
+    } catch (error: any) {
         ctx.status = error;
     }
 }

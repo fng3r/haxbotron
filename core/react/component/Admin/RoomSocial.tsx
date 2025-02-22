@@ -65,7 +65,7 @@ export default function RoomSocial({ styleClass }: styleClass) {
                     setFlashMessage('');
                 }, 3000);
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             switch (error.response.status) {
                 case 400: {
@@ -113,7 +113,7 @@ export default function RoomSocial({ styleClass }: styleClass) {
                     setFlashMessage('');
                 }, 3000);
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             switch (error.response.status) {
                 case 400: {
@@ -169,7 +169,7 @@ export default function RoomSocial({ styleClass }: styleClass) {
                 const noticeMessage: string = result.data.message;
                 setNoticeMessage(noticeMessage);
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             if (error.response.status === 404) {
                 setFlashMessage('Failed to load notice message.');
@@ -191,7 +191,7 @@ export default function RoomSocial({ styleClass }: styleClass) {
                 setNewDiscordWebhookFeed(config.feed);
                 setNewDiscordWebhookReplayUpload(config.replayUpload);
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             if (error.response.status === 404) {
                 setFlashMessage('Failed to load Discord webhook configuration.');
@@ -210,7 +210,7 @@ export default function RoomSocial({ styleClass }: styleClass) {
                 setFlashMessage('Successfully delete notice.');
                 getNoticeMessage();
             }
-        } catch (error) {
+        } catch (error: any) {
             setAlertStatus('error');
             if (error.response.status === 404) {
                 setFlashMessage('Failed to access notice message.');
