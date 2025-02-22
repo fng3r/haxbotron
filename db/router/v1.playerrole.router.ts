@@ -19,6 +19,12 @@ playerRoleRouter.get('/search', async (ctx: Context) => {
     await controller.search(ctx)
 });
 
+// /v1/player-roles/events GET
+// search player role events
+playerRoleRouter.get('/events', async (ctx: Context) => {
+    await controller.searchEvents(ctx)
+});
+
 // /v1/player-roles/:auth GET
 // get the player data
 playerRoleRouter.get('/:auth', async (ctx: Context) => {

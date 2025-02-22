@@ -3,11 +3,12 @@ import { IRepository } from '../repository/repository.interface';
 import { Player } from '../entity/player.entity';
 import { PlayerModel } from '../model/PlayerModel';
 import { playerModelSchema } from "../model/Validator";
+import { IPlayerRepository } from "../repository/player.repository";
 
 export class PlayerController {
-    private readonly _repository: IRepository<Player>;
+    private readonly _repository: IPlayerRepository;
 
-    constructor(repository: IRepository<Player>) {
+    constructor(repository: IPlayerRepository) {
         this._repository = repository;
     }
 
@@ -38,6 +39,23 @@ export class PlayerController {
                     ctx.body = { error: error.message };
                 });
         }
+    }
+
+    public async search(ctx: Context) {
+        const { ruid } = ctx.params;
+        const { searchQuery, start, count } = ctx.request.query;
+
+        return this._repository
+            .search(ruid, searchQuery as string, { start: parseInt(<string>start), count: parseInt(<string>count) })
+            .then((players) => {
+                ctx.status = 200;
+                ctx.body = players;
+            })
+            .catch((error) => {
+                console.error(error)
+                ctx.status = 500;
+                ctx.body = { error: error.message };
+            });
     }
 
     public async getPlayer(ctx: Context) {

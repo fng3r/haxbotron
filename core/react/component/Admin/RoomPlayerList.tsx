@@ -391,6 +391,8 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
     const [onlinePlayerList, setOnlinePlayerList] = useState([] as Player[]);
     const [playerAccountList, setPlayerAccountList] = useState([] as PlayerStorage[]);
 
+    const [searchQuery, setSearchQuery] = useState('');
+
     const onClickPaging = (move: number) => {
         if (pagingOrder + move >= 1) {
             setPagingOrder(pagingOrder + move);
@@ -409,10 +411,17 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
         }
     }
 
-    const getPlayerAccountList = async (page: number) => {
+    const onChangeSearchQuery = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+
+        getPlayerAccountList(pagingOrder, query);
+    }
+
+    const getPlayerAccountList = async (page: number, searchQuery: string = '') => {
         const index: number = (page - 1) * pagingCount;
         try {
-            const result = await client.get(`/api/v1/playerlist/${matchParams.ruid}?start=${index}&count=${pagingCount}`);
+            const result = await client.get(`/api/v1/playerlist/${matchParams.ruid}?searchQuery=${searchQuery}&start=${index}&count=${pagingCount}`);
             if (result.status === 200) {
                 const playerAccounts: PlayerStorage[] = result.data;
 
@@ -523,8 +532,18 @@ export default function RoomPlayerList({ styleClass }: styleClass) {
                                         value={pagingCountInput}
                                         onChange={onChangePagingCountInput}
                                     />
+                                    
+                                </Grid>
 
-                                    <Typography>Page {pagingOrder}</Typography>
+                                <Grid container spacing={1}>
+                                    <Grid item xs={8} sm={4}>
+                                        <TextField
+                                            variant="outlined" margin="normal" size="small" value={searchQuery} onChange={onChangeSearchQuery}
+                                            id="searchQuery" label="Search query" name="searchQuery" fullWidth
+                                        />
+    
+                                        <Typography>Page {pagingOrder}</Typography>
+                                    </Grid>
                                 </Grid>
 
                                 <Table size="small">

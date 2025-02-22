@@ -153,7 +153,7 @@ export default function RoomSocial({ styleClass }: styleClass) {
         setNewPasswordWebhookID(e.target.value);
     }
     const onChangePasswordWebhookToken = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNewReplaysWebhookToken(e.target.value);
+        setNewPasswordWebhookToken(e.target.value);
     }
     const onChangeDiscordWebhookFeed = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewDiscordWebhookFeed(e.target.checked); // switch toggle component

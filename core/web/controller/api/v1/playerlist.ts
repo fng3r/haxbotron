@@ -34,8 +34,10 @@ axios.defaults.withCredentials = true;
 
 export async function getAllList(ctx: Context) {
     const { ruid } = ctx.params;
-    const { start, count } = ctx.request.query;
-    let apiPath: string = (start && count)?  `${dbConnAddr}room/${ruid}/player?start=${start}&count=${count}`: `${dbConnAddr}room/${ruid}/player`;
+    const { searchQuery, start, count } = ctx.request.query;
+    let apiPath: string = (start && count)
+        ? `${dbConnAddr}room/${ruid}/player/search?searchQuery=${encodeURIComponent(searchQuery)}&start=${start}&count=${count}`
+        : `${dbConnAddr}room/${ruid}/player/search?searchQuery=${encodeURIComponent(searchQuery)}`;
     
     try {
         const getRes = await client.get(apiPath)

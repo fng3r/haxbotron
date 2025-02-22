@@ -1,18 +1,22 @@
 import Router from "koa-router";
 import { Context } from "koa";
 import { PlayerController } from '../controller/player.controller';
-import { IRepository } from '../repository/repository.interface';
-import { PlayerRepository } from '../repository/player.repository';
-import { Player } from '../entity/player.entity';
+import { IPlayerRepository, PlayerRepository } from '../repository/player.repository';
 
 export const playerRouter = new Router();
-const playersRepository: IRepository<Player> = new PlayerRepository();
+const playersRepository: IPlayerRepository = new PlayerRepository();
 const controller: PlayerController = new PlayerController(playersRepository);
 
 // /v1/player GET
 // get all players list and data
 playerRouter.get('/', async (ctx: Context) => {
     await controller.getAllPlayers(ctx);
+});
+
+// /v1/player/search GET
+// search players
+playerRouter.get('/search', async (ctx: Context) => {
+    await controller.search(ctx)
 });
 
 // /v1/player POST

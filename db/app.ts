@@ -17,6 +17,7 @@ import { Player } from "./entity/player.entity";
 import { BanList } from "./entity/banlist.entity";
 import { apiRouterV1 } from "./router/v1.api.router";
 import {PlayerRole} from "./entity/playerRole.entity";
+import { PlayerRoleEvent } from "./entity/playerRoleEvent.entity";
 // ========================================================
 //const _GitHublastestRelease = await axios.get('https://api.github.com/repos/dapucita/haxbotron/releases/latest');
 console.log("_|    _|                      _|                    _|                                  " + "\n" +
@@ -38,7 +39,7 @@ const whiteListIPs: string[] = process.env.SERVER_WHITELIST_IP?.split(",") || ['
 createConnection({
     type: 'sqlite',
     database: path.join(__dirname, '..', process.env.DB_HOST || 'haxbotron.sqlite.db'),
-    entities: [Player, PlayerRole, BanList],
+    entities: [Player, PlayerRole, PlayerRoleEvent, BanList],
     logging: true,
     synchronize: true
 }).then(conn => {
