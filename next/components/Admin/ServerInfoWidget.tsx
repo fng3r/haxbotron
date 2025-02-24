@@ -1,6 +1,6 @@
 'use client';
 
-import client from '../../lib/client';
+import client from '@/lib/client';
 import Link from 'next/link';
 import WidgetTitle from './WidgetTitle';
 import { Grid2 as Grid, Link as MuiLink, Typography } from '@mui/material';
@@ -28,7 +28,7 @@ export default function ServerInfoWidget() {
     }, []);
 
     return (
-        <Grid container flexDirection="column" sx={{ height: 240 }}>
+        <Grid container flexDirection="column" className="h-60">
             <Grid size={12} sx={{ flex: 1 }}>
                 <WidgetTitle>Server Info</WidgetTitle>
                 <Typography component="p" variant="h4">

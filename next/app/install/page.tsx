@@ -1,5 +1,5 @@
 import { Avatar, Grid2 as Grid, Container, CssBaseline, Typography } from '@mui/material';
-import client from '../../lib/client';
+import client from '@/lib/client';
 import SignUp from '@/components/SignUp';
 import Link from 'next/link';
 import { Link as MuiLink } from '@mui/material';

@@ -4,37 +4,16 @@ import React, { useEffect, useState } from 'react';
 import { 
   Container, Paper, Typography, Button,
   TextField, Divider, IconButton, Switch, Tooltip,
-  FormControlLabel, useTheme, Theme,
-  Grid2 as Grid
+  FormControlLabel, Grid2 as Grid
 } from '@mui/material';
 import { LiveHelp, OpenInNew } from '@mui/icons-material';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
-import { BrowserHostRoomConfig, BrowserHostRoomGameRule, BrowserHostRoomSettings, ReactHostRoomInfo } from '../../../../core/lib/browser.hostconfig';
+import { BrowserHostRoomConfig, BrowserHostRoomGameRule, BrowserHostRoomSettings, ReactHostRoomInfo } from '@/../core/lib/browser.hostconfig';
 import * as DefaultConfigSet from "@/lib/defaultroomconfig.json";
 import { useRouter } from 'next/navigation';
 import Alert, { AlertColor } from '@/components/common/Alert';
 import { isNumber } from '@/lib/numcheck';
 import client from '@/lib/client';
-
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
-    },
-    form: {
-        width: '100%', // Fix IE 11 issue.
-        marginTop: theme.spacing(1),
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-});
 
 const getSavedRoomConfig = (): ReactHostRoomInfo => {
     let savedRoomInfo: ReactHostRoomInfo = DefaultConfigSet;
@@ -43,8 +22,6 @@ const getSavedRoomConfig = (): ReactHostRoomInfo => {
 }
 
 export default function RoomCreate() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
     const router = useRouter();
     const [flashMessage, setFlashMessage] = useState('');
     const [alertStatus, setAlertStatus] = useState("success" as AlertColor);
@@ -261,26 +238,26 @@ export default function RoomCreate() {
     }
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={{xs: 12}}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
                             <WidgetTitle>Create New Game Room</WidgetTitle>
                         </React.Fragment>
 
                         <React.Fragment>
-                            <form style={classes.form} onSubmit={handleSubmit} method="post">
+                            <form className="w-full mt-6" onSubmit={handleSubmit} method="post">
                                 <Grid container spacing={2}>
                                     <Grid size={{xs: 6, sm: 3}}>
-                                        <Button fullWidth type="submit" variant="contained" color="primary" sx={classes.submit}>Create</Button>
+                                        <Button fullWidth type="submit" variant="contained" color="primary" className="mb-3!">Create</Button>
                                     </Grid>
                                     <Grid size={{xs: 6, sm: 3}}>
-                                        <Button fullWidth type="reset" variant="contained" color="secondary" sx={classes.submit} onClick={handleReset}>Reset</Button>
+                                        <Button fullWidth type="reset" variant="contained" color="secondary" className="mb-3!" onClick={handleReset}>Reset</Button>
                                     </Grid>
                                     <Grid size={{xs: 4, sm: 2}}>
-                                        <Button type="button" variant="text" color="inherit" sx={classes.submit} onClick={handleJSONBeautify}>Beautify JSON</Button>
+                                        <Button type="button" variant="text" color="inherit" className="mb-3!" onClick={handleJSONBeautify}>Beautify JSON</Button>
                                     </Grid>
                                 </Grid>
                                 <Divider />

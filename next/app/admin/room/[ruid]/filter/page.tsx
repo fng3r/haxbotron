@@ -3,37 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Container, Grid2 as Grid, Paper, Button, 
-  Divider, TextField, Typography, 
-  Theme, useTheme
+  Divider, TextField, Typography
 } from '@mui/material';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
 import { useParams } from 'next/navigation';
 import client from '@/lib/client';
 import Alert, { AlertColor } from '@/components/common/Alert';
 
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-    },
-    form: {
-        margin: theme.spacing(2),
-    },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    submit: {
-        marginRight: theme.spacing(1),
-    },
-});
 
 export default function RoomTextFilter() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
-
     const { ruid } = useParams();
 
     const [nicknameFilteringPool, setNicknameFilteringPool] = useState('');
@@ -172,37 +150,37 @@ export default function RoomTextFilter() {
     }, []);
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={12}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
                             <WidgetTitle>Nickname Filtering Pool</WidgetTitle>
                             <Typography variant="body1">Seperate by |,| and click Apply button.</Typography>
-                            <form style={classes.form} onSubmit={handleNicknameFilteringPoolSet} method="post">
+                            <form className="w-full mt-2 mb-2" onSubmit={handleNicknameFilteringPoolSet} method="post">
                                 <TextField
                                     fullWidth variant="outlined" margin="normal" multiline required
                                     value={nicknameFilteringPool} onChange={onChangeNicknameFilteringPool}
                                     id="nicknameFilteringPoolField" name="nicknameFilteringPoolField" label="Seperate by |,|"
                                 />
-                                <Button size="small" type="submit" variant="contained" color="primary" sx={classes.submit}>Apply</Button>
-                                <Button size="small" type="button" variant="contained" color="secondary" sx={classes.submit} onClick={handleNicknameFilteringPoolClear}>Clear</Button>
-                                <Button size="small" type="button" variant="outlined" color="inherit" sx={classes.submit} onClick={handleNicknameFilteringPoolLoad}>Load</Button>
+                                <Button size="small" type="submit" variant="contained" color="primary" className="mr-1!">Apply</Button>
+                                <Button size="small" type="button" variant="contained" color="secondary" className="mr-1!" onClick={handleNicknameFilteringPoolClear}>Clear</Button>
+                                <Button size="small" type="button" variant="outlined" color="inherit" onClick={handleNicknameFilteringPoolLoad}>Load</Button>
                             </form>
                             <Divider />
 
                             <WidgetTitle>Chat Filtering Pool</WidgetTitle>
                             <Typography variant="body1">Seperate by |,| and click Apply button.</Typography>
-                            <form style={classes.form} onSubmit={handleChatFilteringPoolSet} method="post">
+                            <form className="w-full mt-2" onSubmit={handleChatFilteringPoolSet} method="post">
                                 <TextField
                                     fullWidth variant="outlined" margin="normal" multiline required
                                     value={chatFilteringPool} onChange={onChangeChatFilteringPool}
                                     id="chatFilteringPoolField" name="chatFilteringPoolField" label="Seperate by |,|"
                                 />
-                                <Button size="small" type="submit" variant="contained" color="primary" sx={classes.submit}>Apply</Button>
-                                <Button size="small" type="button" variant="contained" color="secondary" sx={classes.submit} onClick={handleChatFilteringPoolClear}>Clear</Button>
-                                <Button size="small" type="button" variant="outlined" color="inherit" sx={classes.submit} onClick={handleChatFilteringPoolLoad}>Load</Button>
+                                <Button size="small" type="submit" variant="contained" color="primary" className="mr-1!">Apply</Button>
+                                <Button size="small" type="button" variant="contained" color="secondary" className="mr-1!" onClick={handleChatFilteringPoolClear}>Clear</Button>
+                                <Button size="small" type="button" variant="outlined" color="inherit" onClick={handleChatFilteringPoolLoad}>Load</Button>
                             </form>
                         </React.Fragment>
                     </Paper>

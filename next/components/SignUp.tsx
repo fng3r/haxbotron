@@ -2,7 +2,7 @@
 
 import { 
     Avatar, Button, CssBaseline, TextField,
-    Grid2 as Grid, Link as MuiLink, Typography, Container, styled 
+    Grid2 as Grid, Link as MuiLink, Typography, Container
   } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
 import Link from 'next/link';
@@ -11,13 +11,6 @@ import { useState } from 'react';
 import client from '@/lib/client';
 import Alert, { AlertColor } from '@/components/common/Alert';
 
-
-const StyledDiv = styled('div')(({ theme }) => ({
-  marginTop: theme.spacing(8),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-}));
 
 export default function SignUp() {
     const router = useRouter();
@@ -83,7 +76,7 @@ export default function SignUp() {
     return (
         <Container component="main" maxWidth="xs">
             <CssBaseline />
-            <StyledDiv>
+            <Container className="mt-16 flex flex-col items-center">
                 <Avatar>
                     <LockOutlined />
                 </Avatar>
@@ -140,7 +133,7 @@ export default function SignUp() {
                         </Grid>
                     </Grid>
                 </form>
-            </StyledDiv>
+            </Container>
         </Container>
     )
 }

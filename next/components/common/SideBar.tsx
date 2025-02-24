@@ -32,7 +32,7 @@ const classes = {
     },
 };
 
-export default function SideBar({ open }: { open: boolean }) {
+export default function SideBar() {
     const pathName = usePathname();
     const { ruid } = useParams<{ ruid?: string }>();
 
@@ -53,19 +53,19 @@ export default function SideBar({ open }: { open: boolean }) {
                     <ListItemIcon>
                         <AddCircle />
                     </ListItemIcon>
-                    <ListItemText primary={open ? "New Room": ""} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }} />
+                    <ListItemText primary="New Room" />
                 </ListItemButton>
                 <ListItemButton component={Link} href="/admin/roomlist" selected={pathName === '/admin/roomlist'} sx={classes.selectedButton}>
                     <ListItemIcon>
                         <SportsEsports />
                     </ListItemIcon>
-                    <ListItemText primary={open ? "Room List" : ""} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }} />
+                    <ListItemText primary="Room List" />
                 </ListItemButton>
                 <ListItemButton component={Link} href="/admin/roleslist" selected={pathName === '/admin/roleslist'} sx={classes.selectedButton}>
                     <ListItemIcon>
                         <SupervisedUserCircle />
                     </ListItemIcon>
-                    <ListItemText primary={open ? "Player Roles" : ""} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }} />
+                    <ListItemText primary="Player Roles" />
                 </ListItemButton>
             </List>
             <Divider />

@@ -4,32 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { 
   Container, Grid2 as Grid, Paper, Typography 
 } from '@mui/material';
-import { Theme, useTheme } from '@mui/material/styles';
 import client from '@/lib/client';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
 
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
-    },
-    fixedHeight: {
-        height: 240,
-    },
-    infoContext: {
-        flex: 1,
-    },
-});
 
 export default function ServerInfo() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
 
     const [serverInfo, setServerInfo] = useState({
         usedMemoryMB: 0,
@@ -52,10 +31,10 @@ export default function ServerInfo() {
     }, []);
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={{xs: 12, md: 4, lg: 3}}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             <WidgetTitle>Memory Usage</WidgetTitle>
                             <Typography component="p" variant="h4">
@@ -65,7 +44,7 @@ export default function ServerInfo() {
                     </Paper>
                 </Grid>
                 <Grid size={{xs: 12, md: 4, lg: 3}}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             <WidgetTitle>Server Uptime</WidgetTitle>
                             <Typography component="p" variant="h4">
@@ -75,7 +54,7 @@ export default function ServerInfo() {
                     </Paper>
                 </Grid>
                 <Grid size={{xs: 12, md: 4, lg: 3}}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             <WidgetTitle>Server Version</WidgetTitle>
                             <Typography component="p" variant="h4">

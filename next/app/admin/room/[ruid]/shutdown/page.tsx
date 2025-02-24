@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { 
-  Container, Grid2 as Grid, Paper, Button, Theme, useTheme
+  Container, Grid2 as Grid, Paper, Button
 } from '@mui/material';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
 import { useParams, useRouter } from 'next/navigation';
@@ -10,22 +10,7 @@ import client from '@/lib/client';
 import Alert, { AlertColor } from '@/components/common/Alert';
 
 
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-});
-
 export default function RoomPower() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
     const { ruid } = useParams();
     const router = useRouter();
     const [flashMessage, setFlashMessage] = useState('');
@@ -61,18 +46,18 @@ export default function RoomPower() {
     }
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={12}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                         {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
                             <WidgetTitle>{ruid}</WidgetTitle>
                             <Button
                                 type="submit"
                                 variant="contained"
-                                color="secondary"
-                                sx={classes.submit}
+                                color="error"
+                                className="mt-3!"
                                 onClick={handleShutdownClick}
                                 fullWidth
                             >

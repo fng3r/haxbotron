@@ -3,33 +3,12 @@
 import React, { useState } from 'react';
 import { 
   Avatar, Button, CssBaseline, TextField, 
-  Typography, Container, styled 
+  Typography, Container, 
 } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import client from '@/lib/client';
 import Alert, { AlertColor } from '@/components/common/Alert';
-
-const StyledDiv = styled('div')(({ theme }) => ({
-  marginTop: theme.spacing(8),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-}));
-
-const StyledAvatar = styled(Avatar)(({ theme }) => ({
-  margin: theme.spacing(1),
-  backgroundColor: theme.palette.secondary.main,
-}));
-
-const StyledForm = styled('form')(({ theme }) => ({
-  width: '100%',
-  marginTop: theme.spacing(1),
-}));
-
-const SubmitButton = styled(Button)(({ theme }) => ({
-  margin: theme.spacing(1, 0),
-}));
 
 export default function SignIn() {
     const router = useRouter();
@@ -88,16 +67,16 @@ export default function SignIn() {
     return (
         <Container component="main" maxWidth="xs">
             <CssBaseline />
-            <StyledDiv>
-                <StyledAvatar>
+            <div className="mt-16 flex flex-col items-center">
+                <Avatar className="m-1" sx={{ backgroundColor: 'secondary.main' }}>
                     <LockOutlined />
-                </StyledAvatar>
+                </Avatar>
                 <Typography component="h1" variant="h5">
                     Admin Account
                 </Typography>
                 <Typography variant="body1">Login and start managing the server.</Typography>
                 {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
-                <StyledForm onSubmit={handleSubmit} method="post">
+                <form className="w-full mt-1" onSubmit={handleSubmit} method="post">
                     <TextField
                         variant="outlined"
                         margin="normal"
@@ -122,16 +101,17 @@ export default function SignIn() {
                         value={password}
                         onChange={onChange}
                     />
-                    <SubmitButton
+                    <Button
                         type="submit"
                         fullWidth
                         variant="contained"
                         color="primary"
+                        className="mt-1!"
                     >
                         Login
-                    </SubmitButton>
-                </StyledForm>
-            </StyledDiv>
+                    </Button>
+                </form>
+            </div>
         </Container>
     );
 }

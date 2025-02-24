@@ -5,8 +5,7 @@ import {
   Container, Grid2 as Grid, Paper, Button, Divider, 
   FormControlLabel, IconButton, Switch, Table, 
   TableBody, TableCell, TableHead, TableRow, 
-  TextField, Typography, 
-  Theme, useTheme
+  TextField, Typography
 } from '@mui/material';
 import Title from '@/components/Admin/WidgetTitle';
 import { useParams } from 'next/navigation';
@@ -14,24 +13,6 @@ import client from '@/lib/client';
 import Alert, { AlertColor } from '@/components/common/Alert';
 import { Backspace, LiveHelp } from '@mui/icons-material';
 
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-    },
-    form: {
-        margin: theme.spacing(2),
-    },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-});
 
 type DiscordWebhookConfig = {
     feed: boolean
@@ -43,10 +24,8 @@ type DiscordWebhookConfig = {
 }
 
 export default function RoomSocial() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
-
     const { ruid } = useParams();
+
     const [newNoticeMessage, setNewNoticeMessage] = useState('');
     const [noticeMessage, setNoticeMessage] = useState('');
 
@@ -257,16 +236,16 @@ export default function RoomSocial() {
     }, []);
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={12}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
 
                             <Title>Notice</Title>
-                            <form style={classes.form} onSubmit={handleNoticeSet} method="post">
-                                <Grid container spacing={2}>
+                            <form className="w-full mt-2" onSubmit={handleNoticeSet} method="post">
+                                <Grid container spacing={1}>
                                     <Grid size={{xs: 12, sm: 8}}>
                                         <TextField
                                             variant="outlined" margin="normal" required size="small" fullWidth
@@ -275,10 +254,10 @@ export default function RoomSocial() {
                                         />
                                     </Grid>
                                     <Grid size={{xs: 3, sm: 1}}>
-                                        <Button fullWidth size="small" type="submit" variant="contained" color="primary" sx={classes.submit}>Publish</Button>
+                                        <Button fullWidth size="small" type="submit" variant="contained" color="primary" className="mt-5!">Publish</Button>
                                     </Grid>
                                     <Grid size={{xs: 3, sm: 1}}>
-                                        <Button fullWidth size="small" type="button" variant="outlined" color="inherit" sx={classes.submit} onClick={handleNoticeLoad}>Load</Button>
+                                        <Button fullWidth size="small" type="button" variant="outlined" color="inherit" className="mt-5!" onClick={handleNoticeLoad}>Load</Button>
                                     </Grid>
                                 </Grid>
                             </form>
@@ -287,7 +266,7 @@ export default function RoomSocial() {
                                     <Table size="small">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell sx={{fontWeight: 'bold'}}>Notice Message</TableCell>
+                                                <TableCell className="font-bold!">Notice Message</TableCell>
                                                 <TableCell align="right" />
                                             </TableRow>
                                         </TableHead>
@@ -296,7 +275,7 @@ export default function RoomSocial() {
                                                 <TableCell>{noticeMessage ?? 'There is no notice message'}</TableCell>
                                                 <TableCell align="right">
                                                     {noticeMessage &&
-                                                        <IconButton name='deleteNotice' onClick={deleteNoticeMessage} aria-label="delete" sx={classes.margin}>
+                                                        <IconButton name='deleteNotice' onClick={deleteNoticeMessage} aria-label="delete" className="mr-1!">
                                                             <Backspace fontSize="small" />
                                                         </IconButton>
                                                     }
@@ -306,20 +285,21 @@ export default function RoomSocial() {
                                     </Table>
                                 </Grid>
                             </Grid>
-                            <Divider />
+                            <Divider className="mb-2!" />
 
                             <Title>Discord Webhook</Title>
                             <Grid container spacing={2}>
                                 <Grid size={12}>
                                     <Typography component="h2" variant="subtitle2" color="inherit" gutterBottom>
                                         {'Create a webhook in the Discord application and submit your webhook\'s ID and Token. (e.g. https://discord.com/api/webhooks/id/token)'}
-                                        <IconButton onClick={() => window.open('https://github.com/dapucita/haxbotron/wiki/Discord-Webhook-Configuration', '_blank')} edge="start" size="medium" aria-label="get help">
+                                        <IconButton onClick={() => window.open('https://github.com/dapucita/haxbotron/wiki/Discord-Webhook-Configuration', '_blank')}
+                                                    edge="start" size="medium" aria-label="get help" className="-ml-1!">
                                             <LiveHelp />
                                         </IconButton>
                                     </Typography>
                                 </Grid>
                             </Grid>
-                            <form style={classes.form} onSubmit={handleDiscordWebhookSet} method="post">
+                            <form className="w-full mt-2" onSubmit={handleDiscordWebhookSet} method="post">
                                 <Grid container spacing={2}>
                                     <Grid container spacing={2} size={12}>
                                         <Grid size={1}>
@@ -368,12 +348,12 @@ export default function RoomSocial() {
                                     </Grid>
                                 </Grid>
 
-                                <Grid container spacing={1} size={12} marginTop={-2}>  
+                                <Grid container spacing={1} size={12}>  
                                         <Grid size={{xs: 3, sm: 1}}>
-                                            <Button fullWidth size="small" type="submit" variant="contained" color="primary" sx={classes.submit}>Apply</Button>
+                                            <Button fullWidth size="small" type="submit" variant="contained" color="primary" className="mt-1!">Apply</Button>
                                         </Grid>
                                         <Grid size={{xs: 3, sm: 1}}>
-                                            <Button fullWidth size="small" type="button" variant="outlined" color="inherit" sx={classes.submit} onClick={handleDiscordWebhookLoad}>Load</Button>
+                                            <Button fullWidth size="small" type="button" variant="outlined" color="inherit" className="mt-1!" onClick={handleDiscordWebhookLoad}>Load</Button>
                                         </Grid>
                                 </Grid>
                             </form>

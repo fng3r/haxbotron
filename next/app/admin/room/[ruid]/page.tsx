@@ -3,12 +3,11 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { 
   Container, Grid2 as Grid, Paper, Button, 
-  Divider, TextField, Alert, 
-  useTheme, Theme
+  Divider, TextField, Alert
 } from '@mui/material';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
 import client from '@/lib/client';
-import { BrowserHostRoomConfig, BrowserHostRoomGameRule, BrowserHostRoomSettings } from '../../../../../core/lib/browser.hostconfig';
+import { BrowserHostRoomConfig, BrowserHostRoomGameRule, BrowserHostRoomSettings } from '@/../core/lib/browser.hostconfig';
 import { WSocketContext } from '@/context/ws';
 import { useParams } from 'next/navigation';
 
@@ -24,32 +23,7 @@ interface roomInfo {
     _rules: BrowserHostRoomGameRule
 }
 
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-        display: 'flex',
-        flexDirection: 'column',
-    },
-    fullHeight: {
-        height: '100%',
-    },
-    form: {
-        width: '100%', // Fix IE 11 issue.
-        marginTop: theme.spacing(1),
-    },
-    submit: {
-        margin: theme.spacing(4, 0, 3),
-    },
-});
-
 export default function RoomInfo() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
-
     const { ruid } = useParams();
 
     const ws = useContext(WSocketContext);
@@ -157,7 +131,6 @@ export default function RoomInfo() {
             }
 
         } catch (error: any) {
-            //error.response.status
             setFlashMessage('Failed to freeze whole chat.');
             setAlertStatus('error');
             setTimeout(() => {
@@ -216,29 +189,29 @@ export default function RoomInfo() {
     }, [ws]);
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={12}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
                             <WidgetTitle>Room Information</WidgetTitle>
 
                             <Grid container spacing={2}>
                                 <Grid size={12}>
-                                    <Button size="small" type="button" variant="contained" color="inherit" onClick={handleFreezeChat}>
+                                    <Button size="small" type="button" variant="contained" color="inherit" className="mt-1!" onClick={handleFreezeChat}>
                                         {freezeStatus ? 'Unfreeze Chat' : 'Freeze Chat'}
                                     </Button>
 
-                                    <form style={classes.form} onSubmit={handleSetPassword} method="post">
+                                    <form className="w-full mt-6" onSubmit={handleSetPassword} method="post">
                                         <Grid container spacing={0} alignItems="center">
                                             <TextField
                                                 variant="outlined" margin="normal" required size="small" value={plainPassword} onChange={onChangePassword}
                                                 id="password" label="Password" name="password"
                                             />
                                             <Grid size={3} alignContent="center">
-                                                <Button size="small" type="submit" variant="contained" sx={classes.submit} color="primary">Set</Button>
-                                                <Button size="small" type="button" variant="contained" sx={classes.submit} color="secondary" onClick={handleClearPassword}>Clear</Button>
+                                                <Button size="small" type="submit" variant="contained" className="mt-4!" color="primary">Set</Button>
+                                                <Button size="small" type="button" variant="contained" className="mt-4!" color="secondary" onClick={handleClearPassword}>Clear</Button>
                                             </Grid>
                                         </Grid>
                                         

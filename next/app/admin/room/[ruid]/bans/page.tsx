@@ -4,8 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   Container, Grid2 as Grid, Paper, Table, TableBody,
   TableCell, TableHead, TableRow, Button, Divider, 
-  IconButton, TextField, Typography, 
-  useTheme, Theme
+  IconButton, TextField, Typography
 } from '@mui/material';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
 import client from '@/lib/client';
@@ -27,26 +26,7 @@ interface newBanFields {
     seconds: number
 }
 
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-    },
-    form: {
-        margin: theme.spacing(2),
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-});
-
 export default function RoomBanList() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
-
     const { ruid } = useParams();
 
     const [banList, setBanList] = useState([] as banListItem[]);
@@ -166,15 +146,15 @@ export default function RoomBanList() {
     }, []);
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={12}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
                             <WidgetTitle>Ban List</WidgetTitle>
                             <Grid container spacing={2}>
-                                <form style={classes.form} onSubmit={handleAdd} method="post">
+                                <form className="w-full mt-2" onSubmit={handleAdd} method="post">
                                     <Grid size={12}>
                                         <TextField
                                             variant="outlined" margin="normal" required size="small" value={newBan.conn} onChange={onChangeNewBan}
@@ -188,7 +168,7 @@ export default function RoomBanList() {
                                             variant="outlined" margin="normal" required size="small" value={newBan.seconds} onChange={onChangeNewBan} type="number"
                                             id="seconds" label="Ban Time(secs)" name="seconds"
                                         />
-                                        <Button size="small" type="submit" variant="contained" color="primary" sx={classes.submit}>Ban</Button>
+                                        <Button size="small" type="submit" variant="contained" color="primary" className="mt-5! ml-2!">Ban</Button>
                                     </Grid>
                                 </form>
                             </Grid>
@@ -207,8 +187,8 @@ export default function RoomBanList() {
                                         value={pagingCountInput}
                                         onChange={onChangePagingCountInput}
                                     />
-                                    <Button onClick={() => onClickPaging(-1)} size="small" type="button" variant="outlined" color="inherit" sx={classes.submit}>&lt;&lt;</Button>
-                                    <Button onClick={() => onClickPaging(1)} size="small" type="button" variant="outlined" color="inherit" sx={classes.submit}>&gt;&gt;</Button>
+                                    <Button onClick={() => onClickPaging(-1)} size="small" type="button" variant="outlined" color="inherit" className="mt-5! ml-1!">&lt;&lt;</Button>
+                                    <Button onClick={() => onClickPaging(1)} size="small" type="button" variant="outlined" color="inherit" className="mt-5!">&gt;&gt;</Button>
 
                                     <Typography>Page {pagingOrder}</Typography>
                                 </Grid>

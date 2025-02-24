@@ -3,12 +3,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { 
   Container, Grid2 as Grid, Paper, Button, 
-  Divider, TextField, 
-  Theme,
-  useTheme,
-  List,
-  ListItem,
-  ListItemIcon
+  Divider, TextField, List, ListItem, ListItemIcon
 } from '@mui/material';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
 import { WSocketContext } from '@/context/ws';
@@ -24,30 +19,8 @@ interface LogMessage {
     message: string
 }
 
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
-    },
-    form: {
-        width: '100%', // Fix IE 11 issue.
-        marginTop: theme.spacing(1),
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-});
-
 
 export default function RoomLogs() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
     const ws = useContext(WSocketContext);
     const { ruid } = useParams();
 
@@ -117,14 +90,14 @@ export default function RoomLogs() {
     }, [recentLogMessage.message]);
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={12}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4 overflow-auto">
                         <React.Fragment>
                             {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
                             <WidgetTitle>Broadcast</WidgetTitle>
-                            <form style={classes.form} onSubmit={handleBroadcast} method="post">
+                            <form className="w-full mt-2" onSubmit={handleBroadcast} method="post">
                                 <TextField
                                     variant="outlined"
                                     margin="normal"
@@ -138,7 +111,7 @@ export default function RoomLogs() {
                                     autoFocus
                                     sx={{width: '50%'}}
                                 />
-                                <Button size="small" type="submit" variant="contained" color="primary" sx={classes.submit}>Send</Button>
+                                <Button size="small" type="submit" variant="contained" color="primary" className="mt-5! ml-1!">Send</Button>
                             </form>
                         </React.Fragment>
                         <Divider />

@@ -3,12 +3,11 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { 
   Container, Grid2 as Grid, Paper, Table, TableBody,
-  TableCell, TableHead, TableRow, Divider, 
-  useTheme, Theme
+  TableCell, TableHead, TableRow, Divider,
 } from '@mui/material';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
-import client from '../../../lib/client';
-import { WSocketContext } from '../../../context/ws';
+import client from '@/lib/client';
+import { WSocketContext } from '@/context/ws';
 import Link from 'next/link';
 
 interface roomInfoItem {
@@ -27,26 +26,8 @@ interface allRoomListItem {
     online: boolean
 }
 
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
-    },
-    fullHeight: {
-        height: '100%',
-    },
-});
-
 
 export default function RoomList() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
 
     const [roomInfoList, setRoomInfoList] = useState([] as roomInfoItem[]);
     const [allRoomList, setAllRoomList] = useState([] as allRoomListItem[]);
@@ -112,19 +93,19 @@ export default function RoomList() {
     }, [ws]);
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={12}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             <WidgetTitle>Current Game Rooms</WidgetTitle>
                             <Table size="small">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell align="left" sx={{fontWeight: 600}}>RUID</TableCell>
-                                        <TableCell sx={{fontWeight: 600}}>Title</TableCell>
-                                        <TableCell align="right" sx={{fontWeight: 600}}>Link</TableCell>
-                                        <TableCell align="right" sx={{fontWeight: 600}}>Online Players</TableCell>
+                                        <TableCell align="left" className="font-bold!">RUID</TableCell>
+                                        <TableCell className="font-bold!">Title</TableCell>
+                                        <TableCell align="right" className="font-bold!">Link</TableCell>
+                                        <TableCell align="right" className="font-bold!">Online Players</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -146,8 +127,8 @@ export default function RoomList() {
                             <Table size="small">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell align="left" sx={{fontWeight: 600}}>RUID</TableCell>
-                                        <TableCell align="right" sx={{fontWeight: 600}}>Status</TableCell>
+                                        <TableCell align="left" className="font-bold!">RUID</TableCell>
+                                        <TableCell align="right" className="font-bold!">Status</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>

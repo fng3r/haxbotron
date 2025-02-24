@@ -13,7 +13,6 @@ import Alert, { AlertColor } from '@/components/common/Alert';
 import { isNumber } from '@/lib/numcheck';
 import BackspaceOutlined from '@mui/icons-material/BackspaceOutlined';
 import { AddCircle, Cancel, Help, Refresh } from '@mui/icons-material';
-import { styled, useTheme } from '@mui/material/styles';
 
 
 interface newRoleFields {
@@ -41,16 +40,6 @@ interface PlayerRoleEvent {
     role: string;
     timestamp: number;
 }
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    '& > *': {
-        borderBottom: 'unset',
-    },
-}));
-
-const StyledDivider = styled(Divider)({
-    marginBottom: 10
-});
 
 const convertDate = (timestamp: number): string => {
     return new Date(timestamp).toLocaleString();
@@ -82,33 +71,7 @@ const convertEventTypeToIcon = (eventType: PlayerRoleEventType): any => {
     }
 }
 
-const useStyles = (theme: any) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
-    },
-    fullHeight: {
-        height: '100%',
-    },
-    form: {
-        width: '100%', // Fix IE 11 issue.
-        marginTop: theme.spacing(1),
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-});
-
 export default function RoomPlayerList() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
-
     const [flashMessage, setFlashMessage] = useState('');
     const [alertStatus, setAlertStatus] = useState("success" as AlertColor);
 
@@ -290,15 +253,15 @@ export default function RoomPlayerList() {
     }, []);
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={{xs: 12}}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
                             <WidgetTitle>Player Accounts List</WidgetTitle>
                             <Grid container spacing={1} flexDirection="column">
-                                <form style={classes.form} onSubmit={addRole} method="post">
+                                <form className="w-full" onSubmit={addRole} method="post">
                                     <Grid size={{xs: 12, sm: 12}}>
                                         <TextField
                                             variant="outlined" margin="normal" required size="small" value={newRole.name} onChange={onChangeNewRole}
@@ -317,11 +280,11 @@ export default function RoomPlayerList() {
                                             <MenuItem value="co-host">co-host</MenuItem>
                                             <MenuItem value="bad">bad</MenuItem>
                                         </TextField>
-                                        <Button size="small" type="submit" variant="contained" color="primary" sx={classes.submit}>Add</Button>
+                                        <Button size="small" type="submit" variant="contained" color="primary" className="mt-6!">Add</Button>
                                     </Grid>
                                 </form>
 
-                                <Grid container size={12} spacing={1} flexDirection="row">
+                                <Grid container size={12} spacing={1} flexDirection="row" mb={2}>
                                     <Grid size={{xs: 12, sm: 5}}>
                                         <TextField
                                             variant="outlined" margin="normal" size="small" value={searchQuery} onChange={onChangeSearchQuery}
@@ -344,9 +307,9 @@ export default function RoomPlayerList() {
                                             slotProps={{htmlInput: {min: 1, max: 50}}}
                                         />
                                         {/* previous page */}
-                                        <Button onClick={() => onClickPaging(-1)} size="small" type="button" variant="outlined" color="inherit" sx={classes.submit}>&lt;&lt;</Button>
+                                        <Button onClick={() => onClickPaging(-1)} size="small" type="button" variant="outlined" color="inherit" className="mt-6!">&lt;&lt;</Button>
                                         {/* next page */}
-                                        <Button onClick={() => onClickPaging(1)} size="small" type="button" variant="outlined" color="inherit" sx={classes.submit}>&gt;&gt;</Button>
+                                        <Button onClick={() => onClickPaging(1)} size="small" type="button" variant="outlined" color="inherit" className="mt-6!">&gt;&gt;</Button>
                                     </Grid>
                                 </Grid>
                             </Grid>
@@ -359,15 +322,15 @@ export default function RoomPlayerList() {
                                 <Table size="small">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell width="20%">Name</TableCell>
-                                            <TableCell width="35%">Public id</TableCell>
-                                            <TableCell width="10%">Role</TableCell>
+                                            <TableCell width="20%" className="font-bold!">Name</TableCell>
+                                            <TableCell width="35%" className="font-bold!">Public id</TableCell>
+                                            <TableCell width="10%" className="font-bold!">Role</TableCell>
                                             <TableCell></TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {playerRolesList && playerRolesList.map((item, idx) => (
-                                            <StyledTableRow key={item.auth}>
+                                            <TableRow key={item.auth} className="*:border-none!">
                                                 <TableCell width="20%" component="th" scope="row">{item.name}</TableCell>
                                                 <TableCell width="35%">{item.auth}</TableCell>
                                                 <TableCell width="5%">
@@ -385,20 +348,20 @@ export default function RoomPlayerList() {
                                                         <BackspaceOutlined fontSize="small" />
                                                     </IconButton>
                                                 </TableCell>
-                                            </StyledTableRow>
+                                            </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>
                             </Grid>
                         </React.Fragment>
 
-                        <StyledDivider />
+                        <Divider className="mb-3!" />
 
                         <React.Fragment>
                             <WidgetTitle>Event log</WidgetTitle>
 
                             <Grid container spacing={1}>
-                                <Grid size={{xs: 8, sm: 4}}>
+                                <Grid size={{xs: 8, sm: 4}} mb={2}>
                                     <TextField
                                         variant="outlined"
                                         margin="normal"
@@ -413,32 +376,34 @@ export default function RoomPlayerList() {
                                         slotProps={{htmlInput: {min: 1, max: 50}}}
                                     />
                                     {/* previous page */}
-                                    <Button onClick={() => onClickEventsPaging(-1)} size="small" type="button" variant="outlined" color="inherit" sx={classes.submit}>&lt;&lt;</Button>
+                                    <Button onClick={() => onClickEventsPaging(-1)} size="small" type="button" variant="outlined" color="inherit" className="mt-6!">&lt;&lt;</Button>
                                     {/* next page */}
-                                    <Button onClick={() => onClickEventsPaging(1)} size="small" type="button" variant="outlined" color="inherit" sx={classes.submit}>&gt;&gt;</Button>
-
-                                    <Typography>Page {eventsPagingOrder}</Typography>
-
+                                    <Button onClick={() => onClickEventsPaging(1)} size="small" type="button" variant="outlined" color="inherit" className="mt-6!">&gt;&gt;</Button>
                                 </Grid>
 
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell width="5%">Type</TableCell>
-                                            <TableCell width="75%">Event</TableCell>
-                                            <TableCell width="20%">Date</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {playerRolesEventsList && playerRolesEventsList.map((event) => (
-                                            <StyledTableRow key={event.timestamp}>
-                                                <TableCell width="5%" component="th" scope="row">{convertEventTypeToIcon(event.type)}</TableCell>
-                                                <TableCell width="75%" component="th" scope="row">{convertEventToString(event)}</TableCell>
-                                                <TableCell width="20%">{convertDate(event.timestamp)}</TableCell>
-                                            </StyledTableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                <Grid container spacing={1}>
+                                    <Typography>Page {eventsPagingOrder}</Typography>
+
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell width="5%" className="font-bold!">Type</TableCell>
+                                                <TableCell width="75%" className="font-bold!">Event</TableCell>
+                                                <TableCell width="20%" className="font-bold!">Date</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {playerRolesEventsList && playerRolesEventsList.map((event) => (
+                                                <TableRow key={event.timestamp} className="*:border-none!">
+                                                    <TableCell width="5%" component="th" scope="row">{convertEventTypeToIcon(event.type)}</TableCell>
+                                                    <TableCell width="75%" component="th" scope="row">{convertEventToString(event)}</TableCell>
+                                                    <TableCell width="20%">{convertDate(event.timestamp)}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </Grid>
+
                             </Grid>
                         </React.Fragment>
 

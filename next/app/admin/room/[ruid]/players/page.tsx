@@ -5,7 +5,7 @@ import {
     Box, Container, Grid2 as Grid, Paper,
     Table, TableBody, TableCell, TableHead, TableRow,
     Button, Collapse, Divider, IconButton, TextField,
-    Typography, Theme, useTheme
+    Typography
  } from '@mui/material';
 import Title from '@/components/Admin/WidgetTitle';
 import client from '@/lib/client';
@@ -44,27 +44,6 @@ interface PlayerStorage {
     malActCount: number;
 }
 
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-    },
-    fixedHeight: {
-        height: 240,
-    },
-    row: {
-        '& > *': {
-            borderBottom: 'unset',
-        },
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-});
-
 const convertDate = (timestamp: number): string => {
     if (timestamp === -1) return 'Permanent';
     return new Date(timestamp).toLocaleString();
@@ -72,8 +51,6 @@ const convertDate = (timestamp: number): string => {
 
 function OnlinePlayerRow(props: { ruid: string, row: Player }) {
     const { ruid, row } = props;
-    const theme = useTheme();
-    const classes = useStyles(theme);
     const [open, setOpen] = useState(false);
 
     const [newBan, setNewBan] = useState({ reason: '', seconds: 0 } as newBanFields);
@@ -217,7 +194,7 @@ function OnlinePlayerRow(props: { ruid: string, row: Player }) {
     return (
         <React.Fragment>
             {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
-            <TableRow sx={classes.row}>
+            <TableRow className="*:border-none">
                 <TableCell component="th" scope="row">{row.name}#{row.id}</TableCell>
                 <TableCell>{row.auth}</TableCell>
                 <TableCell>{row.conn}</TableCell>
@@ -244,7 +221,7 @@ function OnlinePlayerRow(props: { ruid: string, row: Player }) {
                                             variant="outlined" margin="normal" required size="small" value={whisperMessage} onChange={onChangeWhisperMessage}
                                             id="whisper" label="Whisper" name="whisper"
                                         />
-                                        <Button size="small" type="submit" variant="contained" color="primary" sx={classes.submit}>Send</Button>
+                                        <Button size="small" type="submit" variant="contained" color="primary" className="mt-5! ml-1!">Send</Button>
                                     </Grid>
                                 </form>
                                 <form onSubmit={handleKick} method="post">
@@ -257,7 +234,7 @@ function OnlinePlayerRow(props: { ruid: string, row: Player }) {
                                             variant="outlined" margin="normal" required size="small" value={newBan.seconds} onChange={onChangeNewBan} type="number"
                                             id="seconds" label="Time(secs)" name="seconds"
                                         />
-                                        <Button size="small" type="submit" variant="contained" color="secondary" sx={classes.submit}>Kick</Button>
+                                        <Button size="small" type="submit" variant="contained" color="secondary" className="mt-5! ml-1!">Kick</Button>
                                     </Grid>
                                 </form>
                             </Grid>
@@ -292,13 +269,11 @@ function OnlinePlayerRow(props: { ruid: string, row: Player }) {
 
 function PlayerAccountRow(props: { idx: number, row: PlayerStorage }) {
     const { idx, row } = props;
-    const theme = useTheme();
-    const classes = useStyles(theme);
     const [open, setOpen] = useState(false);
 
     return (
         <React.Fragment>
-            <TableRow sx={classes.row}>
+            <TableRow className="*:border-none">
                 <TableCell component="th" scope="row">{row.name}</TableCell>
                 <TableCell>{row.auth}</TableCell>
                 <TableCell>{row.conn}</TableCell>
@@ -379,9 +354,6 @@ function PlayerAccountRow(props: { idx: number, row: PlayerStorage }) {
 }
 
 export default function RoomPlayerList() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
-
     const ws = useContext(WSocketContext);
     const { ruid } = useParams<{ ruid: string }>();
     const [flashMessage, setFlashMessage] = useState('');
@@ -488,21 +460,21 @@ export default function RoomPlayerList() {
     }, [ws]);
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={12}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
                             <Title>Online Players</Title>
                             <Table size="small">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell width="20%" sx={{fontWeight: 600}}>Name</TableCell>
-                                        <TableCell sx={{fontWeight: 600}}>AUTH</TableCell>
-                                        <TableCell sx={{fontWeight: 600}}>CONN</TableCell>
-                                        <TableCell sx={{fontWeight: 600}}>Team</TableCell>
-                                        <TableCell sx={{fontWeight: 600}}>Chat</TableCell>
+                                        <TableCell width="20%" className="font-bold!">Name</TableCell>
+                                        <TableCell className="font-bold!">AUTH</TableCell>
+                                        <TableCell className="font-bold!">CONN</TableCell>
+                                        <TableCell className="font-bold!">Team</TableCell>
+                                        <TableCell className="font-bold!">Chat</TableCell>
                                         <TableCell />
                                     </TableRow>
                                 </TableHead>
@@ -542,9 +514,9 @@ export default function RoomPlayerList() {
                                             onChange={onChangePagingCountInput}
                                         />
                                         {/* previous page */}
-                                        <Button onClick={() => onClickPaging(-1)} size="small" type="button" variant="outlined" color="inherit" sx={classes.submit}>&lt;&lt;</Button>
+                                        <Button onClick={() => onClickPaging(-1)} size="small" type="button" variant="outlined" color="inherit" className="mt-5! ml-1!">&lt;&lt;</Button>
                                         {/* next page */}
-                                        <Button onClick={() => onClickPaging(1)} size="small" type="button" variant="outlined" color="inherit" sx={classes.submit}>&gt;&gt;</Button>
+                                        <Button onClick={() => onClickPaging(1)} size="small" type="button" variant="outlined" color="inherit" className="mt-5!">&gt;&gt;</Button>
     
                                         <Typography>Page {pagingOrder}</Typography>
                                     </Grid>
@@ -553,9 +525,9 @@ export default function RoomPlayerList() {
                                 <Table size="small">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell width="20%" sx={{fontWeight: 600}}>Name</TableCell>
-                                            <TableCell sx={{fontWeight: 600}}>AUTH</TableCell>
-                                            <TableCell sx={{fontWeight: 600}}>CONN</TableCell>
+                                            <TableCell width="20%" className="font-bold!">Name</TableCell>
+                                            <TableCell className="font-bold!">AUTH</TableCell>
+                                            <TableCell className="font-bold!">CONN</TableCell>
                                             <TableCell />
                                         </TableRow>
                                     </TableHead>

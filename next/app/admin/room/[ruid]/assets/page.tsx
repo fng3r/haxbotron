@@ -5,8 +5,7 @@ import {
     Container, Grid2 as Grid, Paper, Button, ButtonGroup, 
     Divider, FormControl, FormControlLabel, FormLabel, 
     InputAdornment, Radio, RadioGroup, Table, TableBody, 
-    TableCell, TableHead, TableRow, TextField, 
-    Theme, useTheme
+    TableCell, TableHead, TableRow, TextField
 } from '@mui/material';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
 import { useParams } from 'next/navigation';
@@ -29,29 +28,7 @@ const convertHexToInt = (rrggbb: string) => {
     return parseInt(rrggbb, 16);
 }
 
-const useStyles = (theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    paper: {
-        padding: theme.spacing(2),
-    },
-    form: {
-        margin: theme.spacing(2),
-    },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    submit: {
-        marginRight: theme.spacing(1),
-    },
-});
-
 export default function RoomAssets() {
-    const theme = useTheme();
-    const classes = useStyles(theme);
-
     const { ruid } = useParams();
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -251,15 +228,15 @@ export default function RoomAssets() {
     }, []);
 
     return (
-        <Container maxWidth="lg" sx={classes.container}>
+        <Container maxWidth="lg" className="py-8">
             <Grid container spacing={3}>
                 <Grid size={12}>
-                    <Paper sx={classes.paper}>
+                    <Paper className="p-4">
                         <React.Fragment>
                             {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
                             <WidgetTitle>New Team Colours</WidgetTitle>
 
-                            <form style={classes.form} onSubmit={handleColoursApply} method="post">
+                            <form className="w-full mt-6" onSubmit={handleColoursApply} method="post">
                                 <Grid container spacing={2}>
                                     <Grid size={{xs: 4, sm: 2}}>
                                         <FormControl component="fieldset">
@@ -281,7 +258,7 @@ export default function RoomAssets() {
                                         />
                                     </Grid>
                                     <Grid size={{xs: 8, sm: 4}}>
-                                        <ButtonGroup variant="outlined" color="inherit" aria-label="team colours" sx={classes.submit}>
+                                        <ButtonGroup variant="outlined" color="inherit" aria-label="team colours" className="mt-4!">
                                             <Button onClick={() => setNewModeSelectValue('avatar')}>Avatar</Button>
                                             <Button onClick={() => setNewModeSelectValue('team1')}>First</Button>
                                             <Button onClick={() => setNewModeSelectValue('team2')}>Second</Button>
@@ -308,15 +285,15 @@ export default function RoomAssets() {
                                                     <TableCell>{newTeamColour2}</TableCell>
                                                     <TableCell>{newTeamColour3}</TableCell>
                                                     <TableCell>
-                                                        <Button size="small" type="submit" variant="contained" color="primary" sx={classes.submit}>Apply</Button>
-                                                        <Button size="small" type="button" variant="outlined" color="inherit" sx={classes.submit} onClick={handleTeamColoursLoad}>Load</Button>
+                                                        <Button size="small" type="submit" variant="contained" color="primary" className="mt-1! mr-1!">Apply</Button>
+                                                        <Button size="small" type="button" variant="outlined" color="inherit" className="mt-1!" onClick={handleTeamColoursLoad}>Load</Button>
                                                     </TableCell>
                                                 </TableRow>
                                             </TableBody>
                                         </Table>
                                     </Grid>
                                 </Grid>
-                                <Grid container spacing={2}>
+                                <Grid container spacing={2} my={1}>
                                     <Grid>
                                         <ChromePicker disableAlpha={true} color={colourPick} onChange={handleColourChange} />
                                     </Grid>

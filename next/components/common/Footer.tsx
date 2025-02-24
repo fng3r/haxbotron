@@ -1,24 +1,15 @@
 'use client';
 
 import React from 'react';
-import { Container, styled } from '@mui/material';
+import { Container } from '@mui/material';
 import Copyright from './Footer.Copyright';
-
-const StyledFooter = styled('footer')(({ theme }) => ({
-    position: 'relative',
-    bottom: 0,
-    width: '100%',
-    padding: theme.spacing(3, 2),
-    marginTop: 'auto',
-    backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[200] : theme.palette.grey[800],
-}));
 
 export default function Footer() {
     return (
-        <StyledFooter>
+        <footer className="relative bottom-0 w-full p-6 mt-auto bg-gray-100 dark:bg-gray-800">
             <Container maxWidth="sm">
                 <Copyright />
             </Container>
-        </StyledFooter>
+        </footer>
     );
 }
