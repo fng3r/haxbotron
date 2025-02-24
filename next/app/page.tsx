@@ -1,52 +1,51 @@
-'use client';
-
 import React from 'react';
 import { 
-  CssBaseline, Typography, Container, styled} from '@mui/material';
+  CssBaseline, Grid2 as Grid, Link as MuiLink, Typography, Container} from '@mui/material';
 import Link from 'next/link';
-
-
-const StyledRoot = styled('div')(() => ({
-  display: 'flex',
-  flexDirection: 'column',
-}));
-
-const StyledContainer = styled(Container)(({ theme }) => ({
-  marginTop: theme.spacing(8),
-  marginBottom: theme.spacing(2),
-}));
-
 
 export default function Main() {
   return (
-      <StyledRoot>
+      <Grid container>
           <CssBaseline />
-          <StyledContainer maxWidth="sm">
-            <Typography variant="h2" component="h1" gutterBottom>
-                Haxbotron 🤖
-            </Typography>
-            <Typography variant="h5" component="h2" gutterBottom>
-                {'Welcome to use Haxbotron!'}
-            </Typography>
-            <Typography variant="h5" component="h2" gutterBottom>
-                <Link href="/install" color="inherit">
-                    Installation
-                </Link>
-            </Typography>
-            <Typography variant="body1">You have to do initial configuration if this is your first run.</Typography>
-            <Typography variant="h5" component="h2" gutterBottom>
-                <Link href="/admin" color="inherit">
-                    Administration
-                </Link>
-            </Typography>
-            <Typography variant="body1">You can control and manage your headless host server.</Typography>
-            <Typography variant="h5" component="h2" gutterBottom>
-                <Link color="inherit" href="https://github.com/dapucita/haxbotron/wiki">
-                    Documentation
-                </Link>
-            </Typography>
-            <Typography variant="body1">See our wiki for how to use Haxbotron.</Typography>
-          </StyledContainer>
-      </StyledRoot>
+          <Container maxWidth="sm" sx={{ marginTop: 8, marginBottom: 2 }}>
+            <Grid container flexDirection="column" spacing={1}>
+              <Grid size={12}>
+                <Typography variant="h2" component="h1" gutterBottom>
+                  Haxbotron 🤖
+                </Typography>
+                <Typography variant="h5" component="h2" gutterBottom>
+                  Welcome to use Haxbotron!
+                </Typography>
+              </Grid>
+
+              <Grid size={12}>
+                <Typography variant="h5" component="span" gutterBottom>
+                    <MuiLink component={Link} href="/install" color="inherit" underline="hover">
+                        Installation
+                    </MuiLink>
+                </Typography>
+                <Typography variant="body1">You have to do initial configuration if this is your first run.</Typography>
+              </Grid>
+
+              <Grid size={12}>  
+                <Typography variant="h5" component="span" gutterBottom>
+                  <MuiLink component={Link} href="/admin" color="inherit" underline="hover">
+                      Administration
+                  </MuiLink>
+                </Typography>
+                <Typography variant="body1">You can control and manage your headless host server.</Typography>
+              </Grid>
+
+              <Grid size={12}>
+                <Typography variant="h5" component="span" gutterBottom>
+                    <MuiLink component={Link} href="https://github.com/dapucita/haxbotron/wiki" color="inherit" underline="hover">
+                      Documentation
+                  </MuiLink>
+                </Typography>
+                <Typography variant="body1">See our wiki for how to use Haxbotron.</Typography>
+              </Grid>
+            </Grid>
+          </Container>
+      </Grid>
   );
 }

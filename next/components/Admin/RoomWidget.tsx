@@ -42,7 +42,7 @@ export default function RoomWidget() {
 
                 setRoomInfoList(roomInfoList);
             }
-        } catch (e) { }
+        } catch { }
     }
 
     useEffect(() => {

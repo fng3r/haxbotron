@@ -3,7 +3,7 @@
 import client from '../../lib/client';
 import Link from 'next/link';
 import WidgetTitle from './WidgetTitle';
-import { Grid2, Link as MuiLink, Typography } from '@mui/material';
+import { Grid2 as Grid, Link as MuiLink, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 
 export default function ServerInfoWidget() {
@@ -28,8 +28,8 @@ export default function ServerInfoWidget() {
     }, []);
 
     return (
-        <Grid2 container flexDirection="column" sx={{ height: 240 }}>
-            <Grid2 size={12} sx={{ flex: 1 }}>
+        <Grid container flexDirection="column" sx={{ height: 240 }}>
+            <Grid size={12} sx={{ flex: 1 }}>
                 <WidgetTitle>Server Info</WidgetTitle>
                 <Typography component="p" variant="h4">
                     {serverInfo.usedMemoryMB}MB
@@ -37,15 +37,15 @@ export default function ServerInfoWidget() {
                 <Typography color="textSecondary">
                         uptime {Math.round(serverInfo.upTimeSecs/60)} minutes.
                 </Typography>   
-            </Grid2>
+            </Grid>
 
-            <Grid2 size={12}>
+            <Grid size={12}>
                 <MuiLink component={Link} href="/admin/serverinfo" underline="hover">
                     <Typography variant="body2" color="primary">
                         Get more information
                     </Typography>
                 </MuiLink>
-            </Grid2>
-        </Grid2>
+            </Grid>
+        </Grid>
     );
 }

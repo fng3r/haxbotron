@@ -1,6 +1,6 @@
 'use client';
 
-import SideBar from "@/components/Admin/SideBar";
+import SideBar from "@/components/common/SideBar";
 import { AppBar as MuiAppBar, Badge, Divider, Drawer, IconButton, styled, Toolbar, Typography, useTheme, Theme } from "@mui/material";
 import {
     HelpOutline as HelpOutlineIcon,

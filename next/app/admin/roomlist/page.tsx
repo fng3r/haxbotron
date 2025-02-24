@@ -1,12 +1,10 @@
 'use client';
 
 import React, { useContext, useEffect, useState } from 'react';
-import clsx from 'clsx';
 import { 
-  Container, Grid, Paper, Table, TableBody,
+  Container, Grid2 as Grid, Paper, Table, TableBody,
   TableCell, TableHead, TableRow, Divider, 
-  useTheme,
-  Theme
+  useTheme, Theme
 } from '@mui/material';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
 import client from '../../../lib/client';
@@ -116,7 +114,7 @@ export default function RoomList() {
     return (
         <Container maxWidth="lg" sx={classes.container}>
             <Grid container spacing={3}>
-                <Grid item xs={12}>
+                <Grid size={12}>
                     <Paper sx={classes.paper}>
                         <React.Fragment>
                             <WidgetTitle>Current Game Rooms</WidgetTitle>
@@ -130,7 +128,7 @@ export default function RoomList() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {roomInfoList.map((item, idx) => (
+                                    {roomInfoList.map((item) => (
                                         <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
                                             <TableCell align="left">{item.ruid}</TableCell>
                                             <TableCell>{item.roomName}</TableCell>
@@ -153,7 +151,7 @@ export default function RoomList() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {allRoomList.map((item, idx) => (
+                                    {allRoomList.map((item) => (
                                         <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
                                             <TableCell align="left">{item.ruid}</TableCell>
                                             <TableCell align="right">{item.online ? "online" : "offline"}</TableCell>

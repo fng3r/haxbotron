@@ -6,8 +6,7 @@ import {
     Divider, FormControl, FormControlLabel, FormLabel, 
     InputAdornment, Radio, RadioGroup, Table, TableBody, 
     TableCell, TableHead, TableRow, TextField, 
-    Theme,
-    useTheme
+    Theme, useTheme
 } from '@mui/material';
 import WidgetTitle from '@/components/Admin/WidgetTitle';
 import { useParams } from 'next/navigation';
@@ -115,10 +114,10 @@ export default function RoomAssets() {
             const result = await client.post(`/api/v1/room/${ruid}/asset/team/colour`, {
                 team: teamSelectValue === 'blue' ? 2 : 1
                 , angle: isNumber(parseInt(newAngle)) ? parseInt(newAngle) : 0
-                , textColour: convertHexToInt(newTextColour.substr(1))
-                , teamColour1: convertHexToInt(newTeamColour1.substr(1))
-                , teamColour2: convertHexToInt(newTeamColour2.substr(1))
-                , teamColour3: convertHexToInt(newTeamColour3.substr(1))
+                , textColour: convertHexToInt(newTextColour.substring(1))
+                , teamColour1: convertHexToInt(newTeamColour1.substring(1))
+                , teamColour2: convertHexToInt(newTeamColour2.substring(1))
+                , teamColour3: convertHexToInt(newTeamColour3.substring(1))
             });
             if (result.status === 201) {
                 setFlashMessage('Successfully set.');
@@ -249,11 +248,6 @@ export default function RoomAssets() {
 
     useEffect(() => {
         getTeamColours();
-
-        //TODO: SUPPORT OTHER COLOUR PATTERNS LIKE ONE OR TWO COLOURS
-        //TODO: MAKE PREVIEW OF COLOURS
-        //drawBackground();
-        //drawCircle();
     }, []);
 
     return (

@@ -14,7 +14,7 @@ export default function LogoutButton() {
           if (result.status === 204) {
             router.push('/');
           }
-        } catch (e) { }
+        } catch { }
     }
 
     return (

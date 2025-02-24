@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import clsx from 'clsx';
 import { 
-  Container, Grid, Paper, Typography 
+  Container, Grid2 as Grid, Paper, Typography 
 } from '@mui/material';
 import { Theme, useTheme } from '@mui/material/styles';
 import client from '@/lib/client';
@@ -55,7 +54,7 @@ export default function ServerInfo() {
     return (
         <Container maxWidth="lg" sx={classes.container}>
             <Grid container spacing={3}>
-                <Grid item xs={12} md={4} lg={3}>
+                <Grid size={{xs: 12, md: 4, lg: 3}}>
                     <Paper sx={classes.paper}>
                         <React.Fragment>
                             <WidgetTitle>Memory Usage</WidgetTitle>
@@ -65,7 +64,7 @@ export default function ServerInfo() {
                         </React.Fragment>
                     </Paper>
                 </Grid>
-                <Grid item xs={12} md={4} lg={3}>
+                <Grid size={{xs: 12, md: 4, lg: 3}}>
                     <Paper sx={classes.paper}>
                         <React.Fragment>
                             <WidgetTitle>Server Uptime</WidgetTitle>
@@ -75,7 +74,7 @@ export default function ServerInfo() {
                         </React.Fragment>
                     </Paper>
                 </Grid>
-                <Grid item xs={12} md={4} lg={3}>
+                <Grid size={{xs: 12, md: 4, lg: 3}}>
                     <Paper sx={classes.paper}>
                         <React.Fragment>
                             <WidgetTitle>Server Version</WidgetTitle>
