@@ -180,7 +180,7 @@ export class HeadlessBrowser {
         page.addListener('_SIO.StatusChange', (event: any) => {
             this._SIOserver?.sockets.emit('statuschange', { ruid: ruid, playerID: event.playerID });
         });
-        page.addListener('_SOCIAL.DiscordWebhook', (event: any) => {
+        page.addListener('_SOCIAL.DiscordWebhook', async (event: any) => {
             const webhookClient = new WebhookClient({
                 id: event.id,
                 token: event.token
@@ -225,19 +225,21 @@ export class HeadlessBrowser {
                         .setTimestamp();
 
                     try {
-                        webhookClient.send({embeds: [embed]});
-                        webhookClient.send({files: [attachment]});
+                        await webhookClient.send({embeds: [embed]});
+                        await webhookClient.send({files: [attachment]});
                     } catch (error) {
                         winstonLogger.error(`[core] Error on sending data to discord webhook: ${error}`);
                     }
+
                     break;
                 }
                 case "password": {
                     try {
-                        webhookClient.send(event.content.message);
+                        await webhookClient.send(event.content.message);
                     } catch (error) {
                         winstonLogger.error(`[core] Error on sending data to discord webhook: ${error}`);
                     }
+
                     break;
                 }
             }
@@ -500,12 +502,12 @@ export class HeadlessBrowser {
      * Get notice message.
      * @param ruid Game room's UID
      */
-    public async getNotice(ruid: string): Promise<string | undefined> {
+    public async getNotice(ruid: string): Promise<string | null> {
         return await this._PageContainer.get(ruid)!.evaluate(() => {
             if (window.gameRoom.notice) {
                 return window.gameRoom.notice;
             } else {
-                return undefined;
+                return null;
             }
         });
     }

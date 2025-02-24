@@ -198,13 +198,10 @@ export async function setNotice(ctx: Context) {
  */
 export async function getNotice(ctx: Context) {
     const { ruid } = ctx.params;
-    ctx.status = 404;
     if (browser.checkExistRoom(ruid)) {
-        const message: string | undefined = await browser.getNotice(ruid);
-        if (typeof message === 'string') {
-            ctx.body = { message: message };
-            ctx.status = 200;
-        }
+        const message: string | null = await browser.getNotice(ruid);
+        ctx.body = { message };
+        ctx.status = 200;
     }
 }
 

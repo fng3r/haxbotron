@@ -84,6 +84,7 @@ export async function banPlayer(ctx: Context) {
     const { conn, reason, seconds } = ctx.request.body;
 
     if(!conn || !reason || !seconds) {
+        console.log(conn, reason, seconds);
         ctx.status = 400; // Unfulfilled error
         return;
     }
@@ -100,6 +101,8 @@ export async function banPlayer(ctx: Context) {
         await client.post(`${dbConnAddr}room/${ruid}/banlist`, submitItem);
         ctx.status = 204;
     } catch (error: any) {
+        console.log(error.response.status);
+        console.log(error.response.data);
         ctx.status = error.response.status || 500;
     }
 }
