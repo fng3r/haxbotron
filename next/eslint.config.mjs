@@ -19,7 +19,7 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ['.next', 'node_modules/', '**/*.js'], // Adjust as needed
+    ignores: ['.next', 'node_modules/', '**/*.js'],
   },
 ];
 

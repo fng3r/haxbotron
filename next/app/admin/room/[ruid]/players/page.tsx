@@ -26,7 +26,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import Alert, { AlertColor } from '@/components/common/Alert';
+import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import Title from '@/components/common/WidgetTitle';
 
 import { Player } from '@/../core/game/model/GameObject/Player';
@@ -74,9 +74,6 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
 
   const [whisperMessage, setWhisperMessage] = useState('');
 
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
-
   const convertTeamID = (teamID: number): string => {
     if (teamID === 1) return 'Red';
     if (teamID === 2) return 'Blue';
@@ -115,36 +112,30 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
     try {
       const result = await client.post(`/api/v1/room/${ruid}/chat/${row.id}`, { message: whisperMessage });
       if (result.status === 201) {
-        setFlashMessage('Successfully sent.');
-        setAlertStatus('success');
+        SnackBarNotification.success(`Successfully sent whisper message to ${row.name}.`);
         setWhisperMessage('');
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
       }
     } catch (error: any) {
-      setAlertStatus('error');
+      let errorMessage = '';
       switch (error.response.status) {
         case 400: {
-          setFlashMessage('No message.');
+          errorMessage = 'No message.';
           break;
         }
         case 401: {
-          setFlashMessage('No permission.');
+          errorMessage = 'Insufficient permissions.';
           break;
         }
         case 404: {
-          setFlashMessage('No exists room or player.');
+          errorMessage = 'Room does not exist or player does not exist.';
           break;
         }
         default: {
-          setFlashMessage('Unexpected error is caused. Please try again.');
+          errorMessage = 'Unexpected error occurred. Please try again.';
           break;
         }
       }
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error(errorMessage);
     }
   };
 
@@ -159,20 +150,11 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
         },
       });
       if (result.status === 204) {
-        setFlashMessage('Successfully kicked.');
-        setAlertStatus('success');
+        SnackBarNotification.success(`Successfully kicked player ${row.name}.`);
         setNewBan({ reason: '', seconds: 0 });
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
       }
     } catch (error: any) {
-      //error.response.status
-      setFlashMessage('Failed to kick.');
-      setAlertStatus('error');
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error(`Failed to kick player ${row.name}.`);
     }
   };
 
@@ -182,35 +164,22 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
       if (row.permissions.mute) {
         const result = await client.delete(`/api/v1/room/${ruid}/player/${row.id}/permission/mute`);
         if (result.status === 204) {
-          setFlashMessage('Successfully unmuted.');
-          setAlertStatus('success');
-          setTimeout(() => {
-            setFlashMessage('');
-          }, 3000);
+          console.log('Successfully unmuted player', row.name);
+          SnackBarNotification.success(`Successfully unmuted player ${row.name}.`);
         }
       } else {
         const result = await client.post(`/api/v1/room/${ruid}/player/${row.id}/permission/mute`, { muteExpire: -1 }); // Permanent
-        if (result.status === 204) {
-          setFlashMessage('Successfully muted.');
-          setAlertStatus('success');
-          setTimeout(() => {
-            setFlashMessage('');
-          }, 3000);
+        if (result.status === 201) {
+          SnackBarNotification.success(`Successfully muted player ${row.name}.`);
         }
       }
     } catch (error: any) {
-      //error.response.status
-      setFlashMessage('Failed to mute/unmute.');
-      setAlertStatus('error');
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error(`Failed to mute/unmute player ${row.name}.`);
     }
   };
 
   return (
     <React.Fragment>
-      {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
       <TableRow className="*:border-none">
         <TableCell component="th" scope="row">
           {row.name}#{row.id}
@@ -409,8 +378,6 @@ function PlayerAccountRow(props: { idx: number; row: PlayerStorage }) {
 export default function RoomPlayerList() {
   const ws = useContext(WSocketContext);
   const { ruid } = useParams<{ ruid: string }>();
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
 
   const [pagingOrder, setPagingOrder] = useState(1);
   const [pagingCount, setPagingCount] = useState(10);
@@ -458,8 +425,7 @@ export default function RoomPlayerList() {
         setPlayerAccountList(playerAccounts);
       }
     } catch (e) {
-      setFlashMessage('Failed to load accounts list.');
-      setAlertStatus('error');
+      SnackBarNotification.error('Failed to load players list.');
     }
   };
 
@@ -485,8 +451,7 @@ export default function RoomPlayerList() {
         setOnlinePlayerList(onlinePlayersInfoList);
       }
     } catch (e) {
-      setFlashMessage("Failed to load online players' list.");
-      setAlertStatus('error');
+      SnackBarNotification.error('Failed to load online players list.');
     }
   };
 
@@ -528,7 +493,6 @@ export default function RoomPlayerList() {
         <Grid size={12}>
           <Paper className="p-4">
             <React.Fragment>
-              {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
               <Title>Online Players</Title>
               <Table size="small">
                 <TableHead>

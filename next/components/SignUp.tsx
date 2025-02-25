@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import SnackBarNotification from './Notifications/SnackBarNotification';
 import { LockOutlined } from '@mui/icons-material';
 import {
   Avatar,
@@ -17,15 +18,11 @@ import {
   Typography,
 } from '@mui/material';
 
-import Alert, { AlertColor } from '@/components/common/Alert';
-
 import client from '@/lib/client';
 
 export default function SignUp() {
   const router = useRouter();
 
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
   const [adminAccount, setAdminAccount] = useState({
     username: '',
     password: '',
@@ -52,32 +49,27 @@ export default function SignUp() {
       try {
         const result = await client.post('/api/v1/init', { username, password });
         if (result.status === 201) {
-          setFlashMessage('Configuration succeeded.');
-          setAlertStatus('success');
+          SnackBarNotification.success('Configuration succeeded.');
           setTimeout(() => {
             router.push('/admin');
           }, 5000);
         }
       } catch (e: any) {
-        setAlertStatus('error');
+        let errorMessage = '';
         switch (e.response.status) {
           case 400: {
-            setFlashMessage('Form is unfulfilled.');
-            break;
-          }
-          case 405: {
-            setFlashMessage('Already done.');
+            errorMessage = 'Form is unfulfilled.';
             break;
           }
           default: {
-            setFlashMessage('Unexpected error is caused. Please try again.');
+            errorMessage = 'Unexpected error is caused. Please try again.';
             break;
           }
         }
+        SnackBarNotification.error(errorMessage);
       }
     } else {
-      setFlashMessage('Form is unfulfilled.');
-      setAlertStatus('error');
+      SnackBarNotification.error('Form is unfulfilled.');
     }
   };
 

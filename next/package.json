@@ -19,6 +19,7 @@
     "axios": "^1.7.9",
     "jsonwebtoken": "^9.0.2",
     "next": "15.1.7",
+    "notistack": "^3.0.2",
     "react": "^19.0.0",
     "react-color": "^2.19.3",
     "react-dom": "^19.0.0",

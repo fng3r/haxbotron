@@ -17,7 +17,7 @@ import {
   TextField,
 } from '@mui/material';
 
-import Alert, { AlertColor } from '@/components/common/Alert';
+import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
 import { WSocketContext } from '@/context/ws';
@@ -37,9 +37,6 @@ export default function RoomLogs() {
   const [logMessage, setLogMessage] = useState([] as LogMessage[]);
   const [recentLogMessage, setRecentLogMessage] = useState({} as LogMessage);
 
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
-
   const [broadcastMessage, setBroadcastMessage] = useState('');
 
   const handleBroadcast = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -47,36 +44,30 @@ export default function RoomLogs() {
     try {
       const result = await client.post(`/api/v1/room/${ruid}/chat`, { message: broadcastMessage });
       if (result.status === 201) {
-        setFlashMessage('Successfully sent.');
-        setAlertStatus('success');
+        SnackBarNotification.success('Successfully sent broadcast message.');
         setBroadcastMessage('');
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
       }
     } catch (error: any) {
-      setAlertStatus('error');
+      let errorMessage = '';
       switch (error.response.status) {
         case 400: {
-          setFlashMessage('No message.');
+          errorMessage = 'No message.';
           break;
         }
         case 401: {
-          setFlashMessage('No permission.');
+          errorMessage = 'Insufficient permissions.';
           break;
         }
         case 404: {
-          setFlashMessage('No exists room.');
+          errorMessage = 'Room does not exist.';
           break;
         }
         default: {
-          setFlashMessage('Unexpected error is caused. Please try again.');
+          errorMessage = 'Unexpected error occurred. Please try again.';
           break;
         }
       }
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error(errorMessage);
     }
   };
 
@@ -105,7 +96,6 @@ export default function RoomLogs() {
         <Grid size={12}>
           <Paper className="overflow-auto p-4">
             <React.Fragment>
-              {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
               <WidgetTitle>Broadcast</WidgetTitle>
               <form className="mt-2 w-full" onSubmit={handleBroadcast} method="post">
                 <TextField

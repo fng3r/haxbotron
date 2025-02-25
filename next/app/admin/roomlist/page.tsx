@@ -106,7 +106,6 @@ export default function RoomList() {
     return () => {
       ws.off('roomct');
       ws.off('joinleft');
-      console.log('unbound');
     };
   }, [ws]);
 

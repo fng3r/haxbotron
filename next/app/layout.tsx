@@ -3,6 +3,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 
+import SnackBarProviderWrapper from '@/components/Notifications/SnackBarProviderWrapper';
 import Footer from '@/components/common/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <SnackBarProviderWrapper anchorOrigin={{ vertical: 'top', horizontal: 'center' }} />
         {children}
         <Footer />
       </body>

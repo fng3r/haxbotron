@@ -388,7 +388,7 @@ export async function unmutePlayer(ctx: Context) {
 
     if (browser.checkExistRoom(ruid)) {
         browser.setPlayerUnmute(ruid, parseInt(id));
-        ctx.status = 201;
+        ctx.status = 204;
     }
 }
 

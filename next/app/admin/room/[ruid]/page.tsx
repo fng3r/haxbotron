@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 
 import { Alert, Button, Container, Divider, Grid2 as Grid, Paper, TextField } from '@mui/material';
 
+import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
 import {
@@ -15,8 +16,6 @@ import {
 } from '@/../core/lib/browser.hostconfig';
 import { WSocketContext } from '@/context/ws';
 import client from '@/lib/client';
-
-type AlertColor = 'success' | 'info' | 'warning' | 'error';
 
 interface roomInfo {
   roomName: string;
@@ -32,12 +31,8 @@ export default function RoomInfo() {
 
   const ws = useContext(WSocketContext);
 
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
-
   const [roomInfoJSON, setRoomInfoJSON] = useState({} as roomInfo);
   const [roomInfoJSONText, setRoomInfoJSONText] = useState('');
-
   const [adminPassword, setAdminPassword] = useState('');
   const [plainPassword, setPlainPassword] = useState('');
   const [freezeStatus, setFreezeStatus] = useState(false);
@@ -50,11 +45,9 @@ export default function RoomInfo() {
       }
     } catch (error: any) {
       if (error.response.status === 404) {
-        setFlashMessage('Failed to load status of chat');
-        setAlertStatus('error');
+        SnackBarNotification.error('Failed to load status of chat.');
       } else {
-        setFlashMessage('Unexpected error is caused. Please try again.');
-        setAlertStatus('error');
+        SnackBarNotification.error('Unexpected error is caused. Please try again.');
       }
     }
   };
@@ -69,11 +62,9 @@ export default function RoomInfo() {
       }
     } catch (error: any) {
       if (error.response.status === 404) {
-        setFlashMessage('Failed to load information.');
-        setAlertStatus('error');
+        SnackBarNotification.error('Failed to load room info.');
       } else {
-        setFlashMessage('Unexpected error is caused. Please try again.');
-        setAlertStatus('error');
+        SnackBarNotification.error('Unexpected error is caused. Please try again.');
       }
     }
   };
@@ -89,21 +80,13 @@ export default function RoomInfo() {
         password: plainPassword,
       });
       if (result.status === 201) {
-        setFlashMessage('Successfully set password.');
-        setAlertStatus('success');
+        SnackBarNotification.success(`Successfully set password (pass: ${plainPassword}).`);
         setPlainPassword('');
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
 
         getRoomInfo();
       }
     } catch {
-      setFlashMessage('Failed to set password.');
-      setAlertStatus('error');
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error(`Failed to set password.`);
     }
   };
 
@@ -113,32 +96,20 @@ export default function RoomInfo() {
       if (freezeStatus) {
         const result = await client.delete(`/api/v1/room/${ruid}/info/freeze`);
         if (result.status === 204) {
-          setFlashMessage('Successfully unfreezed whole chat.');
-          setAlertStatus('success');
-          setTimeout(() => {
-            setFlashMessage('');
-          }, 3000);
+          SnackBarNotification.success('Successfully unfreezed whole chat.');
 
           getFreezeStatus();
         }
       } else {
         const result = await client.post(`/api/v1/room/${ruid}/info/freeze`);
         if (result.status === 204) {
-          setFlashMessage('Successfully freezed whole chat.');
-          setAlertStatus('success');
-          setTimeout(() => {
-            setFlashMessage('');
-          }, 3000);
+          SnackBarNotification.success('Successfully freezed whole chat.');
 
           getFreezeStatus();
         }
       }
-    } catch (error: any) {
-      setFlashMessage('Failed to freeze whole chat.');
-      setAlertStatus('error');
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+    } catch {
+      SnackBarNotification.error('Failed to freeze whole chat.');
     }
   };
 
@@ -147,21 +118,13 @@ export default function RoomInfo() {
     try {
       const result = await client.delete(`/api/v1/room/${ruid}/info/password`);
       if (result.status === 204) {
-        setFlashMessage('Successfully clear password.');
-        setAlertStatus('success');
+        SnackBarNotification.success('Successfully cleared password.');
         setPlainPassword('');
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
 
         getRoomInfo();
       }
     } catch {
-      setFlashMessage('Failed to clear password.');
-      setAlertStatus('error');
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error('Failed to clear password.');
     }
   };
 
@@ -174,8 +137,7 @@ export default function RoomInfo() {
     try {
       setRoomInfoJSONText(JSON.stringify(roomInfoJSON, null, 4));
     } catch {
-      setFlashMessage('Failed to load text.');
-      setAlertStatus('error');
+      SnackBarNotification.error('Failed to load room info JSON.');
     }
   }, [roomInfoJSON]);
 
@@ -197,85 +159,82 @@ export default function RoomInfo() {
       <Grid container spacing={3}>
         <Grid size={12}>
           <Paper className="p-4">
-            <React.Fragment>
-              {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
-              <WidgetTitle>Room Information</WidgetTitle>
+            <WidgetTitle>Room Information</WidgetTitle>
 
-              <Grid container spacing={2}>
-                <Grid size={12}>
-                  <Button
-                    size="small"
-                    type="button"
-                    variant="contained"
-                    color="inherit"
-                    className="mt-1!"
-                    onClick={handleFreezeChat}
-                  >
-                    {freezeStatus ? 'Unfreeze Chat' : 'Freeze Chat'}
-                  </Button>
+            <Grid container spacing={2}>
+              <Grid size={12}>
+                <Button
+                  size="small"
+                  type="button"
+                  variant="contained"
+                  color="inherit"
+                  className="mt-1!"
+                  onClick={handleFreezeChat}
+                >
+                  {freezeStatus ? 'Unfreeze Chat' : 'Freeze Chat'}
+                </Button>
 
-                  <form className="mt-6 w-full" onSubmit={handleSetPassword} method="post">
-                    <Grid container spacing={0} alignItems="center">
-                      <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
+                <form className="mt-6 w-full" onSubmit={handleSetPassword} method="post">
+                  <Grid container spacing={0} alignItems="center">
+                    <TextField
+                      variant="outlined"
+                      margin="normal"
+                      required
+                      size="small"
+                      value={plainPassword}
+                      onChange={onChangePassword}
+                      id="password"
+                      label="Password"
+                      name="password"
+                    />
+                    <Grid size={3} alignContent="center">
+                      <Button size="small" type="submit" variant="contained" className="mt-4!" color="primary">
+                        Set
+                      </Button>
+                      <Button
                         size="small"
-                        value={plainPassword}
-                        onChange={onChangePassword}
-                        id="password"
-                        label="Password"
-                        name="password"
-                      />
-                      <Grid size={3} alignContent="center">
-                        <Button size="small" type="submit" variant="contained" className="mt-4!" color="primary">
-                          Set
-                        </Button>
-                        <Button
-                          size="small"
-                          type="button"
-                          variant="contained"
-                          className="mt-4!"
-                          color="secondary"
-                          onClick={handleClearPassword}
-                        >
-                          Clear
-                        </Button>
-                      </Grid>
+                        type="button"
+                        variant="contained"
+                        className="mt-4!"
+                        color="secondary"
+                        onClick={handleClearPassword}
+                      >
+                        Clear
+                      </Button>
                     </Grid>
-                  </form>
+                  </Grid>
+                </form>
 
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    required
-                    size="small"
-                    value={adminPassword}
-                    id="admin-password"
-                    label="Admin password"
-                    name="admin-password"
-                    InputProps={{ readOnly: true }}
-                  />
-                </Grid>
+                <TextField
+                  variant="outlined"
+                  margin="normal"
+                  required
+                  size="small"
+                  value={adminPassword}
+                  id="admin-password"
+                  label="Admin password"
+                  name="admin-password"
+                  InputProps={{ readOnly: true }}
+                />
               </Grid>
-              <Divider />
+            </Grid>
+            <Divider />
 
-              <Grid container spacing={2}>
-                <Grid size={12}>
-                  <TextField
-                    fullWidth
-                    variant="outlined"
-                    margin="normal"
-                    multiline
-                    value={roomInfoJSONText}
-                    id="roomInfoJSONText"
-                    name="roomInfoJSONText"
-                    label="JSON Data"
-                    slotProps={{ input: { readOnly: true } }}
-                  />
-                </Grid>
+            <Grid container spacing={2}>
+              <Grid size={12}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  margin="normal"
+                  multiline
+                  value={roomInfoJSONText}
+                  id="roomInfoJSONText"
+                  name="roomInfoJSONText"
+                  label="JSON Data"
+                  slotProps={{ input: { readOnly: true } }}
+                />
               </Grid>
-            </React.Fragment>
+            </Grid>
           </Paper>
         </Grid>
       </Grid>

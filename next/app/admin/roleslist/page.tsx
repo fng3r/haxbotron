@@ -21,7 +21,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import Alert, { AlertColor } from '@/components/common/Alert';
+import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
 import client from '@/lib/client';
@@ -84,9 +84,6 @@ const convertEventTypeToIcon = (eventType: PlayerRoleEventType): any => {
 };
 
 export default function RoomPlayerList() {
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
-
   const [pagingOrder, setPagingOrder] = useState(1);
   const [pagingCount, setPagingCount] = useState(10);
   const [pagingCountInput, setPagingCountInput] = useState('10');
@@ -99,16 +96,6 @@ export default function RoomPlayerList() {
   const [eventsPagingCount, setEventsPagingCount] = useState(10);
   const [eventsPagingCountInput, setEventsPagingCountInput] = useState('10');
   const [playerRolesEventsList, setPlayerRolesEventsList] = useState([] as PlayerRoleEvent[]);
-
-  const showAlert = (status: AlertColor, message: string, hideAfter: number | null = 3000) => {
-    setFlashMessage(message);
-    setAlertStatus(status);
-    if (hideAfter !== null) {
-      setTimeout(() => {
-        setFlashMessage('');
-      }, hideAfter);
-    }
-  };
 
   const onClickPaging = (move: number) => {
     if (pagingOrder + move >= 1) {
@@ -158,7 +145,7 @@ export default function RoomPlayerList() {
         setPlayerRolesList(playerRoles);
       }
     } catch (e: any) {
-      showAlert('error', 'Failed to load roles list.', null);
+      SnackBarNotification.error('Failed to load roles list.', 5000);
     }
   };
 
@@ -194,7 +181,7 @@ export default function RoomPlayerList() {
         setPlayerRolesEventsList(playerRoles);
       }
     } catch (e: any) {
-      showAlert('error', 'Failed to load roles events list.', null);
+      SnackBarNotification.error('Failed to load roles events list.', 5000);
     }
   };
 
@@ -207,13 +194,13 @@ export default function RoomPlayerList() {
       });
       if (result.status === 204) {
         setNewRole({ auth: '', name: '', role: 'player' });
-        showAlert('success', 'Successfully added new role.');
+        SnackBarNotification.success(`Player ${newRole.name} (id: ${newRole.auth}) was added.`);
       }
     } catch (error: any) {
       if (error.response.status === 409) {
-        showAlert('error', `Player '${newRole.name}' with public id '${newRole.auth}' already added`);
+        SnackBarNotification.warning(`Player '${newRole.name}' (id: ${newRole.auth}) already added.`);
       } else {
-        showAlert('error', 'Failed to add new role.');
+        SnackBarNotification.error(`Failed to add ${newRole.name} (id: ${newRole.auth}).`);
       }
     }
 
@@ -230,7 +217,7 @@ export default function RoomPlayerList() {
         role: role,
       });
       if (result.status === 204) {
-        showAlert('success', `Successfully updated '${selectedRole.name}' role.`);
+        SnackBarNotification.success(`${selectedRole.name}'s role was updated to '${role}'.`);
         setPlayerRolesList(
           playerRolesList.map((playerRole: PlayerRole, i: number) => {
             if (i === playerIndex) return { ...playerRolesList[playerIndex], role: role };
@@ -242,7 +229,7 @@ export default function RoomPlayerList() {
 
       getPlayersRolesEvents(eventsPagingOrder, searchQuery);
     } catch {
-      showAlert('error', 'Failed to update player role.');
+      SnackBarNotification.error(`Failed to update ${selectedRole.name}'s role.`);
     }
   };
 
@@ -250,10 +237,10 @@ export default function RoomPlayerList() {
     try {
       const result = await client.delete(`/api/v1/roleslist/${auth}?name=${name}`);
       if (result.status === 204) {
-        showAlert('success', 'Successfully deleted role.');
+        SnackBarNotification.success(`Player ${name} (id: ${auth}) was removed.`);
       }
     } catch {
-      showAlert('error', 'Failed to delete player role.');
+      SnackBarNotification.error(`Failed to remove player ${name}.`);
     }
 
     getPlayersRoles(pagingOrder, searchQuery);
@@ -271,7 +258,6 @@ export default function RoomPlayerList() {
         <Grid size={{ xs: 12 }}>
           <Paper className="p-4">
             <React.Fragment>
-              {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
               <WidgetTitle>Player Accounts List</WidgetTitle>
               <Grid container spacing={1} flexDirection="column">
                 <form className="w-full" onSubmit={addRole} method="post">

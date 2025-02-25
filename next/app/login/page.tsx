@@ -7,15 +7,13 @@ import { useRouter } from 'next/navigation';
 import { LockOutlined } from '@mui/icons-material';
 import { Avatar, Button, Container, CssBaseline, TextField, Typography } from '@mui/material';
 
-import Alert, { AlertColor } from '@/components/common/Alert';
+import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 
 import client from '@/lib/client';
 
 export default function SignIn() {
   const router = useRouter();
 
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
   const [adminAccount, setAdminAccount] = useState({
     username: '',
     password: '',
@@ -40,28 +38,30 @@ export default function SignIn() {
     e.preventDefault();
     if (validateForm()) {
       try {
+        console.log('username', username);
+        console.log('password', password);
         const result = await client.post('/api/v1/auth', { username, password });
         if (result.status === 201) {
-          setFlashMessage('Configuration succeeded.');
-          setAlertStatus('success');
+          SnackBarNotification.info(`Logged in as ${username}.`);
           router.push('/admin');
         }
       } catch (e: any) {
-        setAlertStatus('error');
+        let errorMessage = '';
         switch (e.response.status) {
           case 401: {
-            setFlashMessage('Login failed.');
+            errorMessage = 'Failed to login. Incorrect username or password.';
             break;
           }
           default: {
-            setFlashMessage('Unexpected error is caused. Please try again.');
+            errorMessage = 'Unexpected error is caused. Please try again.';
             break;
           }
         }
+
+        SnackBarNotification.error(errorMessage);
       }
     } else {
-      setAlertStatus('error');
-      setFlashMessage('Form is unfulfilled.');
+      SnackBarNotification.error('Form is unfulfilled.');
     }
   };
 
@@ -76,7 +76,6 @@ export default function SignIn() {
           Admin Account
         </Typography>
         <Typography variant="body1">Login and start managing the server.</Typography>
-        {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
         <form className="mt-1 w-full" onSubmit={handleSubmit} method="post">
           <TextField
             variant="outlined"

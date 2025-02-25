@@ -21,7 +21,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import Alert, { AlertColor } from '@/components/common/Alert';
+import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
 import client from '@/lib/client';
@@ -46,9 +46,6 @@ export default function RoomBanList() {
   const [banList, setBanList] = useState([] as banListItem[]);
   const [newBan, setNewBan] = useState({ conn: '', reason: '', seconds: 0 } as newBanFields);
 
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
-
   const [pagingOrder, setPagingOrder] = useState(1);
   const [pagingCount, setPagingCount] = useState(10);
   const [pagingCountInput, setPagingCountInput] = useState('10');
@@ -66,12 +63,11 @@ export default function RoomBanList() {
         setBanList(banList);
       }
     } catch (error: any) {
-      setAlertStatus('error');
       if (error.response.status === 404) {
-        setFlashMessage('Failed to load list.');
+        SnackBarNotification.error('Failed to load list.');
         setBanList([]);
       } else {
-        setFlashMessage('Unexpected error is caused. Please try again.');
+        SnackBarNotification.error('Unexpected error is caused. Please try again.');
       }
     }
   };
@@ -80,18 +76,10 @@ export default function RoomBanList() {
     try {
       const result = await client.delete(`/api/v1/banlist/${ruid}/${conn}`);
       if (result.status === 204) {
-        setFlashMessage('Successfully deleted.');
-        setAlertStatus('success');
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
+        SnackBarNotification.success(`Successfully deleted ban entry (conn: ${conn}).`);
       }
     } catch (error: any) {
-      setFlashMessage('Failed to delete the ban.');
-      setTimeout(() => {
-        setFlashMessage('');
-        setAlertStatus('error');
-      }, 3000);
+      SnackBarNotification.error('Failed to remove ban entry.');
     }
     getBanList(pagingOrder);
   };
@@ -138,19 +126,11 @@ export default function RoomBanList() {
         seconds: newBan.seconds,
       });
       if (result.status === 204) {
-        setFlashMessage('Successfully banned.');
-        setAlertStatus('success');
+        SnackBarNotification.success(`Successfully banned by conn: ${newBan.conn}.`);
         setNewBan({ conn: '', reason: '', seconds: 0 });
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
       }
     } catch (error: any) {
-      setFlashMessage('Failed to ban.');
-      setAlertStatus('error');
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error('Failed to ban.');
     }
     getBanList(pagingOrder);
   };
@@ -165,7 +145,6 @@ export default function RoomBanList() {
         <Grid size={12}>
           <Paper className="p-4">
             <React.Fragment>
-              {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
               <WidgetTitle>Ban List</WidgetTitle>
               <Grid container spacing={2}>
                 <form className="mt-2 w-full" onSubmit={handleAdd} method="post">

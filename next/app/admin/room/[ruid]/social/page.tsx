@@ -23,7 +23,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import Alert, { AlertColor } from '@/components/common/Alert';
+import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import Title from '@/components/common/WidgetTitle';
 
 import client from '@/lib/client';
@@ -41,7 +41,7 @@ export default function RoomSocial() {
   const { ruid } = useParams();
 
   const [newNoticeMessage, setNewNoticeMessage] = useState('');
-  const [noticeMessage, setNoticeMessage] = useState('');
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
   const [newReplaysWebhookID, setNewReplaysWebhookID] = useState('');
   const [newReplaysWebhookToken, setNewReplaysWebhookToken] = useState('');
@@ -50,46 +50,37 @@ export default function RoomSocial() {
   const [newDiscordWebhookFeed, setNewDiscordWebhookFeed] = useState(false);
   const [newDiscordWebhookReplayUpload, setNewDiscordWebhookReplayUpload] = useState(false);
 
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
-
   const handleNoticeSet = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     localStorage.setItem(`_NoticeMessage`, newNoticeMessage);
     try {
       const result = await client.post(`/api/v1/room/${ruid}/social/notice`, { message: newNoticeMessage });
       if (result.status === 201) {
-        setFlashMessage('Successfully set.');
-        setAlertStatus('success');
+        SnackBarNotification.success('Successfully set notice message.');
         setNewNoticeMessage('');
-        getNoticeMessage();
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
+        setNoticeMessage(newNoticeMessage);
       }
     } catch (error: any) {
-      setAlertStatus('error');
+      let errorMessage = '';
       switch (error.response.status) {
         case 400: {
-          setFlashMessage('No message.');
+          errorMessage = 'No message provided.';
           break;
         }
         case 401: {
-          setFlashMessage('No permission.');
+          errorMessage = 'Insufficient permissions.';
           break;
         }
         case 404: {
-          setFlashMessage('No exists room.');
+          errorMessage = 'Room does not exist.';
           break;
         }
         default: {
-          setFlashMessage('Unexpected error is caused. Please try again.');
+          errorMessage = 'Unexpected error is caused. Please try again.';
           break;
         }
       }
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error(errorMessage);
     }
   };
 
@@ -116,36 +107,30 @@ export default function RoomSocial() {
         replayUpload: newDiscordWebhookReplayUpload,
       });
       if (result.status === 201) {
-        setFlashMessage('Discord Webhook is configured.');
-        setAlertStatus('success');
+        SnackBarNotification.success('Discord Webhook configuration updated.');
         getDiscordWebhookConfig();
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
       }
     } catch (error: any) {
-      setAlertStatus('error');
+      let errorMessage = '';
       switch (error.response.status) {
         case 400: {
-          setFlashMessage('Request body for Discord webhook is unfulfilled.');
+          errorMessage = 'Request body for Discord Webhook is invalid.';
           break;
         }
         case 401: {
-          setFlashMessage('No permission.');
+          errorMessage = 'Insufficient permissions.';
           break;
         }
         case 404: {
-          setFlashMessage('No exists room.');
+          errorMessage = 'Room does not exist.';
           break;
         }
         default: {
-          setFlashMessage('Unexpected error is caused. Please try again.');
+          errorMessage = 'Unexpected error is caused. Please try again.';
           break;
         }
       }
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error(errorMessage);
     }
   };
 
@@ -180,13 +165,14 @@ export default function RoomSocial() {
         setNoticeMessage(noticeMessage);
       }
     } catch (error: any) {
-      setAlertStatus('error');
+      let errorMessage = '';
       if (error.response.status === 404) {
-        setFlashMessage('Failed to load notice message.');
+        errorMessage = 'Failed to load notice message.';
         setNoticeMessage('');
       } else {
-        setFlashMessage('Unexpected error is caused. Please try again.');
+        errorMessage = 'Unexpected error is caused. Please try again.';
       }
+      SnackBarNotification.error(errorMessage);
     }
   };
   const getDiscordWebhookConfig = async () => {
@@ -202,13 +188,13 @@ export default function RoomSocial() {
         setNewDiscordWebhookReplayUpload(config.replayUpload);
       }
     } catch (error: any) {
-      setAlertStatus('error');
+      let errorMessage = '';
       if (error.response.status === 404) {
-        setFlashMessage('Failed to load Discord webhook configuration.');
-        setNoticeMessage('');
+        errorMessage = 'Failed to load Discord Webhook configuration.';
       } else {
-        setFlashMessage('Unexpected error is caused. Please try again.');
+        errorMessage = 'Unexpected error occurred. Please try again.';
       }
+      SnackBarNotification.error(errorMessage);
     }
   };
 
@@ -216,17 +202,17 @@ export default function RoomSocial() {
     try {
       const result = await client.delete(`/api/v1/room/${ruid}/social/notice`);
       if (result.status === 204) {
-        setAlertStatus('success');
-        setFlashMessage('Successfully delete notice.');
-        getNoticeMessage();
+        SnackBarNotification.success('Successfully deleted notice message.');
+        setNoticeMessage('');
       }
     } catch (error: any) {
-      setAlertStatus('error');
+      let errorMessage = '';
       if (error.response.status === 404) {
-        setFlashMessage('Failed to access notice message.');
+        errorMessage = 'Failed to get notice message.';
       } else {
-        setFlashMessage('Unexpected error is caused. Please try again.');
+        errorMessage = 'Unexpected error is caused. Please try again.';
       }
+      SnackBarNotification.error(errorMessage);
     }
   };
 
@@ -263,8 +249,6 @@ export default function RoomSocial() {
         <Grid size={12}>
           <Paper className="p-4">
             <React.Fragment>
-              {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
-
               <Title>Notice</Title>
               <form className="mt-2 w-full" onSubmit={handleNoticeSet} method="post">
                 <Grid container spacing={1}>
@@ -284,7 +268,7 @@ export default function RoomSocial() {
                   </Grid>
                   <Grid size={{ xs: 3, sm: 1 }}>
                     <Button fullWidth size="small" type="submit" variant="contained" color="primary" className="mt-5!">
-                      Publish
+                      Update
                     </Button>
                   </Grid>
                   <Grid size={{ xs: 3, sm: 1 }}>
@@ -313,7 +297,7 @@ export default function RoomSocial() {
                     </TableHead>
                     <TableBody>
                       <TableRow>
-                        <TableCell>{noticeMessage ?? 'There is no notice message'}</TableCell>
+                        <TableCell>{noticeMessage || 'There is no notice message'}</TableCell>
                         <TableCell align="right">
                           {noticeMessage && (
                             <IconButton

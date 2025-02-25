@@ -26,7 +26,7 @@ import {
   TextField,
 } from '@mui/material';
 
-import Alert, { AlertColor } from '@/components/common/Alert';
+import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
 import client from '@/lib/client';
@@ -51,10 +51,6 @@ export default function RoomAssets() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
-
-  // Red Team #e66e55, Blue team #5a89e5
   const [colourPick, setColourPick] = useState('#ffffff');
 
   const [redTeamColours, setRedTeamColours] = useState({
@@ -130,20 +126,16 @@ export default function RoomAssets() {
         teamColour3: convertHexToInt(newTeamColour3.substring(1)),
       });
       if (result.status === 201) {
-        setFlashMessage('Successfully set.');
-        setAlertStatus('success');
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
+        SnackBarNotification.success(`Successfully set colors of the ${teamSelectValue} team.`);
 
+        getTeamColours();
         getTeamColours();
       }
     } catch (error: any) {
-      setAlertStatus('error');
       if (error.response.status === 404) {
-        setFlashMessage('Failed to set team colours.');
+        SnackBarNotification.error('Failed to set team colours.');
       } else {
-        setFlashMessage('Unexpected error is caused. Please try again.');
+        SnackBarNotification.error('Unexpected error is caused. Please try again.');
       }
     }
   };
@@ -160,41 +152,11 @@ export default function RoomAssets() {
         setBlueTeamColours(colours.blue);
       }
     } catch (error: any) {
-      setAlertStatus('error');
       if (error.response.status === 404) {
-        setFlashMessage('Failed to load team colours.');
+        SnackBarNotification.error('Failed to load team colours.');
       } else {
-        setFlashMessage('Unexpected error is caused. Please try again.');
+        SnackBarNotification.error('Unexpected error is caused. Please try again.');
       }
-    }
-  };
-
-  const drawBackground = () => {
-    if (!canvasRef.current) {
-      return;
-    }
-    const canvas: HTMLCanvasElement = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    if (context) {
-      // background
-      context.fillStyle = '#718C5A';
-      context.fillRect(0, 0, 200, 200);
-    }
-  };
-
-  const drawCircle = () => {
-    if (!canvasRef.current) {
-      return;
-    }
-    const canvas: HTMLCanvasElement = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    if (context) {
-      // circle
-      context.beginPath();
-      context.arc(100, 100, 80, 0, Math.PI * 2);
-      context.stroke();
     }
   };
 
@@ -266,7 +228,6 @@ export default function RoomAssets() {
         <Grid size={12}>
           <Paper className="p-4">
             <React.Fragment>
-              {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
               <WidgetTitle>New Team Colours</WidgetTitle>
 
               <form className="mt-6 w-full" onSubmit={handleColoursApply} method="post">

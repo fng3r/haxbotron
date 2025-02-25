@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 
 import { Button, Container, Divider, Grid2 as Grid, Paper, TextField, Typography } from '@mui/material';
 
-import Alert, { AlertColor } from '@/components/common/Alert';
+import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
 import client from '@/lib/client';
@@ -16,9 +16,6 @@ export default function RoomTextFilter() {
 
   const [nicknameFilteringPool, setNicknameFilteringPool] = useState('');
   const [chatFilteringPool, setChatFilteringPool] = useState('');
-
-  const [flashMessage, setFlashMessage] = useState('');
-  const [alertStatus, setAlertStatus] = useState('success' as AlertColor);
 
   const onChangeNicknameFilteringPool = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNicknameFilteringPool(e.target.value);
@@ -44,18 +41,10 @@ export default function RoomTextFilter() {
     try {
       const result = await client.delete(`/api/v1/room/${ruid}/filter/${endpoint}`);
       if (result.status === 204) {
-        setFlashMessage('Successfully clear.');
-        setAlertStatus('success');
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
+        SnackBarNotification.success('Successfully cleared filtering pool.');
       }
     } catch (error: any) {
-      setFlashMessage('Failed to clear.');
-      setAlertStatus('error');
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error('Failed to clear filtering pool.');
     }
   };
 
@@ -74,35 +63,29 @@ export default function RoomTextFilter() {
     try {
       const result = await client.post(`/api/v1/room/${ruid}/filter/${endpoint}`, { pool: pool });
       if (result.status === 201) {
-        setFlashMessage('Successfully set.');
-        setAlertStatus('success');
-        setTimeout(() => {
-          setFlashMessage('');
-        }, 3000);
+        SnackBarNotification.success('Successfully set new filtering pool.');
       }
     } catch (error: any) {
-      setAlertStatus('error');
+      let errorMessage = '';
       switch (error.response.status) {
         case 400: {
-          setFlashMessage('No words in text pool.');
+          errorMessage = 'No words in text pool.';
           break;
         }
         case 401: {
-          setFlashMessage('No permission.');
+          errorMessage = 'Insufficient permissions.';
           break;
         }
         case 404: {
-          setFlashMessage('No exists room.');
+          errorMessage = 'Room does not exist.';
           break;
         }
         default: {
-          setFlashMessage('Unexpected error is caused. Please try again.');
+          errorMessage = 'Unexpected error occurred. Please try again.';
           break;
         }
       }
-      setTimeout(() => {
-        setFlashMessage('');
-      }, 3000);
+      SnackBarNotification.error(errorMessage);
     }
   };
 
@@ -122,12 +105,11 @@ export default function RoomTextFilter() {
         setterFunction(textPool);
       }
     } catch (error: any) {
-      setAlertStatus('error');
       if (error.response.status === 404) {
-        setFlashMessage('Failed to load filtering pool.');
+        SnackBarNotification.error('Failed to load filtering pool.');
         setNicknameFilteringPool('');
       } else {
-        setFlashMessage('Unexpected error is caused. Please try again.');
+        SnackBarNotification.error('Unexpected error occurred. Please try again.');
       }
     }
   };
@@ -155,7 +137,6 @@ export default function RoomTextFilter() {
         <Grid size={12}>
           <Paper className="p-4">
             <React.Fragment>
-              {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
               <WidgetTitle>Nickname Filtering Pool</WidgetTitle>
               <Typography variant="body1">Seperate by |,| and click Apply button.</Typography>
               <form className="mt-2 mb-2 w-full" onSubmit={handleNicknameFilteringPoolSet} method="post">
