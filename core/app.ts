@@ -11,8 +11,8 @@ import nodeStorage from "node-persist";
 import { createServer as HTTPcreateServer } from "http";
 import { Server as SIOserver, Socket as SIOsocket } from "socket.io";
 import { winstonLogger } from "./winstonLoggerSystem";
-import { indexAPIRouter } from "./web/router/api/v1";
-import { jwtMiddleware, jwtMiddlewareWS } from "./web/lib/jwt.middleware";
+import { indexAPIRouter } from "./api/router/api/v1";
+import { jwtMiddleware, jwtMiddlewareWS } from "./api/lib/jwt.middleware";
 import { HeadlessBrowser } from "./lib/browser";
 
 const app = new Koa();
