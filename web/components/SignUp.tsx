@@ -84,7 +84,6 @@ export default function SignUp() {
           Initial Configuration
         </Typography>
         <Typography variant="body1">Sign up new admin account.</Typography>
-        {flashMessage && <Alert severity={alertStatus}>{flashMessage}</Alert>}
         <form onSubmit={handleSubmit} method="post" style={{ marginTop: 20 }}>
           <Grid container spacing={2}>
             <Grid size={12}>
