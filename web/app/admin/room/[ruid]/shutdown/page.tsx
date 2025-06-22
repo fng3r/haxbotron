@@ -9,37 +9,26 @@ import { Button, Container, Grid2 as Grid, Paper } from '@mui/material';
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
-import client from '@/lib/client';
+import { mutations } from '@/lib/queries/room';
 
 export default function RoomPower() {
-  const { ruid } = useParams();
+  const { ruid } = useParams<{ ruid: string }>();
   const router = useRouter();
+
+  const shutdownRoomMutation = mutations.shutdownRoom();
 
   const handleShutdownClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
 
-    try {
-      const result = await client.delete('/api/v1/room/' + ruid);
-      if (result.status === 204) {
+    shutdownRoomMutation.mutate(ruid, {
+      onSuccess: () => {
         SnackBarNotification.success('Shutdown succeeded.');
         router.push('/admin/roomlist');
-      }
-    } catch (e: any) {
-      switch (e.response.status) {
-        case 401: {
-          SnackBarNotification.error('No permission.');
-          break;
-        }
-        case 404: {
-          SnackBarNotification.error('Room does not exist.');
-          break;
-        }
-        default: {
-          SnackBarNotification.error('Unexpected error occurred. Please try again.');
-          break;
-        }
-      }
-    }
+      },
+      onError: (error) => {
+        SnackBarNotification.error(error.message);
+      },
+    });
   };
 
   return (

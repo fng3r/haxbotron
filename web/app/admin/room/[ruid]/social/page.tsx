@@ -26,22 +26,12 @@ import {
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import Title from '@/components/common/WidgetTitle';
 
-import client from '@/lib/client';
-
-type DiscordWebhookConfig = {
-  feed: boolean;
-  passwordWebhookId: string;
-  passwordWebhookToken: string;
-  replaysWebhookId: string;
-  replaysWebhookToken: string;
-  replayUpload: boolean;
-};
+import { mutations, queries } from '@/lib/queries/room';
 
 export default function RoomSocial() {
-  const { ruid } = useParams();
+  const { ruid } = useParams<{ ruid: string }>();
 
   const [newNoticeMessage, setNewNoticeMessage] = useState('');
-  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
   const [newReplaysWebhookID, setNewReplaysWebhookID] = useState('');
   const [newReplaysWebhookToken, setNewReplaysWebhookToken] = useState('');
@@ -50,88 +40,74 @@ export default function RoomSocial() {
   const [newDiscordWebhookFeed, setNewDiscordWebhookFeed] = useState(false);
   const [newDiscordWebhookReplayUpload, setNewDiscordWebhookReplayUpload] = useState(false);
 
+  const { data: noticeMessage } = queries.getRoomNoticeMessage(ruid);
+  const { data: discordWebhookConfig } = queries.getRoomDiscordWebhookConfig(ruid);
+
+  const setNoticeMessageMutation = mutations.setNoticeMessage();
+  const deleteNoticeMessageMutation = mutations.deleteNoticeMessage();
+  const setDiscordWebhookConfigMutation = mutations.setDiscordWebhookConfig();
+
+  useEffect(() => {
+    if (discordWebhookConfig) {
+      setNewReplaysWebhookID(discordWebhookConfig.replaysWebhookId);
+      setNewReplaysWebhookToken(discordWebhookConfig.replaysWebhookToken);
+      setNewPasswordWebhookID(discordWebhookConfig.passwordWebhookId);
+      setNewPasswordWebhookToken(discordWebhookConfig.passwordWebhookToken);
+      setNewDiscordWebhookFeed(discordWebhookConfig.feed);
+      setNewDiscordWebhookReplayUpload(discordWebhookConfig.replayUpload);
+    }
+  }, [discordWebhookConfig]);
+
   const handleNoticeSet = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    localStorage.setItem(`_NoticeMessage`, newNoticeMessage);
-    try {
-      const result = await client.post(`/api/v1/room/${ruid}/social/notice`, { message: newNoticeMessage });
-      if (result.status === 201) {
-        SnackBarNotification.success('Successfully set notice message.');
-        setNewNoticeMessage('');
-        setNoticeMessage(newNoticeMessage);
-      }
-    } catch (error: any) {
-      let errorMessage = '';
-      switch (error.response.status) {
-        case 400: {
-          errorMessage = 'No message provided.';
-          break;
-        }
-        case 401: {
-          errorMessage = 'Insufficient permissions.';
-          break;
-        }
-        case 404: {
-          errorMessage = 'Room does not exist.';
-          break;
-        }
-        default: {
-          errorMessage = 'Unexpected error is caused. Please try again.';
-          break;
-        }
-      }
-      SnackBarNotification.error(errorMessage);
-    }
+    setNoticeMessageMutation.mutate(
+      { ruid, message: newNoticeMessage },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success('Successfully set notice message.');
+          setNewNoticeMessage('');
+          localStorage.setItem(`_NoticeMessage`, newNoticeMessage);
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
   };
 
   const handleDiscordWebhookSet = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    localStorage.setItem(
-      `_DiscordWebhookConfig`,
-      JSON.stringify({
-        feed: newDiscordWebhookFeed,
-        passwordWebhookId: newPasswordWebhookID,
-        passwordWebhookToken: newPasswordWebhookToken,
-        replaysWebhookId: newReplaysWebhookID,
-        replaysWebhookToken: newReplaysWebhookToken,
-        replayUpload: newDiscordWebhookReplayUpload,
-      } as DiscordWebhookConfig),
+
+    const config = {
+      feed: newDiscordWebhookFeed,
+      replaysWebhookId: newReplaysWebhookID,
+      replaysWebhookToken: newReplaysWebhookToken,
+      passwordWebhookId: newPasswordWebhookID,
+      passwordWebhookToken: newPasswordWebhookToken,
+      replayUpload: newDiscordWebhookReplayUpload,
+    };
+    setDiscordWebhookConfigMutation.mutate(
+      { ruid, config },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success('Discord Webhook configuration updated.');
+          localStorage.setItem(
+            `_DiscordWebhookConfig`,
+            JSON.stringify({
+              feed: newDiscordWebhookFeed,
+              passwordWebhookId: newPasswordWebhookID,
+              passwordWebhookToken: newPasswordWebhookToken,
+              replaysWebhookId: newReplaysWebhookID,
+              replaysWebhookToken: newReplaysWebhookToken,
+              replayUpload: newDiscordWebhookReplayUpload,
+            }),
+          );
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
     );
-    try {
-      const result = await client.post(`/api/v1/room/${ruid}/social/discord/webhook`, {
-        feed: newDiscordWebhookFeed,
-        replaysWebhookId: newReplaysWebhookID,
-        replaysWebhookToken: newReplaysWebhookToken,
-        passwordWebhookId: newPasswordWebhookID,
-        passwordWebhookToken: newPasswordWebhookToken,
-        replayUpload: newDiscordWebhookReplayUpload,
-      });
-      if (result.status === 201) {
-        SnackBarNotification.success('Discord Webhook configuration updated.');
-        getDiscordWebhookConfig();
-      }
-    } catch (error: any) {
-      let errorMessage = '';
-      switch (error.response.status) {
-        case 400: {
-          errorMessage = 'Request body for Discord Webhook is invalid.';
-          break;
-        }
-        case 401: {
-          errorMessage = 'Insufficient permissions.';
-          break;
-        }
-        case 404: {
-          errorMessage = 'Room does not exist.';
-          break;
-        }
-        default: {
-          errorMessage = 'Unexpected error is caused. Please try again.';
-          break;
-        }
-      }
-      SnackBarNotification.error(errorMessage);
-    }
   };
 
   const onChangeNoticeMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,63 +133,18 @@ export default function RoomSocial() {
     setNewDiscordWebhookReplayUpload(e.target.checked); // switch toggle component
   };
 
-  const getNoticeMessage = async () => {
-    try {
-      const result = await client.get(`/api/v1/room/${ruid}/social/notice`);
-      if (result.status === 200) {
-        const noticeMessage: string = result.data.message;
-        setNoticeMessage(noticeMessage);
-      }
-    } catch (error: any) {
-      let errorMessage = '';
-      if (error.response.status === 404) {
-        errorMessage = 'Failed to load notice message.';
-        setNoticeMessage('');
-      } else {
-        errorMessage = 'Unexpected error is caused. Please try again.';
-      }
-      SnackBarNotification.error(errorMessage);
-    }
-  };
-  const getDiscordWebhookConfig = async () => {
-    try {
-      const result = await client.get(`/api/v1/room/${ruid}/social/discord/webhook`);
-      if (result.status === 200) {
-        const config: DiscordWebhookConfig = result.data;
-        setNewReplaysWebhookID(config.replaysWebhookId);
-        setNewReplaysWebhookToken(config.replaysWebhookToken);
-        setNewPasswordWebhookID(config.passwordWebhookId);
-        setNewPasswordWebhookToken(config.passwordWebhookToken);
-        setNewDiscordWebhookFeed(config.feed);
-        setNewDiscordWebhookReplayUpload(config.replayUpload);
-      }
-    } catch (error: any) {
-      let errorMessage = '';
-      if (error.response.status === 404) {
-        errorMessage = 'Failed to load Discord Webhook configuration.';
-      } else {
-        errorMessage = 'Unexpected error occurred. Please try again.';
-      }
-      SnackBarNotification.error(errorMessage);
-    }
-  };
-
   const deleteNoticeMessage = async () => {
-    try {
-      const result = await client.delete(`/api/v1/room/${ruid}/social/notice`);
-      if (result.status === 204) {
-        SnackBarNotification.success('Successfully deleted notice message.');
-        setNoticeMessage('');
-      }
-    } catch (error: any) {
-      let errorMessage = '';
-      if (error.response.status === 404) {
-        errorMessage = 'Failed to get notice message.';
-      } else {
-        errorMessage = 'Unexpected error is caused. Please try again.';
-      }
-      SnackBarNotification.error(errorMessage);
-    }
+    deleteNoticeMessageMutation.mutate(
+      { ruid },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success('Successfully deleted notice message.');
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
   };
 
   const handleNoticeLoad = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -228,7 +159,7 @@ export default function RoomSocial() {
     event.preventDefault();
 
     if (localStorage.getItem(`_DiscordWebhookConfig`) !== null) {
-      const config: DiscordWebhookConfig = JSON.parse(localStorage.getItem(`_DiscordWebhookConfig`)!);
+      const config = JSON.parse(localStorage.getItem(`_DiscordWebhookConfig`)!);
       setNewReplaysWebhookID(config.replaysWebhookId);
       setNewReplaysWebhookToken(config.replaysWebhookToken);
       setNewPasswordWebhookID(config.passwordWebhookId);
@@ -237,11 +168,6 @@ export default function RoomSocial() {
       setNewDiscordWebhookReplayUpload(config.replayUpload);
     }
   };
-
-  useEffect(() => {
-    getNoticeMessage();
-    getDiscordWebhookConfig();
-  }, []);
 
   return (
     <Container maxWidth="lg" className="py-8">

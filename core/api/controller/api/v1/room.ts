@@ -59,12 +59,8 @@ export async function terminateRoom(ctx: Context) {
  */
 export function getRoomList(ctx: Context) {
     const list: string[] = browser.getExistRoomList();
-    if (Array.isArray(list) && list.length) {
-        ctx.status = 200;
-        ctx.body = list;
-    } else {
-        ctx.status = 404;
-    }
+    ctx.status = 200;
+    ctx.body = list;
 }
 
 /**
@@ -129,12 +125,13 @@ export async function getPlayerInfo(ctx: Context) {
 export async function kickOnlinePlayer(ctx: Context) {
     const { ruid, id } = ctx.params;
     const { ban, seconds, message } = ctx.request.body;
-    if (ban === undefined || !seconds || !message) {
+    if (ban === undefined || !seconds) {
         ctx.status = 400; // Unfulfilled error
         return;
     }
-    if (browser.checkExistRoom(ruid) && await browser.checkOnlinePlayer(ruid, parseInt(id))) {
-        await browser.banPlayerFixedTerm(ruid, parseInt(id), ban, message, seconds);
+    const playerId = parseInt(id);
+    if (browser.checkExistRoom(ruid) && await browser.checkOnlinePlayer(ruid, playerId)) {
+        await browser.banPlayerFixedTerm(ruid, playerId, ban, message, seconds);
         ctx.status = 204;
     } else {
         ctx.status = 404;

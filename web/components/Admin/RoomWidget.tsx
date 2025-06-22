@@ -1,69 +1,35 @@
 'use client';
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 
 import Link from 'next/link';
 
 import WidgetTitle from '../common/WidgetTitle';
 import { Link as MuiLink, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { WSocketContext } from '@/context/ws';
-import client from '@/lib/client';
-
-interface roomInfoItem {
-  ruid: string;
-  roomName: string;
-  onlinePlayers: number;
-}
+import { queries, queryKeys } from '@/lib/queries/room';
 
 export default function RoomWidget() {
-  const [roomInfoList, setRoomInfoList] = useState([] as roomInfoItem[]);
   const ws = useContext(WSocketContext);
+  const queryClient = useQueryClient();
 
-  const getRoomList = async () => {
-    try {
-      const result = await client.get('/api/v1/room');
-      if (result.status === 200) {
-        const roomList: string[] = result.data;
-        const roomInfoList: roomInfoItem[] = await Promise.all(
-          roomList.map(async (ruid) => {
-            const result = await client.get('/api/v1/room/' + ruid);
-            return {
-              ruid: ruid,
-              roomName: result.data.roomName,
-              onlinePlayers: result.data.onlinePlayers,
-            };
-          }),
-        );
-
-        setRoomInfoList(roomInfoList);
-      }
-    } catch {}
-  };
+  const { data: rooms } = queries.getRoomsInfoList();
 
   useEffect(() => {
-    getRoomList();
+    const invalidateRooms = () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
+    };
+
+    ws.on('roomct', invalidateRooms);
+    ws.on('joinleft', invalidateRooms);
 
     return () => {
-      setRoomInfoList([]);
+      ws.off('roomct', invalidateRooms);
+      ws.off('joinleft', invalidateRooms);
     };
-  }, []);
-
-  useEffect(() => {
-    // websocket with socket.io
-    ws.on('roomct', () => {
-      setRoomInfoList([]);
-      getRoomList();
-    });
-    ws.on('joinleft', () => {
-      setRoomInfoList([]);
-      getRoomList();
-    });
-    return () => {
-      // before the component is destroyed
-      // unbind all event handlers used in this component
-    };
-  }, [ws]);
+  }, [ws, queryClient]);
 
   return (
     <>
@@ -79,13 +45,14 @@ export default function RoomWidget() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {roomInfoList.slice(0, 3).map((item) => (
-            <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
-              <TableCell>{item.ruid}</TableCell>
-              <TableCell>{item.roomName}</TableCell>
-              <TableCell align="right">{item.onlinePlayers}</TableCell>
-            </TableRow>
-          ))}
+          {rooms &&
+            rooms.slice(0, 3).map((item) => (
+              <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
+                <TableCell>{item.ruid}</TableCell>
+                <TableCell>{item.roomName}</TableCell>
+                <TableCell align="right">{item.onlinePlayers}</TableCell>
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
       <div className="mt-6">

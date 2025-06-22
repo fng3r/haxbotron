@@ -1,15 +1,15 @@
 'use client';
 
-import { SnackbarKey, SnackbarProvider, SnackbarProviderProps, useSnackbar } from 'notistack';
+import { SnackbarKey, SnackbarProvider, useSnackbar } from 'notistack';
 
 import { SnackbarUtilsConfigurator } from './SnackBarNotification';
 import { Close } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
 
-export default function SnackBarProviderWrapper(props: SnackbarProviderProps) {
+export default function SnackBarProviderWrapper() {
   return (
     <SnackbarProvider
-      {...props}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       autoHideDuration={3000}
       action={(snackbarKey) => <SnackbarCloseButton snackbarKey={snackbarKey} />}
     >

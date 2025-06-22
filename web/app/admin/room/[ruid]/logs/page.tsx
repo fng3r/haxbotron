@@ -16,59 +16,48 @@ import {
   Paper,
   TextField,
 } from '@mui/material';
+import { OrderedSet } from 'immutable';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
 import { WSocketContext } from '@/context/ws';
-import client from '@/lib/client';
+import { mutations } from '@/lib/queries/room';
 
 interface LogMessage {
+  id: string;
   ruid: string;
   origin: string;
   type: string;
   message: string;
+  timestamp: number;
 }
 
 export default function RoomLogs() {
   const ws = useContext(WSocketContext);
-  const { ruid } = useParams();
+  const { ruid } = useParams<{ ruid: string }>();
 
-  const [logMessage, setLogMessage] = useState([] as LogMessage[]);
-  const [recentLogMessage, setRecentLogMessage] = useState({} as LogMessage);
+  const [logMessages, setLogMessages] = useState(OrderedSet.of<LogMessage>());
 
   const [broadcastMessage, setBroadcastMessage] = useState('');
 
-  const handleBroadcast = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    try {
-      const result = await client.post(`/api/v1/room/${ruid}/chat`, { message: broadcastMessage });
-      if (result.status === 201) {
-        SnackBarNotification.success('Successfully sent broadcast message.');
-        setBroadcastMessage('');
-      }
-    } catch (error: any) {
-      let errorMessage = '';
-      switch (error.response.status) {
-        case 400: {
-          errorMessage = 'No message.';
-          break;
-        }
-        case 401: {
-          errorMessage = 'Insufficient permissions.';
-          break;
-        }
-        case 404: {
-          errorMessage = 'Room does not exist.';
-          break;
-        }
-        default: {
-          errorMessage = 'Unexpected error occurred. Please try again.';
-          break;
-        }
-      }
-      SnackBarNotification.error(errorMessage);
-    }
+  const sendBroadcastMessageMutation = mutations.sendBroadcastMessage();
+
+  const handleBroadcast = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    sendBroadcastMessageMutation.mutate(
+      { ruid, message: broadcastMessage },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success('Successfully sent broadcast message.');
+          setBroadcastMessage('');
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
   };
 
   const onChangeBroadcastMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,24 +67,21 @@ export default function RoomLogs() {
   useEffect(() => {
     ws.on('log', (content: LogMessage) => {
       if (content.ruid === ruid) {
-        setRecentLogMessage(content);
+        setLogMessages((prev) => prev.add(content));
       }
     });
-  }, []);
 
-  useEffect(() => {
-    if (Object.keys(recentLogMessage).length > 0) {
-      setLogMessage(logMessage.concat(recentLogMessage));
-    }
-    setRecentLogMessage({} as LogMessage);
-  }, [recentLogMessage.message]);
+    return () => {
+      ws.off('log');
+    };
+  }, [ws, ruid]);
 
   return (
     <Container maxWidth="lg" className="py-8">
       <Grid container spacing={3}>
         <Grid size={12}>
           <Paper className="overflow-auto p-4">
-            <React.Fragment>
+            <>
               <WidgetTitle>Broadcast</WidgetTitle>
               <form className="mt-2 w-full" onSubmit={handleBroadcast} method="post">
                 <TextField
@@ -115,14 +101,14 @@ export default function RoomLogs() {
                   Send
                 </Button>
               </form>
-            </React.Fragment>
+            </>
             <Divider />
 
-            <React.Fragment>
+            <>
               <WidgetTitle>Log Messages</WidgetTitle>
               <List>
-                {logMessage.map((message, idx) => (
-                  <ListItem key={idx}>
+                {logMessages.map((message) => (
+                  <ListItem key={message.id}>
                     <ListItemIcon sx={{ minWidth: '30px' }}>
                       <CircleNotificationsTwoTone />
                     </ListItemIcon>
@@ -130,7 +116,7 @@ export default function RoomLogs() {
                   </ListItem>
                 ))}
               </List>
-            </React.Fragment>
+            </>
           </Paper>
         </Grid>
       </Grid>

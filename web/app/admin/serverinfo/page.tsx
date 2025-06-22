@@ -1,34 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import { Container, Grid2 as Grid, Paper, Typography } from '@mui/material';
 
 import WidgetTitle from '@/components/common/WidgetTitle';
 
-import client from '@/lib/client';
+import { queries } from '@/lib/queries/server';
 
 export default function ServerInfo() {
-  const [serverInfo, setServerInfo] = useState({
-    usedMemoryMB: 0,
-    upTimeSecs: 0,
-    serverVersion: '0.0.0',
-  });
-
-  useEffect(() => {
-    const getInfo = async () => {
-      try {
-        const result = await client.get('/api/v1/system');
-        if (result.status === 200) {
-          setServerInfo(result.data);
-        }
-      } catch (e: any) {
-        if (e.status === 401) {
-        }
-      }
-    };
-    getInfo();
-  }, []);
+  const { data: serverInfo } = queries.getInfo();
 
   return (
     <Container maxWidth="lg" className="py-8">

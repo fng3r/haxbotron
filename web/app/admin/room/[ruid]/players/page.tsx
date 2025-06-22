@@ -17,6 +17,7 @@ import {
   Grid2 as Grid,
   IconButton,
   Paper,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -25,41 +26,15 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import Title from '@/components/common/WidgetTitle';
 
 import { Player } from '@/../core/game/model/GameObject/Player';
 import { WSocketContext } from '@/context/ws';
-import client from '@/lib/client';
 import { isNumber } from '@/lib/numcheck';
-
-interface newBanFields {
-  reason: string;
-  seconds: number;
-}
-
-interface PlayerStorage {
-  auth: string;
-  conn: string;
-  name: string;
-  rating: number;
-  totals: number;
-  disconns: number;
-  wins: number;
-  goals: number;
-  assists: number;
-  ogs: number;
-  losePoints: number;
-  balltouch: number;
-  passed: number;
-  mute: boolean;
-  muteExpire: number;
-  rejoinCount: number;
-  joinDate: number;
-  leftDate: number;
-  malActCount: number;
-}
+import { BanOptions, RoomPlayer, mutations, queries, queryKeys } from '@/lib/queries/player';
 
 const convertDate = (timestamp: number): string => {
   if (timestamp === -1) return 'Permanent';
@@ -70,9 +45,16 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
   const { ruid, row } = props;
   const [open, setOpen] = useState(false);
 
-  const [newBan, setNewBan] = useState({ reason: '', seconds: 0 } as newBanFields);
+  const [kickReason, setKickReason] = useState('');
+  const [newBan, setNewBan] = useState({ reason: '', seconds: 180 } as BanOptions);
 
   const [whisperMessage, setWhisperMessage] = useState('');
+
+  const mutePlayerMutation = mutations.mutePlayer();
+  const unmutePlayerMutation = mutations.unmutePlayer();
+  const kickPlayerMutation = mutations.kickPlayer();
+  const banPlayerMutation = mutations.banPlayer();
+  const sendWhisperMutation = mutations.sendWhisper();
 
   const convertTeamID = (teamID: number): string => {
     if (teamID === 1) return 'Red';
@@ -80,12 +62,8 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
     return 'Spec';
   };
 
-  const makePermissionsText = (admin: boolean): string => {
-    const text: string[] = [];
-    if (admin) {
-      text.push('Admin');
-    }
-    return text.join(',');
+  const onChangeKickReason = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setKickReason(e.target.value);
   };
 
   const onChangeNewBan = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,72 +87,82 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
 
   const handleWhisper = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    try {
-      const result = await client.post(`/api/v1/room/${ruid}/chat/${row.id}`, { message: whisperMessage });
-      if (result.status === 201) {
-        SnackBarNotification.success(`Successfully sent whisper message to ${row.name}.`);
-        setWhisperMessage('');
-      }
-    } catch (error: any) {
-      let errorMessage = '';
-      switch (error.response.status) {
-        case 400: {
-          errorMessage = 'No message.';
-          break;
-        }
-        case 401: {
-          errorMessage = 'Insufficient permissions.';
-          break;
-        }
-        case 404: {
-          errorMessage = 'Room does not exist or player does not exist.';
-          break;
-        }
-        default: {
-          errorMessage = 'Unexpected error occurred. Please try again.';
-          break;
-        }
-      }
-      SnackBarNotification.error(errorMessage);
-    }
+
+    sendWhisperMutation.mutate(
+      { ruid, player: row, message: whisperMessage },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Successfully sent whisper message to ${row.name}.`);
+          setWhisperMessage('');
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
   };
 
   const handleKick = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    try {
-      const result = await client.delete(`/api/v1/room/${ruid}/player/${row.id}`, {
-        data: {
-          ban: false,
-          seconds: newBan.seconds,
-          message: newBan.reason,
+
+    kickPlayerMutation.mutate(
+      { ruid, player: row, reason: kickReason },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Player ${row.name} has been kicked.`);
+          setKickReason('');
         },
-      });
-      if (result.status === 204) {
-        SnackBarNotification.success(`Successfully kicked player ${row.name}.`);
-        setNewBan({ reason: '', seconds: 0 });
-      }
-    } catch (error: any) {
-      SnackBarNotification.error(`Failed to kick player ${row.name}.`);
-    }
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
+  };
+
+  const handleBan = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    banPlayerMutation.mutate(
+      { ruid, player: row, banEntry: newBan },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Player ${row.name} has been banned.`);
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+          setNewBan({ reason: '', seconds: 180 });
+        },
+      },
+    );
   };
 
   const handleOnlinePlayerMute = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.preventDefault();
-    try {
-      if (row.permissions.mute) {
-        const result = await client.delete(`/api/v1/room/${ruid}/player/${row.id}/permission/mute`);
-        if (result.status === 204) {
-          console.log('Successfully unmuted player', row.name);
-          SnackBarNotification.success(`Successfully unmuted player ${row.name}.`);
-        }
-      } else {
-        const result = await client.post(`/api/v1/room/${ruid}/player/${row.id}/permission/mute`, { muteExpire: -1 }); // Permanent
-        if (result.status === 201) {
-          SnackBarNotification.success(`Successfully muted player ${row.name}.`);
-        }
-      }
-    } catch (error: any) {
-      SnackBarNotification.error(`Failed to mute/unmute player ${row.name}.`);
+
+    if (row.permissions.mute) {
+      unmutePlayerMutation.mutate(
+        { ruid, player: row },
+        {
+          onSuccess: () => {
+            SnackBarNotification.success(`Player ${row.name} has been unmuted.`);
+          },
+          onError: () => {
+            SnackBarNotification.error(`Failed to unmute player ${row.name}.`);
+          },
+        },
+      );
+    } else {
+      mutePlayerMutation.mutate(
+        { ruid, player: row },
+        {
+          onSuccess: () => {
+            SnackBarNotification.success(`Player ${row.name} has been muted.`);
+          },
+          onError: () => {
+            SnackBarNotification.error(`Failed to mute player ${row.name}.`);
+          },
+        },
+      );
     }
   };
 
@@ -202,7 +190,7 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box margin={1}>
-              <Grid container spacing={4}>
+              <Grid container spacing={1} direction={'column'}>
                 <form onSubmit={handleWhisper} method="post">
                   <Grid size={{ xs: 12, sm: 12 }}>
                     <TextField
@@ -221,36 +209,58 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
                     </Button>
                   </Grid>
                 </form>
-                <form onSubmit={handleKick} method="post">
-                  <Grid size={{ xs: 12, sm: 12 }}>
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newBan.reason}
-                      onChange={onChangeNewBan}
-                      id="reason"
-                      label="Reason"
-                      name="reason"
-                    />
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newBan.seconds}
-                      onChange={onChangeNewBan}
-                      type="number"
-                      id="seconds"
-                      label="Time(secs)"
-                      name="seconds"
-                    />
-                    <Button size="small" type="submit" variant="contained" color="secondary" className="mt-5! ml-1!">
-                      Kick
-                    </Button>
-                  </Grid>
-                </form>
+                <Grid container columnSpacing={4}>
+                  <form onSubmit={handleKick} method="post">
+                    <Grid size={{ xs: 12, sm: 12 }}>
+                      <TextField
+                        variant="outlined"
+                        margin="normal"
+                        size="small"
+                        value={kickReason}
+                        onChange={onChangeKickReason}
+                        id="reason"
+                        label="Reason"
+                        name="reason"
+                        className="mr-1!"
+                      />
+                      <Button size="small" type="submit" variant="contained" color="secondary" className="mt-5!">
+                        Kick
+                      </Button>
+                    </Grid>
+                  </form>
+
+                  <form onSubmit={handleBan} method="post">
+                    <Grid size={{ xs: 12, sm: 12 }}>
+                      <TextField
+                        variant="outlined"
+                        margin="normal"
+                        size="small"
+                        value={newBan.reason}
+                        onChange={onChangeNewBan}
+                        id="reason"
+                        label="Reason"
+                        name="reason"
+                        className="mr-2!"
+                      />
+                      <TextField
+                        variant="outlined"
+                        margin="normal"
+                        required
+                        size="small"
+                        value={newBan.seconds}
+                        onChange={onChangeNewBan}
+                        type="number"
+                        id="seconds"
+                        label="Time(secs)"
+                        name="seconds"
+                        className="mr-1!"
+                      />
+                      <Button size="small" type="submit" variant="contained" color="error" className="mt-5!">
+                        Ban
+                      </Button>
+                    </Grid>
+                  </form>
+                </Grid>
               </Grid>
               <Typography variant="h6" gutterBottom component="div">
                 Information
@@ -267,7 +277,7 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
                 <TableBody>
                   <TableRow key={row.id}>
                     <TableCell component="th" scope="row">
-                      {makePermissionsText(row.admin)}
+                      {row.admin ? 'Admin' : '-'}
                     </TableCell>
                     <TableCell>{row.permissions.mute ? 'Yes' : 'No'}</TableCell>
                     <TableCell>
@@ -285,7 +295,7 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
   );
 }
 
-function PlayerAccountRow(props: { idx: number; row: PlayerStorage }) {
+function PlayerAccountRow(props: { idx: number; row: RoomPlayer }) {
   const { idx, row } = props;
   const [open, setOpen] = useState(false);
 
@@ -377,27 +387,19 @@ function PlayerAccountRow(props: { idx: number; row: PlayerStorage }) {
 
 export default function RoomPlayerList() {
   const ws = useContext(WSocketContext);
+  const queryClient = useQueryClient();
+
   const { ruid } = useParams<{ ruid: string }>();
 
-  const [pagingOrder, setPagingOrder] = useState(1);
+  const [page, setPage] = useState(1);
   const [pagingCount, setPagingCount] = useState(10);
-  const [pagingCountInput, setPagingCountInput] = useState('10');
-
-  const [onlinePlayerList, setOnlinePlayerList] = useState([] as Player[]);
-  const [playerAccountList, setPlayerAccountList] = useState([] as PlayerStorage[]);
-
   const [searchQuery, setSearchQuery] = useState('');
 
-  const onClickPaging = (move: number) => {
-    if (pagingOrder + move >= 1) {
-      setPagingOrder(pagingOrder + move);
-      getPlayerAccountList(pagingOrder + move);
-    }
+  const onClickPaging = (shift: number) => {
+    setPage((prev) => Math.max(prev + shift, 1));
   };
 
   const onChangePagingCountInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPagingCountInput(e.target.value);
-
     if (isNumber(parseInt(e.target.value))) {
       const count: number = parseInt(e.target.value);
       if (count >= 1) {
@@ -409,83 +411,32 @@ export default function RoomPlayerList() {
   const onChangeSearchQuery = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-
-    getPlayerAccountList(pagingOrder, query);
   };
 
-  const getPlayerAccountList = async (page: number, searchQuery: string = '') => {
-    const index: number = (page - 1) * pagingCount;
-    try {
-      const result = await client.get(
-        `/api/v1/playerlist/${ruid}?searchQuery=${searchQuery}&start=${index}&count=${pagingCount}`,
-      );
-      if (result.status === 200) {
-        const playerAccounts: PlayerStorage[] = result.data;
-
-        setPlayerAccountList(playerAccounts);
-      }
-    } catch (e) {
-      SnackBarNotification.error('Failed to load players list.');
-    }
-  };
-
-  const getOnlinePlayersID = async () => {
-    try {
-      const result = await client.get(`/api/v1/room/${ruid}/player`);
-      if (result.status === 200) {
-        const onlinePlayersID: number[] = result.data;
-        const onlinePlayersInfoList: Player[] = await Promise.all(
-          onlinePlayersID.map(async (playerID) => {
-            const result: Player = await client
-              .get(`/api/v1/room/${ruid}/player/${playerID}`)
-              .then((response) => {
-                return response.data;
-              })
-              .catch((e) => {
-                return e;
-              });
-            return result;
-          }),
-        );
-
-        setOnlinePlayerList(onlinePlayersInfoList);
-      }
-    } catch (e) {
-      SnackBarNotification.error('Failed to load online players list.');
-    }
-  };
+  const { data: players, isLoading: playersLoading } = queries.getPlayerAccountList(ruid, {
+    page,
+    pagingCount,
+    searchQuery,
+  });
+  const { data: onlinePlayers, isLoading: onlinePlayerLoading } = queries.getOnlinePlayersID(ruid);
 
   useEffect(() => {
-    getOnlinePlayersID();
-    getPlayerAccountList(1);
+    const invalidateRoomPlayers = (content: { ruid: string }) => {
+      if (content.ruid === ruid) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.players(ruid) });
+      }
+    };
+
+    ws.on('roomct', invalidateRoomPlayers);
+    ws.on('joinleft', invalidateRoomPlayers);
+    ws.on('statuschange', invalidateRoomPlayers);
 
     return () => {
-      setOnlinePlayerList([]);
+      ws.off('roomct', invalidateRoomPlayers);
+      ws.off('joinleft', invalidateRoomPlayers);
+      ws.off('statuschange', invalidateRoomPlayers);
     };
-  }, []);
-
-  useEffect(() => {
-    // websocket with socket.io
-    ws.on('roomct', (content: { ruid: string }) => {
-      if (content.ruid === ruid) {
-        getOnlinePlayersID();
-      }
-    });
-    ws.on('joinleft', (content: { ruid: string }) => {
-      if (content.ruid === ruid) {
-        getOnlinePlayersID();
-      }
-    });
-    ws.on('statuschange', (content: { ruid: string }) => {
-      if (content.ruid === ruid) {
-        getOnlinePlayersID();
-      }
-    });
-    return () => {
-      // before the component is destroyed
-      // unbind all event handlers used in this component
-    };
-  }, [ws]);
+  }, [ws, queryClient, ruid]);
 
   return (
     <Container maxWidth="lg" className="py-8">
@@ -494,24 +445,33 @@ export default function RoomPlayerList() {
           <Paper className="p-4">
             <React.Fragment>
               <Title>Online Players</Title>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell width="20%" className="font-bold!">
-                      Name
-                    </TableCell>
-                    <TableCell className="font-bold!">AUTH</TableCell>
-                    <TableCell className="font-bold!">CONN</TableCell>
-                    <TableCell className="font-bold!">Team</TableCell>
-                    <TableCell className="font-bold!">Chat</TableCell>
-                    <TableCell />
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {onlinePlayerList &&
-                    onlinePlayerList.map((item, idx) => <OnlinePlayerRow key={idx} row={item} ruid={ruid} />)}
-                </TableBody>
-              </Table>
+              {onlinePlayerLoading ? (
+                <div className="space-y-2">
+                  <Skeleton animation="wave" variant="rounded" width="100%" height={50} />
+                  <Skeleton animation="wave" variant="rounded" width="100%" height={50} />
+                  <Skeleton animation="wave" variant="rounded" width="100%" height={50} />
+                </div>
+              ) : (
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell width="20%" className="font-bold!">
+                        Name
+                      </TableCell>
+                      <TableCell className="font-bold!">AUTH</TableCell>
+                      <TableCell className="font-bold!">CONN</TableCell>
+                      <TableCell className="font-bold!">Team</TableCell>
+                      <TableCell className="font-bold!">Chat</TableCell>
+                      <TableCell />
+                    </TableRow>
+                  </TableHead>
+
+                  <TableBody>
+                    {onlinePlayers &&
+                      onlinePlayers.map((item, idx) => <OnlinePlayerRow key={idx} row={item} ruid={ruid} />)}
+                  </TableBody>
+                </Table>
+              )}
             </React.Fragment>
             <Divider />
 
@@ -533,7 +493,6 @@ export default function RoomPlayerList() {
                     />
                   </Grid>
                 </Grid>
-
                 <Grid container spacing={1} size={12} flexDirection="column">
                   <Grid size={5}>
                     <TextField
@@ -545,7 +504,7 @@ export default function RoomPlayerList() {
                       label="Paging Items Count"
                       name="pagingCountInput"
                       type="number"
-                      value={pagingCountInput}
+                      value={pagingCount}
                       onChange={onChangePagingCountInput}
                     />
                     {/* previous page */}
@@ -571,26 +530,32 @@ export default function RoomPlayerList() {
                       &gt;&gt;
                     </Button>
 
-                    <Typography>Page {pagingOrder}</Typography>
+                    <Typography>Page {page}</Typography>
                   </Grid>
                 </Grid>
-
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell width="20%" className="font-bold!">
-                        Name
-                      </TableCell>
-                      <TableCell className="font-bold!">AUTH</TableCell>
-                      <TableCell className="font-bold!">CONN</TableCell>
-                      <TableCell />
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {playerAccountList &&
-                      playerAccountList.map((item, idx) => <PlayerAccountRow key={idx} idx={idx} row={item} />)}
-                  </TableBody>
-                </Table>
+                {playersLoading ? (
+                  <>
+                    <Skeleton animation="wave" variant="rounded" width="100%" height={50} />
+                    <Skeleton animation="wave" variant="rounded" width="100%" height={50} />
+                    <Skeleton animation="wave" variant="rounded" width="100%" height={50} />
+                  </>
+                ) : (
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell width="20%" className="font-bold!">
+                          Name
+                        </TableCell>
+                        <TableCell className="font-bold!">AUTH</TableCell>
+                        <TableCell className="font-bold!">CONN</TableCell>
+                        <TableCell />
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {players && players.map((item, idx) => <PlayerAccountRow key={idx} idx={idx} row={item} />)}
+                    </TableBody>
+                  </Table>
+                )}
               </Grid>
             </React.Fragment>
           </Paper>

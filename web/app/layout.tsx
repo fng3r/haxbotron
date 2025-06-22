@@ -6,6 +6,8 @@ import { Inter } from 'next/font/google';
 import SnackBarProviderWrapper from '@/components/Notifications/SnackBarProviderWrapper';
 import Footer from '@/components/common/Footer';
 
+import ReactQueryProvider from '@/providers/ReactQueryProvider';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -20,9 +22,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <SnackBarProviderWrapper anchorOrigin={{ vertical: 'top', horizontal: 'center' }} />
-        {children}
-        <Footer />
+        <ReactQueryProvider>
+          <SnackBarProviderWrapper />
+          {children}
+          <Footer />
+        </ReactQueryProvider>
       </body>
     </html>
   );

@@ -5,7 +5,7 @@ import { Container, Grid2 as Grid, Paper } from '@mui/material';
 import RoomWidget from '@/components/Admin/RoomWidget';
 import ServerInfoWidget from '@/components/Admin/ServerInfoWidget';
 
-export default function Mainboard() {
+export default async function Mainboard() {
   return (
     <Container maxWidth="lg" className="py-8">
       <Grid container spacing={3}>

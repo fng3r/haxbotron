@@ -11,7 +11,6 @@ import {
   CancelPresentation,
   Dashboard,
   Dns,
-  FilterList,
   FormatListBulleted,
   ListAlt,
   PeopleAlt,
@@ -88,6 +87,7 @@ export default function SideBar() {
       {ruid && (
         <List>
           <ListSubheader inset>{ruid}</ListSubheader>
+
           <ListItemButton
             component={Link}
             href={`/admin/room/${ruid}`}
@@ -99,6 +99,7 @@ export default function SideBar() {
             </ListItemIcon>
             <ListItemText primary="Information" />
           </ListItemButton>
+
           <ListItemButton
             component={Link}
             href={`/admin/room/${ruid}/logs`}
@@ -110,6 +111,7 @@ export default function SideBar() {
             </ListItemIcon>
             <ListItemText primary="Log Messages" />
           </ListItemButton>
+
           <ListItemButton
             component={Link}
             href={`/admin/room/${ruid}/social`}
@@ -121,17 +123,7 @@ export default function SideBar() {
             </ListItemIcon>
             <ListItemText primary="Social" />
           </ListItemButton>
-          <ListItemButton
-            component={Link}
-            href={`/admin/room/${ruid}/filter`}
-            selected={pathName === `/admin/room/${ruid}/filter`}
-            sx={classes.selectedButton}
-          >
-            <ListItemIcon>
-              <FilterList />
-            </ListItemIcon>
-            <ListItemText primary="Text Filter" />
-          </ListItemButton>
+
           <ListItemButton
             component={Link}
             href={`/admin/room/${ruid}/players`}
@@ -143,6 +135,7 @@ export default function SideBar() {
             </ListItemIcon>
             <ListItemText primary="Player List" />
           </ListItemButton>
+
           <ListItemButton
             component={Link}
             href={`/admin/room/${ruid}/bans`}
@@ -154,6 +147,7 @@ export default function SideBar() {
             </ListItemIcon>
             <ListItemText primary="Ban List" />
           </ListItemButton>
+
           <ListItemButton
             component={Link}
             href={`/admin/room/${ruid}/assets`}
@@ -165,6 +159,7 @@ export default function SideBar() {
             </ListItemIcon>
             <ListItemText primary="Assets" />
           </ListItemButton>
+
           <ListItemButton
             component={Link}
             href={`/admin/room/${ruid}/shutdown`}

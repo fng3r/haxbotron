@@ -9,7 +9,9 @@ import { TeamID } from "../game/model/GameObject/TeamID";
 import { AttachmentBuilder, EmbedBuilder, WebhookClient } from 'discord.js';
 import { DiscordWebhookConfig } from "./browser.interface";
 import moment from "moment";
+import {v4 as uuid} from "uuid";
 import {PlayerObject} from "../game/model/GameObject/PlayerObject";
+import { getUnixTimestamp } from "../game/controller/DateTimeUtils";
 
 function typedArrayToBuffer(array: Uint8Array): ArrayBuffer {
     return array.buffer.slice(array.byteOffset, array.byteLength + array.byteOffset)
@@ -121,8 +123,6 @@ export class HeadlessBrowser {
         const existPages = await this._BrowserContainer?.pages(); // get exist pages for check if first blank page is exist
         if (existPages?.length == 2 && this._PageContainer.size == 0) existPages[0].close(); // close useless blank page
 
-
-
         page.on('console', (msg: any) => {
             switch (msg.type()) {
                 case "log": {
@@ -172,7 +172,7 @@ export class HeadlessBrowser {
 
         // add event listeners ============================================================
         page.addListener('_SIO.Log', (event: any) => {
-            this._SIOserver?.sockets.emit('log', { ruid: ruid, origin: event.origin, type: event.type, message: event.message });
+            this._SIOserver?.sockets.emit('log', { id: uuid(), ruid: ruid, origin: event.origin, type: event.type, message: event.message, timestamp: event.timestamp });
         });
         page.addListener('_SIO.InOut', (event: any) => {
             this._SIOserver?.sockets.emit('joinleft', { ruid: ruid, playerID: event.playerID });
@@ -181,10 +181,17 @@ export class HeadlessBrowser {
             this._SIOserver?.sockets.emit('statuschange', { ruid: ruid, playerID: event.playerID });
         });
         page.addListener('_SOCIAL.DiscordWebhook', async (event: any) => {
-            const webhookClient = new WebhookClient({
-                id: event.id,
-                token: event.token
-            });
+            let webhookClient;
+            try {
+                webhookClient = new WebhookClient({
+                    id: event.id,
+                    token: event.token
+                });
+            }
+            catch (e) {
+                winstonLogger.error(`Failed to create Discord webhook client. Error: ${e}`);
+                return;
+            }
 
             switch (event.type as string) {
                 case "replay": {
@@ -249,7 +256,7 @@ export class HeadlessBrowser {
         // ================================================================================
         // inject some functions ==========================================================
         await page.exposeFunction('_emitSIOLogEvent', (origin: string, type: string, message: string) => {
-            page.emit('_SIO.Log', { origin: origin, type: type, message: message });
+            page.emit('_SIO.Log', { origin: origin, type: type, message: message, timestamp: getUnixTimestamp() });
         });
         await page.exposeFunction('_emitSIOPlayerInOutEvent', (playerID: number) => {
             page.emit('_SIO.InOut', { playerID: playerID });

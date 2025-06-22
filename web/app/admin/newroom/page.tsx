@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { LiveHelp, OpenInNew } from '@mui/icons-material';
 import {
+  Alert,
   Button,
   Container,
   Divider,
@@ -22,147 +23,85 @@ import {
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
-import {
-  BrowserHostRoomConfig,
-  BrowserHostRoomGameRule,
-  BrowserHostRoomSettings,
-  ReactHostRoomInfo,
-} from '@/../core/lib/browser.hostconfig';
-import client from '@/lib/client';
-import * as DefaultConfigSet from '@/lib/defaultroomconfig.json';
+import { BrowserHostRoomSettings, ReactHostRoomInfo } from '@/../core/lib/browser.hostconfig';
+import DefaultConfigSet from '@/lib/defaultroomconfig.json';
 import { isNumber } from '@/lib/numcheck';
-
-const getSavedRoomConfig = (): ReactHostRoomInfo => {
-  let savedRoomInfo: ReactHostRoomInfo = DefaultConfigSet;
-  if (localStorage.getItem('_savedRoomInfo') !== null)
-    savedRoomInfo = JSON.parse(localStorage.getItem('_savedRoomInfo')!);
-  return savedRoomInfo;
-};
+import { mutations } from '@/lib/queries/room';
 
 export default function RoomCreate() {
   const router = useRouter();
 
+  const [roomUIDFormField, setRoomUIDFormField] = useState(DefaultConfigSet.ruid);
+  const [configFormField, setConfigFormField] = useState(DefaultConfigSet._config); // Room Configuration Form
+  const [rulesFormField, setRulesFormField] = useState(DefaultConfigSet.rules); // Game Rules Configuration Form
+  const [settingsFormField, setSettingsFormField] = useState(DefaultConfigSet.settings); // Bot Settings Configuration Form
+  const [settingsFormStringifiedField, setSettingsFormStringifiedField] = useState('');
+
+  const roomPublic = configFormField.public;
+  const teamLock = rulesFormField.requisite.teamLock;
+  const rulesSwitches = {
+    autoAdmin: rulesFormField.autoAdmin,
+    whitelistEnabled: rulesFormField.whitelistEnabled,
+  };
+
   const [roomConfigComplex, setRoomConfigComplex] = useState({} as ReactHostRoomInfo); // Total complex of Room Config (will be sent with API request body)
 
-  const [configFormField, setConfigFormField] = useState({} as BrowserHostRoomConfig); // Room Configuration Form
-  const [roomUIDFormField, setRoomUIDFormField] = useState(''); // RUID Field
-  const [roomPublicFormField, setRoomPublicFormField] = useState(true); // Room as Public Field (switch toggle component)
-
-  const [rulesFormField, setRulesFormField] = useState({} as BrowserHostRoomGameRule); // Game Rule Configuration Form
-  const [rulesTeamLockField, setRulesTeamLockField] = useState(true); // Team Lock Field in Game Rule configuration form
-  const [rulesSwitchesFormField, setRulesSwitchesFormField] = useState({
-    // two switches(auitoAdmin, whitelistEnabled)
-    autoAdmin: false, // auto appointment admin
-    whitelistEnabled: true, // auto emcee mode
-  });
-
-  const [settingsFormField, setSettingsFormField] = useState({} as BrowserHostRoomSettings); // Bot Settings Configuration Form
-  const [settingsFormStringifiedField, setSettingsFormStringifiedField] = useState(''); // JSON Stringified Bot Settings Configuration Form
-
   useEffect(() => {
-    // LOAD DEFAULT OR LASTEST SETTINGS WHEN THIS COMPONENT IS LOADED
-    const loadedDefaultSettings: ReactHostRoomInfo = getSavedRoomConfig();
-
-    setRoomUIDFormField(loadedDefaultSettings.ruid);
-
-    setConfigFormField(loadedDefaultSettings._config);
-    setRoomPublicFormField(loadedDefaultSettings._config.public); // switch toggle component
-
-    setRulesFormField(loadedDefaultSettings.rules);
-    setRulesTeamLockField(loadedDefaultSettings.rules.requisite.teamLock); // switch toggle component
-    setRulesSwitchesFormField({
-      autoAdmin: loadedDefaultSettings.rules.autoAdmin,
-      whitelistEnabled: loadedDefaultSettings.rules.whitelistEnabled,
-    }); // switch toggle component
-
-    setSettingsFormField(loadedDefaultSettings.settings);
-    setSettingsFormStringifiedField(JSON.stringify(loadedDefaultSettings.settings, null, 4));
-
-    return () => {
-      // WHEN UNMOUNTED
-      setRoomUIDFormField(loadedDefaultSettings.ruid);
-
-      setConfigFormField(loadedDefaultSettings._config);
-      setRoomPublicFormField(loadedDefaultSettings._config.public); // switch toggle component
-
-      setRulesFormField(loadedDefaultSettings.rules);
-      setRulesTeamLockField(loadedDefaultSettings.rules.requisite.teamLock); // switch toggle component
-      setRulesSwitchesFormField({
-        autoAdmin: loadedDefaultSettings.rules.autoAdmin,
-        whitelistEnabled: loadedDefaultSettings.rules.whitelistEnabled,
-      }); // switch toggle component
-
-      setSettingsFormField(loadedDefaultSettings.settings);
-      setSettingsFormStringifiedField(JSON.stringify(loadedDefaultSettings.settings));
-    };
+    try {
+      const savedConfig = localStorage.getItem('_savedRoomInfo');
+      if (savedConfig) {
+        const config = JSON.parse(savedConfig);
+        setRoomUIDFormField(config.ruid);
+        setConfigFormField(config._config);
+        setRulesFormField(config.rules);
+        setSettingsFormField(config.settings);
+        setSettingsFormStringifiedField(JSON.stringify(config.settings, null, 4));
+      }
+    } catch (error) {
+      console.error(`Error loading room config from localStorage:`, error);
+    }
   }, []);
 
   useEffect(() => {
     // SAVE ONTO CONFIG COMPLEX WHEN EACH STATES ARE CHANGED
     setRoomConfigComplex({
       ruid: roomUIDFormField,
-      _config: { ...configFormField, public: roomPublicFormField }, // include switch toggle component
+      _config: configFormField,
       settings: settingsFormField,
       rules: {
         ...rulesFormField,
-        requisite: { ...rulesFormField.requisite, teamLock: rulesTeamLockField },
-        autoAdmin: rulesSwitchesFormField.autoAdmin,
-        whitelistEnabled: rulesSwitchesFormField.whitelistEnabled,
+        requisite: rulesFormField.requisite,
+        autoAdmin: rulesSwitches.autoAdmin,
+        whitelistEnabled: rulesSwitches.whitelistEnabled,
       },
     });
   }, [
     roomUIDFormField,
-    roomPublicFormField,
-    configFormField, // include switch toggle component
+    configFormField,
     rulesFormField,
-    rulesTeamLockField,
-    rulesSwitchesFormField,
     settingsFormField,
+    roomPublic,
+    teamLock,
+    rulesSwitches.autoAdmin,
+    rulesSwitches.whitelistEnabled,
   ]);
 
-  useEffect(() => {
-    try {
-      const parsedSettings: BrowserHostRoomSettings = JSON.parse(settingsFormStringifiedField);
-      setSettingsFormField(parsedSettings);
-    } catch (e: any) {
-      //console.log("PARSING ERROR!!");
-    }
-  }, [settingsFormStringifiedField]);
+  const createRoomMutation = mutations.createRoom();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const roomCreationNotification = SnackBarNotification.info('The game room is being created. Please wait.');
-    try {
-      const result = await client.post(`/api/v1/room`, roomConfigComplex);
-      if (result.status === 201) {
-        SnackBarNotification.success('The game room has been created.');
-        // save as lastest settings value (it will be loaded as default next time)
+
+    createRoomMutation.mutate(roomConfigComplex, {
+      onSuccess: () => {
+        SnackBarNotification.success(`Room '${roomConfigComplex.ruid}' has been created.`);
         localStorage.setItem('_savedRoomInfo', JSON.stringify(roomConfigComplex));
         router.push('/admin/roomlist');
-      }
-    } catch (error: any) {
-      let errorMessage = '';
-      switch (error.response?.status) {
-        case 400: {
-          errorMessage = 'Configuration schema is unfulfilled.';
-          break;
-        }
-        case 401: {
-          errorMessage = 'Rejected.';
-          break;
-        }
-        case 409: {
-          errorMessage = 'The same RUID value is already in use.';
-          break;
-        }
-        default: {
-          errorMessage = 'Unexpected error is caused. Please try again.';
-          break;
-        }
-      }
-      SnackBarNotification.error(errorMessage);
-    }
-    SnackBarNotification.dismiss(roomCreationNotification);
+      },
+      onError: (error) => {
+        console.log(error);
+        SnackBarNotification.error(error.message);
+      },
+    });
   };
 
   const handleReset = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -176,9 +115,7 @@ export default function RoomCreate() {
 
     try {
       setSettingsFormStringifiedField(JSON.stringify(settingsFormField, null, 4));
-    } catch (error: any) {
-      //console.log("JSON Beautify Error : \n" + error);
-    }
+    } catch (error: any) {}
   };
 
   const onChangeRUID = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,11 +123,17 @@ export default function RoomCreate() {
   };
 
   const onChangePublic = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRoomPublicFormField(e.target.checked); // switch toggle component
+    setConfigFormField((prev) => ({ ...prev, public: e.target.checked }));
   };
 
   const onChangeTeamLock = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRulesTeamLockField(e.target.checked); // switch toggle component
+    setRulesFormField((prev) => ({
+      ...prev,
+      requisite: {
+        ...prev.requisite,
+        teamLock: e.target.checked,
+      },
+    }));
   };
 
   const onChangeRoomConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,18 +153,24 @@ export default function RoomCreate() {
 
   const onChangeRules = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setRulesFormField({
-      ...rulesFormField,
+    setRulesFormField((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
-  const onChangeRulesSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target; // switch toggle component
-    setRulesSwitchesFormField({
-      ...rulesSwitchesFormField,
-      [name]: checked,
-    });
+  const onChangeAutoAdmin = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRulesFormField((prev) => ({
+      ...prev,
+      autoAdmin: e.target.checked,
+    }));
+  };
+
+  const onChangeWhitelistEnabled = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRulesFormField((prev) => ({
+      ...prev,
+      whitelistEnabled: e.target.checked,
+    }));
   };
 
   const onChangeRulesRequisite = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -255,14 +204,26 @@ export default function RoomCreate() {
     }
   };
 
+  const onBlurStringifiedField = () => {
+    try {
+      const parsedSettings: BrowserHostRoomSettings = JSON.parse(settingsFormStringifiedField);
+      setSettingsFormField(parsedSettings);
+    } catch (e: any) {}
+  };
+
   return (
     <Container maxWidth="lg" className="py-8">
       <Grid container spacing={3}>
         <Grid size={{ xs: 12 }}>
           <Paper className="p-4">
-            <WidgetTitle>Create New Game Room</WidgetTitle>
+            {createRoomMutation.isPending && (
+              <Alert severity="warning" className="mb-2">
+                The room is launching. Please, wait
+              </Alert>
+            )}
 
-            <form className="mt-6 w-full" onSubmit={handleSubmit} method="post">
+            <WidgetTitle>Create New Game Room</WidgetTitle>
+            <form className="mt-4 w-full" onSubmit={handleSubmit} method="post">
               <Grid container spacing={2}>
                 <Grid size={{ xs: 6, sm: 3 }}>
                   <Button fullWidth type="submit" variant="contained" color="primary" className="mb-3!">
@@ -279,11 +240,6 @@ export default function RoomCreate() {
                     onClick={handleReset}
                   >
                     Reset
-                  </Button>
-                </Grid>
-                <Grid size={{ xs: 4, sm: 2 }}>
-                  <Button type="button" variant="text" color="inherit" className="mb-3!" onClick={handleJSONBeautify}>
-                    Beautify JSON
                   </Button>
                 </Grid>
               </Grid>
@@ -342,7 +298,7 @@ export default function RoomCreate() {
                         id="public"
                         name="public"
                         size="small"
-                        checked={roomPublicFormField}
+                        checked={roomPublic}
                         onChange={onChangePublic}
                         color="primary"
                       />
@@ -498,7 +454,7 @@ export default function RoomCreate() {
                     control={
                       <Switch
                         onChange={onChangeTeamLock}
-                        checked={rulesTeamLockField}
+                        checked={teamLock}
                         id="teamLock"
                         name="teamLock"
                         size="small"
@@ -515,8 +471,8 @@ export default function RoomCreate() {
                   <FormControlLabel
                     control={
                       <Switch
-                        onChange={onChangeRulesSwitch}
-                        checked={rulesSwitchesFormField.autoAdmin}
+                        onChange={onChangeAutoAdmin}
+                        checked={rulesSwitches.autoAdmin}
                         id="autoAdmin"
                         name="autoAdmin"
                         size="small"
@@ -531,8 +487,8 @@ export default function RoomCreate() {
                   <FormControlLabel
                     control={
                       <Switch
-                        onChange={onChangeRulesSwitch}
-                        checked={rulesSwitchesFormField.whitelistEnabled}
+                        onChange={onChangeWhitelistEnabled}
+                        checked={rulesSwitches.whitelistEnabled}
                         id="whitelistEnabled"
                         name="whitelistEnabled"
                         size="small"
@@ -595,14 +551,20 @@ export default function RoomCreate() {
                     fullWidth
                     value={settingsFormStringifiedField}
                     onChange={onChangeStringifiedField}
+                    onBlur={onBlurStringifiedField}
                     id="botSettings"
                     name="botSettings"
-                    label="JSON Data"
+                    label="Configuration"
                     variant="outlined"
                     margin="normal"
                     required
                     multiline
                   />
+                </Grid>
+                <Grid size={{ xs: 4, sm: 2 }}>
+                  <Button type="button" variant="contained" color="info" onClick={handleJSONBeautify}>
+                    Beautify JSON
+                  </Button>
                 </Grid>
               </Grid>
             </form>

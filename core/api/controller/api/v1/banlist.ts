@@ -5,13 +5,15 @@ interface BanList {
     uid: number
     ruid: string
     conn: string
+    auth: string
     reason: string
     register: number
     expire: number
 }
 
 interface BanListItem {
-    conn: string; 
+    conn: string;
+    auth: string;
     reason: string;
     register: number;
     expire: number;
@@ -49,6 +51,7 @@ export async function getAllList(ctx: Context) {
         getRes.forEach((item: BanList) => {
             banListItems.push({
                 conn: item.conn,
+                auth: item.auth,
                 reason: item.reason,
                 register: item.register,
                 expire: item.expire
@@ -81,9 +84,9 @@ export async function getBanInfo(ctx: Context) {
 
 export async function banPlayer(ctx: Context) {
     const { ruid } = ctx.params;
-    const { conn, reason, seconds } = ctx.request.body;
+    const { conn, auth, reason, seconds } = ctx.request.body;
 
-    if(!conn || !reason || !seconds) {
+    if(!conn || !auth || !reason || !seconds) {
         console.log(conn, reason, seconds);
         ctx.status = 400; // Unfulfilled error
         return;
@@ -92,6 +95,7 @@ export async function banPlayer(ctx: Context) {
     const nowTimeStamp: number = Math.floor(Date.now());
     const submitItem: BanListItem = {
         conn: conn,
+        auth: auth,
         reason: reason,
         register: nowTimeStamp,
         expire: nowTimeStamp + (seconds*1000)

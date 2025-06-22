@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 
 import Link from 'next/link';
 
@@ -15,99 +15,32 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
 
 import WidgetTitle from '@/components/common/WidgetTitle';
 
 import { WSocketContext } from '@/context/ws';
-import client from '@/lib/client';
-
-interface roomInfoItem {
-  ruid: string;
-  roomName: string;
-  roomLink: string;
-  onlinePlayers: number;
-}
-
-interface ruidListItem {
-  ruid: string;
-}
-
-interface allRoomListItem {
-  ruid: string;
-  online: boolean;
-}
+import { queries, queryKeys } from '@/lib/queries/room';
 
 export default function RoomList() {
-  const [roomInfoList, setRoomInfoList] = useState([] as roomInfoItem[]);
-  const [allRoomList, setAllRoomList] = useState([] as allRoomListItem[]);
+  const queryClient = useQueryClient();
   const ws = useContext(WSocketContext);
 
-  const getRoomList = async () => {
-    try {
-      const result = await client.get('/api/v1/room');
-      if (result.status === 200) {
-        const roomList: string[] = result.data;
-        const roomInfoList: roomInfoItem[] = await Promise.all(
-          roomList.map(async (ruid) => {
-            const result = await client.get(`/api/v1/room/${ruid}/info`);
-            return {
-              ruid: ruid,
-              roomName: result.data.roomName,
-              roomLink: result.data._link,
-              onlinePlayers: result.data.onlinePlayers,
-            };
-          }),
-        );
-
-        setRoomInfoList(roomInfoList);
-      }
-    } catch (e) {}
-  };
-
-  const getAllRUIDList = async () => {
-    try {
-      const result = await client.get('/api/v1/ruidlist');
-      if (result.status === 200) {
-        const allRuidList: ruidListItem[] = result.data;
-        const onlineRoomList = await client
-          .get(`/api/v1/room`)
-          .then((response: any) => {
-            return response.data as string[];
-          })
-          .catch((error: any) => {
-            return [] as string[];
-          });
-        const allRoomList: allRoomListItem[] = await Promise.all(
-          allRuidList.map(async (item) => {
-            return {
-              ruid: item.ruid,
-              online: onlineRoomList?.includes(item.ruid) || false,
-            };
-          }),
-        );
-        setAllRoomList(allRoomList);
-      }
-    } catch (e) {}
-  };
-
-  useEffect(() => {
-    getRoomList();
-    getAllRUIDList();
-  }, []);
+  const { data: roomsInfoList } = queries.getRoomsInfoList();
+  const { data: allRoomsList } = queries.getAllRoomsList();
 
   useEffect(() => {
     ws.on('roomct', () => {
-      getRoomList();
-      getAllRUIDList();
+      queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
     });
     ws.on('joinleft', () => {
-      getRoomList();
+      queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
     });
     return () => {
       ws.off('roomct');
       ws.off('joinleft');
     };
-  }, [ws]);
+  }, [ws, queryClient]);
 
   return (
     <Container maxWidth="lg" className="py-8">
@@ -132,14 +65,15 @@ export default function RoomList() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {roomInfoList.map((item) => (
-                    <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
-                      <TableCell align="left">{item.ruid}</TableCell>
-                      <TableCell>{item.roomName}</TableCell>
-                      <TableCell align="right">{item.roomLink}</TableCell>
-                      <TableCell align="right">{item.onlinePlayers}</TableCell>
-                    </TableRow>
-                  ))}
+                  {roomsInfoList &&
+                    roomsInfoList.map((item) => (
+                      <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
+                        <TableCell align="left">{item.ruid}</TableCell>
+                        <TableCell>{item.roomName}</TableCell>
+                        <TableCell align="right">{item.roomLink}</TableCell>
+                        <TableCell align="right">{item.onlinePlayers}</TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </React.Fragment>
@@ -159,12 +93,13 @@ export default function RoomList() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {allRoomList.map((item) => (
-                    <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
-                      <TableCell align="left">{item.ruid}</TableCell>
-                      <TableCell align="right">{item.online ? 'online' : 'offline'}</TableCell>
-                    </TableRow>
-                  ))}
+                  {allRoomsList &&
+                    allRoomsList.map((item) => (
+                      <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
+                        <TableCell align="left">{item.ruid}</TableCell>
+                        <TableCell align="right">{item.online ? 'online' : 'offline'}</TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </React.Fragment>

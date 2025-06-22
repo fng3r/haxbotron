@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 
 import { AddCircle, Cancel, Help, Refresh } from '@mui/icons-material';
 import BackspaceOutlined from '@mui/icons-material/BackspaceOutlined';
@@ -20,38 +20,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useDebounce } from 'use-debounce';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
-import client from '@/lib/client';
 import { isNumber } from '@/lib/numcheck';
-
-interface newRoleFields {
-  auth: string;
-  name: string;
-  role: string;
-}
-
-interface PlayerRole {
-  auth: string;
-  name: string;
-  role: string;
-}
-
-enum PlayerRoleEventType {
-  addRole = 'addrole',
-  removeRole = 'rmrole',
-  updateRole = 'updaterole',
-}
-
-interface PlayerRoleEvent {
-  type: PlayerRoleEventType;
-  auth: string;
-  name: string;
-  role: string;
-  timestamp: number;
-}
+import { NewRole, PlayerRoleEvent, PlayerRoleEventType, mutations, queries } from '@/lib/queries/roles';
 
 const convertDate = (timestamp: number): string => {
   return new Date(timestamp).toLocaleString();
@@ -84,34 +59,35 @@ const convertEventTypeToIcon = (eventType: PlayerRoleEventType): any => {
 };
 
 export default function RoomPlayerList() {
-  const [pagingOrder, setPagingOrder] = useState(1);
+  const [newRole, setNewRole] = useState({ auth: '', name: '', role: 'player' } as NewRole);
+  const [page, setPage] = useState(1);
   const [pagingCount, setPagingCount] = useState(10);
-  const [pagingCountInput, setPagingCountInput] = useState('10');
-  const [searchQuery, setSearchQuery] = useState('');
 
-  const [playerRolesList, setPlayerRolesList] = useState([] as PlayerRole[]);
-  const [newRole, setNewRole] = useState({ auth: '', name: '', role: 'player' } as newRoleFields);
-
-  const [eventsPagingOrder, setEventsPagingOrder] = useState(1);
+  const [eventsPage, setEventsPage] = useState(1);
   const [eventsPagingCount, setEventsPagingCount] = useState(10);
-  const [eventsPagingCountInput, setEventsPagingCountInput] = useState('10');
-  const [playerRolesEventsList, setPlayerRolesEventsList] = useState([] as PlayerRoleEvent[]);
 
-  const onClickPaging = (move: number) => {
-    if (pagingOrder + move >= 1) {
-      setPagingOrder(pagingOrder + move);
-      getPlayersRoles(pagingOrder + move);
-    }
+  const [searchQuery, setSearchQuery] = useDebounce('', 300);
+
+  const { data: roles } = queries.getPlayersRoles({ page, pagingCount, searchQuery });
+  const { data: roleEvents } = queries.getPlayersRoleEvents({
+    page: eventsPage,
+    pagingCount: eventsPagingCount,
+    searchQuery,
+  });
+
+  const addRoleMutation = mutations.addRole();
+  const updateRoleMutation = mutations.updateRole();
+  const deleteRoleMutation = mutations.deleteRole();
+
+  const onClickPaging = (shift: number) => {
+    setPage((prev) => Math.max(prev + shift, 1));
   };
 
   const onChangePagingCountInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPagingCountInput(e.target.value);
-
     if (isNumber(parseInt(e.target.value))) {
       const count: number = parseInt(e.target.value);
       if (count >= 1) {
         setPagingCount(count);
-        getPlayersRoles(pagingOrder, searchQuery, count);
       }
     }
   };
@@ -119,14 +95,10 @@ export default function RoomPlayerList() {
   const onChangeSearchQuery = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-
-    getPlayersRoles(pagingOrder, query);
-    getPlayersRolesEvents(eventsPagingOrder, query);
   };
 
   const onChangeNewRole = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log('onChangeNewRole');
 
     setNewRole({
       ...newRole,
@@ -134,123 +106,63 @@ export default function RoomPlayerList() {
     });
   };
 
-  const getPlayersRoles = async (page: number, searchQuery: string = '', count: number | null = null) => {
-    count ??= pagingCount;
-    const index: number = (page - 1) * count;
-    try {
-      const result = await client.get(`/api/v1/roleslist?searchQuery=${searchQuery}&start=${index}&count=${count}`);
-      if (result.status === 200) {
-        const playerRoles: PlayerRole[] = result.data;
-
-        setPlayerRolesList(playerRoles);
-      }
-    } catch (e: any) {
-      SnackBarNotification.error('Failed to load roles list.', 5000);
-    }
-  };
-
-  const onClickEventsPaging = (move: number) => {
-    if (eventsPagingOrder + move >= 1) {
-      setEventsPagingOrder(eventsPagingOrder + move);
-      getPlayersRolesEvents(eventsPagingOrder + move);
-    }
+  const onClickEventsPaging = (shift: number) => {
+    setEventsPage((prev) => Math.max(prev + shift, 1));
   };
 
   const onChangeEventsPagingCountInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEventsPagingCountInput(e.target.value);
-
     if (isNumber(parseInt(e.target.value))) {
       const count: number = parseInt(e.target.value);
       if (count >= 1) {
         setEventsPagingCount(count);
-        getPlayersRolesEvents(eventsPagingOrder, searchQuery, count);
       }
-    }
-  };
-
-  const getPlayersRolesEvents = async (page: number, searchQuery: string = '', pagingCount: number | null = null) => {
-    pagingCount = pagingCount ?? eventsPagingCount;
-    const index: number = (page - 1) * pagingCount;
-    try {
-      const result = await client.get(
-        `/api/v1/roleslist/events?searchQuery=${searchQuery}&start=${index}&count=${pagingCount}`,
-      );
-      if (result.status === 200) {
-        const playerRoles: PlayerRoleEvent[] = result.data;
-
-        setPlayerRolesEventsList(playerRoles);
-      }
-    } catch (e: any) {
-      SnackBarNotification.error('Failed to load roles events list.', 5000);
     }
   };
 
   const addRole = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    try {
-      const result = await client.post(`/api/v1/roleslist/${newRole.auth}`, {
-        name: newRole.name,
-        role: newRole.role,
-      });
-      if (result.status === 204) {
-        setNewRole({ auth: '', name: '', role: 'player' });
-        SnackBarNotification.success(`Player ${newRole.name} (id: ${newRole.auth}) was added.`);
-      }
-    } catch (error: any) {
-      if (error.response.status === 409) {
-        SnackBarNotification.warning(`Player '${newRole.name}' (id: ${newRole.auth}) already added.`);
-      } else {
-        SnackBarNotification.error(`Failed to add ${newRole.name} (id: ${newRole.auth}).`);
-      }
-    }
 
-    getPlayersRoles(pagingOrder, searchQuery);
-    getPlayersRolesEvents(eventsPagingOrder, searchQuery);
+    addRoleMutation.mutate(newRole, {
+      onSuccess: () => {
+        SnackBarNotification.success(`Player ${newRole.name} (id: ${newRole.auth}) was added.`);
+        setNewRole({ auth: '', name: '', role: 'player' });
+      },
+      onError: (error) => {
+        SnackBarNotification.error(error.message);
+      },
+    });
   };
 
   const updateRole = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, playerIndex: number) => {
     const { value: role } = e.target;
-    const selectedRole = playerRolesList[playerIndex];
-    try {
-      const result = await client.put(`/api/v1/roleslist/${selectedRole.auth}`, {
-        name: selectedRole.name,
-        role: role,
-      });
-      if (result.status === 204) {
-        SnackBarNotification.success(`${selectedRole.name}'s role was updated to '${role}'.`);
-        setPlayerRolesList(
-          playerRolesList.map((playerRole: PlayerRole, i: number) => {
-            if (i === playerIndex) return { ...playerRolesList[playerIndex], role: role };
+    const selectedRole = roles![playerIndex];
 
-            return playerRole;
-          }),
-        );
-      }
-
-      getPlayersRolesEvents(eventsPagingOrder, searchQuery);
-    } catch {
-      SnackBarNotification.error(`Failed to update ${selectedRole.name}'s role.`);
-    }
+    updateRoleMutation.mutate(
+      { ...selectedRole, role },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Player's ${newRole.name} was updated to '${role}'.`);
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
   };
 
   const deleteRole = async (auth: string, name: string) => {
-    try {
-      const result = await client.delete(`/api/v1/roleslist/${auth}?name=${name}`);
-      if (result.status === 204) {
-        SnackBarNotification.success(`Player ${name} (id: ${auth}) was removed.`);
-      }
-    } catch {
-      SnackBarNotification.error(`Failed to remove player ${name}.`);
-    }
-
-    getPlayersRoles(pagingOrder, searchQuery);
-    getPlayersRolesEvents(eventsPagingOrder, searchQuery);
+    deleteRoleMutation.mutate(
+      { auth, name },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Player ${name} (id: ${auth}) was removed.`);
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
   };
-
-  useEffect(() => {
-    getPlayersRoles(1);
-    getPlayersRolesEvents(1);
-  }, []);
 
   return (
     <Container maxWidth="lg" className="py-8">
@@ -334,7 +246,7 @@ export default function RoomPlayerList() {
                       label="Paging Items Count"
                       name="pagingCountInput"
                       type="number"
-                      value={pagingCountInput}
+                      value={pagingCount}
                       onChange={onChangePagingCountInput}
                       slotProps={{ htmlInput: { min: 1, max: 50 } }}
                     />
@@ -366,7 +278,7 @@ export default function RoomPlayerList() {
 
               <Grid container spacing={1}>
                 <Grid size={12}>
-                  <Typography>Page {pagingOrder}</Typography>
+                  <Typography>Page {page}</Typography>
                 </Grid>
 
                 <Table size="small">
@@ -385,8 +297,8 @@ export default function RoomPlayerList() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {playerRolesList &&
-                      playerRolesList.map((item, idx) => (
+                    {roles &&
+                      roles.map((item, idx) => (
                         <TableRow key={item.auth} className="*:border-none!">
                           <TableCell width="20%" component="th" scope="row">
                             {item.name}
@@ -443,7 +355,7 @@ export default function RoomPlayerList() {
                     label="Paging Items Count"
                     name="pagingCountInput"
                     type="number"
-                    value={eventsPagingCountInput}
+                    value={eventsPagingCount}
                     onChange={onChangeEventsPagingCountInput}
                     slotProps={{ htmlInput: { min: 1, max: 50 } }}
                   />
@@ -472,7 +384,7 @@ export default function RoomPlayerList() {
                 </Grid>
 
                 <Grid container spacing={1}>
-                  <Typography>Page {eventsPagingOrder}</Typography>
+                  <Typography>Page {eventsPage}</Typography>
 
                   <Table size="small">
                     <TableHead>
@@ -489,8 +401,8 @@ export default function RoomPlayerList() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {playerRolesEventsList &&
-                        playerRolesEventsList.map((event) => (
+                      {roleEvents &&
+                        roleEvents.map((event) => (
                           <TableRow key={event.timestamp} className="*:border-none!">
                             <TableCell width="5%" component="th" scope="row">
                               {convertEventTypeToIcon(event.type)}
