@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 
-import SignOutButton from './SignOutButton';
 import {
   ChevronLeft as ChevronLeftIcon,
   HelpOutline as HelpOutlineIcon,
@@ -12,6 +11,7 @@ import {
 } from '@mui/icons-material';
 import { Badge, Divider, Drawer, IconButton, AppBar as MuiAppBar, Toolbar, Typography } from '@mui/material';
 
+import LogoutButton from '@/components/common/LogoutButton';
 import SideBar from '@/components/common/SideBar';
 
 export default function AppBar() {
@@ -31,7 +31,7 @@ export default function AppBar() {
         className={
           open
             ? 'ml-[240px]! w-[calc(100%-240px)]! transition-all! duration-300 ease-in-out'
-            : 'z-9999 transition-all! duration-300 ease-in-out'
+            : 'z-1201 transition-all! duration-300 ease-in-out'
         }
       >
         <Toolbar sx={{ paddingRight: '24px' }}>
@@ -68,7 +68,7 @@ export default function AppBar() {
             </Badge>
           </IconButton>
 
-          <SignOutButton />
+          <LogoutButton />
         </Toolbar>
       </MuiAppBar>
 

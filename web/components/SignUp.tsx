@@ -1,11 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useActionState, useState } from 'react';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
-import SnackBarNotification from './Notifications/SnackBarNotification';
 import { LockOutlined } from '@mui/icons-material';
 import {
   Avatar,
@@ -18,11 +16,9 @@ import {
   Typography,
 } from '@mui/material';
 
-import client from '@/lib/client';
+import { signup } from '@/app/actions/auth';
 
 export default function SignUp() {
-  const router = useRouter();
-
   const [adminAccount, setAdminAccount] = useState({
     username: '',
     password: '',
@@ -30,47 +26,14 @@ export default function SignUp() {
 
   const { username, password } = adminAccount;
 
+  const [signupState, signupAction] = useActionState(signup, { error: '' });
+
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setAdminAccount({
       ...adminAccount,
       [name]: value,
     });
-  };
-
-  const validateForm = (): boolean => {
-    if (username && password && password.length >= 3 && password.length <= 20) return true;
-    else return false;
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (validateForm()) {
-      try {
-        const result = await client.post('/api/v1/init', { username, password });
-        if (result.status === 201) {
-          SnackBarNotification.success('Configuration succeeded.');
-          setTimeout(() => {
-            router.push('/admin');
-          }, 5000);
-        }
-      } catch (e: any) {
-        let errorMessage = '';
-        switch (e.response.status) {
-          case 400: {
-            errorMessage = 'Form is unfulfilled.';
-            break;
-          }
-          default: {
-            errorMessage = 'Unexpected error is caused. Please try again.';
-            break;
-          }
-        }
-        SnackBarNotification.error(errorMessage);
-      }
-    } else {
-      SnackBarNotification.error('Form is unfulfilled.');
-    }
   };
 
   return (
@@ -84,7 +47,7 @@ export default function SignUp() {
           Initial Configuration
         </Typography>
         <Typography variant="body1">Sign up new admin account.</Typography>
-        <form onSubmit={handleSubmit} method="post" style={{ marginTop: 20 }}>
+        <form action={signupAction} style={{ marginTop: 20 }}>
           <Grid container spacing={2}>
             <Grid size={12}>
               <TextField

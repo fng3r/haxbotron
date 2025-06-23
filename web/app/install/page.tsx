@@ -6,16 +6,10 @@ import { Link as MuiLink } from '@mui/material';
 
 import SignUp from '@/components/SignUp';
 
-import client from '@/lib/client';
+import { installationNeeded } from '@/lib/auth/auth';
 
 export default async function Install() {
-  let installedAlready = false;
-  try {
-    const result = await client.get('/api/v1/init');
-    if (result.status === 204) {
-      installedAlready = true;
-    }
-  } catch {}
+  const installedAlready = !(await installationNeeded());
 
   return installedAlready ? (
     <Container component="main" maxWidth="xs">

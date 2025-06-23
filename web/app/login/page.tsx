@@ -1,69 +1,18 @@
-'use client';
+import React from 'react';
 
-import React, { useState } from 'react';
+import { redirect } from 'next/navigation';
 
-import { useRouter } from 'next/navigation';
-
+import { getSession } from '../actions/auth';
 import { LockOutlined } from '@mui/icons-material';
-import { Avatar, Button, Container, CssBaseline, TextField, Typography } from '@mui/material';
+import { Avatar, Container, CssBaseline, Typography } from '@mui/material';
 
-import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
+import LoginForm from '@/components/LoginForm';
 
-import client from '@/lib/client';
-
-export default function SignIn() {
-  const router = useRouter();
-
-  const [adminAccount, setAdminAccount] = useState({
-    username: '',
-    password: '',
-  });
-
-  const { username, password } = adminAccount;
-
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setAdminAccount({
-      ...adminAccount,
-      [name]: value,
-    });
-  };
-
-  const validateForm = (): boolean => {
-    if (username && password && password.length >= 3 && password.length <= 20) return true;
-    else return false;
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (validateForm()) {
-      try {
-        console.log('username', username);
-        console.log('password', password);
-        const result = await client.post('/api/v1/auth', { username, password });
-        if (result.status === 201) {
-          SnackBarNotification.info(`Logged in as ${username}.`);
-          router.push('/admin');
-        }
-      } catch (e: any) {
-        let errorMessage = '';
-        switch (e.response.status) {
-          case 401: {
-            errorMessage = 'Failed to login. Incorrect username or password.';
-            break;
-          }
-          default: {
-            errorMessage = 'Unexpected error is caused. Please try again.';
-            break;
-          }
-        }
-
-        SnackBarNotification.error(errorMessage);
-      }
-    } else {
-      SnackBarNotification.error('Form is unfulfilled.');
-    }
-  };
+export default async function SignIn() {
+  const session = await getSession();
+  if (session) {
+    redirect('/admin');
+  }
 
   return (
     <Container component="main" maxWidth="xs">
@@ -76,35 +25,8 @@ export default function SignIn() {
           Admin Account
         </Typography>
         <Typography variant="body1">Login and start managing the server.</Typography>
-        <form className="mt-1 w-full" onSubmit={handleSubmit} method="post">
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            id="username"
-            label="Account Name"
-            name="username"
-            value={username}
-            onChange={onChange}
-            autoFocus
-          />
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            value={password}
-            onChange={onChange}
-          />
-          <Button type="submit" fullWidth variant="contained" color="primary" className="mt-1!">
-            Login
-          </Button>
-        </form>
+
+        <LoginForm />
       </div>
     </Container>
   );

@@ -12,7 +12,8 @@ import { createServer as HTTPcreateServer } from "http";
 import { Server as SIOserver, Socket as SIOsocket } from "socket.io";
 import { winstonLogger } from "./winstonLoggerSystem";
 import { indexAPIRouter } from "./api/router/api/v1";
-import { jwtMiddleware, jwtMiddlewareWS } from "./api/lib/jwt.middleware";
+import { authenticationMiddleware } from "./api/lib/authenticationMiddleware";
+import { wsAuthenticationMiddleware } from "./api/lib/wsAuthenticationMiddleware";
 import { HeadlessBrowser } from "./lib/browser";
 
 const app = new Koa();
@@ -26,7 +27,7 @@ const coreServerSettings = {
     port: (process.env.SERVER_PORT ? parseInt(JSON.parse(process.env.SERVER_PORT)) : 12001)
     , level: (process.env.SERVER_LEVEL || 'common')
 }
-const whiteListIPs: string[] = process.env.SERVER_WHITELIST_IP?.split(",") || ['127.0.0.1'];
+const allowedApiKeys = process.env.ALLOWED_API_KEYS?.split(",") || [];
 
 nodeStorage.init();
 browser.attachSIOserver(sio);
@@ -38,14 +39,14 @@ router
 app
     .use(logger())
     .use(bodyParser())
-    .use(jwtMiddleware)
+    .use(authenticationMiddleware(allowedApiKeys))
     .use(router.routes())
     .use(router.allowedMethods());
 
 sio.on('connection', (socket: SIOsocket) => {
 
 })
-sio.use((socket, next) => jwtMiddlewareWS(socket, next));
+sio.use(wsAuthenticationMiddleware);
 
 server
     .listen(coreServerSettings.port, async () => {
@@ -56,5 +57,4 @@ server
                     "_|    _|    _|_|_|  _|    _|  _|_|_|      _|_|        _|_|  _|          _|_|    _|    _|");
         console.log(`Haxbotron by dapucita (Visit our GitHub : https://github.com/dapucita/haxbotron)`);
         winstonLogger.info(`[core] Haxbotron core server is opened at ${coreServerSettings.port} port.`);
-        winstonLogger.info(`[core] IP Whitelist : ${whiteListIPs}`);
     });
