@@ -12,7 +12,7 @@ import {
 import { Badge, Divider, Drawer, IconButton, AppBar as MuiAppBar, Toolbar, Typography } from '@mui/material';
 
 import LogoutButton from '@/components/common/LogoutButton';
-import SideBar from '@/components/common/SideBar';
+import NavSideBar from '@/components/common/NavSideBar';
 
 export default function AppBar() {
   const [open, setOpen] = useState(true);
@@ -83,7 +83,7 @@ export default function AppBar() {
             className={
               open
                 ? `transition-width w-[240px] duration-300 ease-in-out`
-                : 'transition-width w-[64px] duration-300 ease-in-out'
+                : 'transition-width w-[58px] duration-300 ease-in-out'
             }
           >
             <div className="flex h-16 items-center justify-end p-2">
@@ -92,7 +92,7 @@ export default function AppBar() {
               </IconButton>
             </div>
             <Divider />
-            <SideBar />
+            <NavSideBar />
           </div>
         </Drawer>
       </aside>
