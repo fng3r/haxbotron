@@ -1,35 +1,14 @@
 'use client';
 
-import { useContext, useEffect } from 'react';
-
 import Link from 'next/link';
 
 import WidgetTitle from '../common/WidgetTitle';
 import { Link as MuiLink, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
-import { useQueryClient } from '@tanstack/react-query';
 
-import { WSocketContext } from '@/context/ws';
-import { queries, queryKeys } from '@/lib/queries/room';
+import { queries } from '@/lib/queries/room';
 
 export default function RoomWidget() {
-  const ws = useContext(WSocketContext);
-  const queryClient = useQueryClient();
-
   const { data: rooms } = queries.getRoomsInfoList();
-
-  useEffect(() => {
-    const invalidateRooms = () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
-    };
-
-    ws.on('roomct', invalidateRooms);
-    ws.on('joinleft', invalidateRooms);
-
-    return () => {
-      ws.off('roomct', invalidateRooms);
-      ws.off('joinleft', invalidateRooms);
-    };
-  }, [ws, queryClient]);
 
   return (
     <>

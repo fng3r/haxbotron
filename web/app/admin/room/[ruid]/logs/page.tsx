@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useParams } from 'next/navigation';
 
@@ -21,7 +21,7 @@ import { OrderedSet } from 'immutable';
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import WidgetTitle from '@/components/common/WidgetTitle';
 
-import { WSocketContext } from '@/context/ws';
+import { useWSocket } from '@/context/ws';
 import { mutations } from '@/lib/queries/room';
 
 interface LogMessage {
@@ -34,7 +34,7 @@ interface LogMessage {
 }
 
 export default function RoomLogs() {
-  const ws = useContext(WSocketContext);
+  const ws = useWSocket();
   const { ruid } = useParams<{ ruid: string }>();
 
   const [logMessages, setLogMessages] = useState(OrderedSet.of<LogMessage>());
@@ -65,14 +65,16 @@ export default function RoomLogs() {
   };
 
   useEffect(() => {
-    ws.on('log', (content: LogMessage) => {
+    const updateMessages = (content: LogMessage) => {
       if (content.ruid === ruid) {
         setLogMessages((prev) => prev.add(content));
       }
-    });
+    };
+
+    ws.on('log', updateMessages);
 
     return () => {
-      ws.off('log');
+      ws.off('log', updateMessages);
     };
   }, [ws, ruid]);
 

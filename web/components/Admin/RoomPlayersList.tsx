@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
@@ -24,7 +24,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import WidgetTitle from '@/components/common/WidgetTitle';
 
-import { WSocketContext } from '@/context/ws';
+import { useWSocket } from '@/context/ws';
 import { isNumber } from '@/lib/numcheck';
 import { queries, queryKeys } from '@/lib/queries/player';
 import { RoomPlayer } from '@/lib/types/player';
@@ -35,7 +35,7 @@ const convertDate = (timestamp: number): string => {
 };
 
 export default function RoomPlayerList({ ruid }: { ruid: string }) {
-  const ws = useContext(WSocketContext);
+  const ws = useWSocket();
   const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
@@ -83,24 +83,6 @@ export default function RoomPlayerList({ ruid }: { ruid: string }) {
     pagingCount,
     searchQuery,
   });
-
-  useEffect(() => {
-    const invalidateRoomPlayers = (content: { ruid: string }) => {
-      if (content.ruid === ruid) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.players(ruid) });
-      }
-    };
-
-    ws.on('roomct', invalidateRoomPlayers);
-    ws.on('joinleft', invalidateRoomPlayers);
-    ws.on('statuschange', invalidateRoomPlayers);
-
-    return () => {
-      ws.off('roomct', invalidateRoomPlayers);
-      ws.off('joinleft', invalidateRoomPlayers);
-      ws.off('statuschange', invalidateRoomPlayers);
-    };
-  }, [ws, queryClient, ruid]);
 
   return (
     <>

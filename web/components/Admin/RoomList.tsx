@@ -1,7 +1,5 @@
 'use client';
 
-import { useContext, useEffect } from 'react';
-
 import Link from 'next/link';
 
 import {
@@ -15,32 +13,14 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import { useQueryClient } from '@tanstack/react-query';
 
 import WidgetTitle from '@/components/common/WidgetTitle';
 
-import { WSocketContext } from '@/context/ws';
-import { queries, queryKeys } from '@/lib/queries/room';
+import { queries } from '@/lib/queries/room';
 
 export default function RoomList() {
-  const queryClient = useQueryClient();
-  const ws = useContext(WSocketContext);
-
   const { data: roomsInfoList } = queries.getRoomsInfoList();
   const { data: allRoomsList } = queries.getAllRoomsList();
-
-  useEffect(() => {
-    ws.on('roomct', () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
-    });
-    ws.on('joinleft', () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
-    });
-    return () => {
-      ws.off('roomct');
-      ws.off('joinleft');
-    };
-  }, [ws, queryClient]);
 
   return (
     <Container maxWidth="lg" className="py-8">

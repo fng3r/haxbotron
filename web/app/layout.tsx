@@ -6,6 +6,7 @@ import { Inter } from 'next/font/google';
 import SnackBarProviderWrapper from '@/components/Notifications/SnackBarProviderWrapper';
 import Footer from '@/components/common/Footer';
 
+import { WSocketProvider } from '@/context/ws';
 import ReactQueryProvider from '@/providers/ReactQueryProvider';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -23,9 +24,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={inter.className} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <ReactQueryProvider>
-          <SnackBarProviderWrapper />
-          {children}
-          <Footer />
+          <WSocketProvider>
+            <SnackBarProviderWrapper />
+            {children}
+            <Footer />
+          </WSocketProvider>
         </ReactQueryProvider>
       </body>
     </html>
