@@ -1,13 +1,10 @@
-import React from 'react';
-
 import Link from 'next/link';
 
-import { Container, CssBaseline, Grid2 as Grid, Link as MuiLink, Typography } from '@mui/material';
+import { Container, Grid2 as Grid, Link as MuiLink, Typography } from '@mui/material';
 
 export default function Main() {
   return (
     <Grid container>
-      <CssBaseline />
       <Container maxWidth="sm" sx={{ marginTop: 8, marginBottom: 2 }}>
         <Grid container flexDirection="column" spacing={1}>
           <Grid size={12}>

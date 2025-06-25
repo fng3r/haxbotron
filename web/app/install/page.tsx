@@ -1,19 +1,19 @@
 import Link from 'next/link';
 
 import { LockOutlined } from '@mui/icons-material';
-import { Avatar, Container, CssBaseline, Grid2 as Grid, Typography } from '@mui/material';
-import { Link as MuiLink } from '@mui/material';
+import { Avatar, Container, Grid2 as Grid, Link as MuiLink, Typography } from '@mui/material';
 
 import SignUp from '@/components/SignUp';
 
 import { installationNeeded } from '@/lib/auth/auth';
 
 export default async function Install() {
-  const installedAlready = !(await installationNeeded());
+  const isInstallationNeeded = await installationNeeded();
 
-  return installedAlready ? (
+  return isInstallationNeeded ? (
+    <SignUp />
+  ) : (
     <Container component="main" maxWidth="xs">
-      <CssBaseline />
       <Grid container spacing={1} flexDirection="column" alignItems="center" mt={8}>
         <Avatar>
           <LockOutlined color="success" />
@@ -32,7 +32,5 @@ export default async function Install() {
         </Grid>
       </Grid>
     </Container>
-  ) : (
-    <SignUp />
   );
 }

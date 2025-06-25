@@ -5,16 +5,7 @@ import { useActionState, useState } from 'react';
 import Link from 'next/link';
 
 import { LockOutlined } from '@mui/icons-material';
-import {
-  Avatar,
-  Button,
-  Container,
-  CssBaseline,
-  Grid2 as Grid,
-  Link as MuiLink,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Avatar, Button, Container, Grid2 as Grid, Link as MuiLink, TextField, Typography } from '@mui/material';
 
 import { signup } from '@/app/actions/auth';
 
@@ -38,7 +29,6 @@ export default function SignUp() {
 
   return (
     <Container component="main" maxWidth="xs">
-      <CssBaseline />
       <Container className="mt-16 flex flex-col items-center">
         <Avatar>
           <LockOutlined />

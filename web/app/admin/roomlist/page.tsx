@@ -1,111 +1,27 @@
-'use client';
+import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
 
-import React, { useContext, useEffect } from 'react';
+import RoomList from '@/components/Admin/RoomList';
 
-import Link from 'next/link';
+import { getAllRoomsList, getRoomsInfoList } from '@/lib/api/room';
+import { queryKeys } from '@/lib/queries/room';
 
-import {
-  Container,
-  Divider,
-  Grid2 as Grid,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@mui/material';
-import { useQueryClient } from '@tanstack/react-query';
+export default async function RoomListPage() {
+  const queryClient = new QueryClient();
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.rooms,
+      queryFn: getRoomsInfoList,
+    }),
 
-import WidgetTitle from '@/components/common/WidgetTitle';
-
-import { WSocketContext } from '@/context/ws';
-import { queries, queryKeys } from '@/lib/queries/room';
-
-export default function RoomList() {
-  const queryClient = useQueryClient();
-  const ws = useContext(WSocketContext);
-
-  const { data: roomsInfoList } = queries.getRoomsInfoList();
-  const { data: allRoomsList } = queries.getAllRoomsList();
-
-  useEffect(() => {
-    ws.on('roomct', () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
-    });
-    ws.on('joinleft', () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
-    });
-    return () => {
-      ws.off('roomct');
-      ws.off('joinleft');
-    };
-  }, [ws, queryClient]);
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.allRooms,
+      queryFn: getAllRoomsList,
+    }),
+  ]);
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <Paper className="p-4">
-            <React.Fragment>
-              <WidgetTitle>Current Game Rooms</WidgetTitle>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="left" className="font-bold!">
-                      RUID
-                    </TableCell>
-                    <TableCell className="font-bold!">Title</TableCell>
-                    <TableCell align="right" className="font-bold!">
-                      Link
-                    </TableCell>
-                    <TableCell align="right" className="font-bold!">
-                      Online Players
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {roomsInfoList &&
-                    roomsInfoList.map((item) => (
-                      <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
-                        <TableCell align="left">{item.ruid}</TableCell>
-                        <TableCell>{item.roomName}</TableCell>
-                        <TableCell align="right">{item.roomLink}</TableCell>
-                        <TableCell align="right">{item.onlinePlayers}</TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </React.Fragment>
-            <Divider />
-
-            <React.Fragment>
-              <WidgetTitle>All Rooms List</WidgetTitle>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="left" className="font-bold!">
-                      RUID
-                    </TableCell>
-                    <TableCell align="right" className="font-bold!">
-                      Status
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {allRoomsList &&
-                    allRoomsList.map((item) => (
-                      <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
-                        <TableCell align="left">{item.ruid}</TableCell>
-                        <TableCell align="right">{item.online ? 'online' : 'offline'}</TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </React.Fragment>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <RoomList />
+    </HydrationBoundary>
   );
 }

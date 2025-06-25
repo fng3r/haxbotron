@@ -1,10 +1,8 @@
-import React from 'react';
-
 import { redirect } from 'next/navigation';
 
 import { getSession } from '../actions/auth';
 import { LockOutlined } from '@mui/icons-material';
-import { Avatar, Container, CssBaseline, Typography } from '@mui/material';
+import { Avatar, Container, Typography } from '@mui/material';
 
 import LoginForm from '@/components/LoginForm';
 
@@ -16,7 +14,6 @@ export default async function SignIn() {
 
   return (
     <Container component="main" maxWidth="xs">
-      <CssBaseline />
       <div className="mt-16 flex flex-col items-center">
         <Avatar className="m-1" sx={{ backgroundColor: 'secondary.main' }}>
           <LockOutlined />

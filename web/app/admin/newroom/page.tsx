@@ -98,7 +98,6 @@ export default function RoomCreate() {
         router.push('/admin/roomlist');
       },
       onError: (error) => {
-        console.log(error);
         SnackBarNotification.error(error.message);
       },
     });
@@ -115,7 +114,9 @@ export default function RoomCreate() {
 
     try {
       setSettingsFormStringifiedField(JSON.stringify(settingsFormField, null, 4));
-    } catch (error: any) {}
+    } catch (error) {
+      console.error('Failed to stringify settings:', error);
+    }
   };
 
   const onChangeRUID = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,7 +209,9 @@ export default function RoomCreate() {
     try {
       const parsedSettings: BrowserHostRoomSettings = JSON.parse(settingsFormStringifiedField);
       setSettingsFormField(parsedSettings);
-    } catch (e: any) {}
+    } catch (error) {
+      console.error('Failed to parse settings JSON:', error);
+    }
   };
 
   return (
@@ -248,7 +251,7 @@ export default function RoomCreate() {
               <Typography component="h2" variant="subtitle1" color="primary" gutterBottom>
                 Room Configuration
               </Typography>
-              <Typography component="h2" variant="subtitle2" color="inherit" gutterBottom>
+              <Typography component="h2" variant="subtitle2" color="inherit" fontWeight={600} gutterBottom>
                 Do not reuse the same RUID and token if they are already in use.
               </Typography>
               <Grid container spacing={2}>
@@ -287,6 +290,7 @@ export default function RoomCreate() {
                     edge="start"
                     size="medium"
                     aria-label="get token"
+                    className="mt-3!"
                   >
                     <OpenInNew />
                   </IconButton>
@@ -533,6 +537,7 @@ export default function RoomCreate() {
                   <Tooltip
                     placement="top-start"
                     title="Available maps: big, bigeasy, classic, gbhotclassic, gbhotbig, realsoccer, futsal1v1, futsal4v4, bff4v4, icebear, 6man"
+                    className="mt-3!"
                   >
                     <IconButton>
                       <LiveHelp />
