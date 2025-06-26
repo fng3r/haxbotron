@@ -10,7 +10,6 @@ import {
   Divider,
   Grid2 as Grid,
   IconButton,
-  MenuItem,
   Paper,
   Table,
   TableBody,
@@ -46,7 +45,7 @@ const convertEventToString = (event: PlayerRoleEvent): string => {
   }
 };
 
-const convertEventTypeToIcon = (eventType: PlayerRoleEventType): any => {
+const convertEventTypeToIcon = (eventType: PlayerRoleEventType): React.ReactNode => {
   switch (eventType) {
     case PlayerRoleEventType.addRole:
       return <AddCircle titleAccess="Player added" htmlColor="green" />;
@@ -98,7 +97,7 @@ export default function RoomPlayerList() {
     setSearchQuery(query);
   };
 
-  const onChangeNewRole = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChangeNewRole = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     setNewRole({
@@ -134,7 +133,7 @@ export default function RoomPlayerList() {
     });
   };
 
-  const updateRole = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, playerIndex: number) => {
+  const updateRole = async (e: ChangeEvent<HTMLSelectElement>, playerIndex: number) => {
     const { value: role } = e.target;
     const selectedRole = roles![playerIndex];
 
@@ -174,7 +173,7 @@ export default function RoomPlayerList() {
               <WidgetTitle>Player Accounts List</WidgetTitle>
               <Grid container spacing={1} flexDirection="column">
                 <form className="w-full" onSubmit={addRole} method="post">
-                  <Grid size={{ xs: 12, sm: 12 }}>
+                  <Grid size={{ xs: 12, sm: 12 }} className="space-x-1!">
                     <TextField
                       variant="outlined"
                       margin="normal"
@@ -198,25 +197,21 @@ export default function RoomPlayerList() {
                       name="auth"
                       style={{ width: 450 }}
                     />
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
+                    <select
                       value={newRole.role}
                       onChange={onChangeNewRole}
                       id="role"
-                      label="Role"
                       name="role"
-                      select
+                      className="w-24 mt-4 mr-2 p-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
                     >
-                      <MenuItem value="player">player</MenuItem>
-                      <MenuItem value="adm">adm</MenuItem>
-                      <MenuItem value="s-adm">s-adm</MenuItem>
-                      <MenuItem value="co-host">co-host</MenuItem>
-                      <MenuItem value="bad">bad</MenuItem>
-                    </TextField>
-                    <Button size="small" type="submit" variant="contained" color="primary" className="mt-6!">
+                      <option value="player">player</option>
+                      <option value="adm">adm</option>
+                      <option value="s-adm">s-adm</option>
+                      <option value="co-host">co-host</option>
+                      <option value="bad">bad</option>
+                    </select>
+                    <Button size="small" type="submit" variant="contained" color="primary">
                       Add
                     </Button>
                   </Grid>
@@ -306,23 +301,19 @@ export default function RoomPlayerList() {
                           </TableCell>
                           <TableCell width="35%">{item.auth}</TableCell>
                           <TableCell width="5%">
-                            <TextField
-                              variant="outlined"
-                              margin="normal"
-                              required
-                              size="small"
+                            <select
                               value={item.role}
                               onChange={(e) => updateRole(e, idx)}
                               id="role"
                               name="role"
-                              select
+                              className="w-24 p-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                              <MenuItem value="player">player</MenuItem>
-                              <MenuItem value="adm">adm</MenuItem>
-                              <MenuItem value="s-adm">s-adm</MenuItem>
-                              <MenuItem value="co-host">co-host</MenuItem>
-                              <MenuItem value="bad">bad</MenuItem>
-                            </TextField>
+                              <option value="player">player</option>
+                              <option value="adm">adm</option>
+                              <option value="s-adm">s-adm</option>
+                              <option value="co-host">co-host</option>
+                              <option value="bad">bad</option>
+                            </select>
                           </TableCell>
                           <TableCell align="left">
                             <IconButton
