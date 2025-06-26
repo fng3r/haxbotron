@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { connection } from 'next/server';
 
 import { LockOutlined } from '@mui/icons-material';
 import { Avatar, Container, Grid2 as Grid, Link as MuiLink, Typography } from '@mui/material';
@@ -8,6 +9,8 @@ import SignUp from '@/components/SignUp';
 import { installationNeeded } from '@/lib/auth/auth';
 
 export default async function Install() {
+  await connection();
+
   const isInstallationNeeded = await installationNeeded();
 
   return isInstallationNeeded ? (

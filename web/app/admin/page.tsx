@@ -1,3 +1,5 @@
+import { connection } from 'next/server';
+
 import { Container, Grid2 as Grid, Paper } from '@mui/material';
 import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
 
@@ -10,6 +12,8 @@ import { queryKeys as roomQueryKeys } from '@/lib/queries/room';
 import { queryKeys as serverQueryKeys } from '@/lib/queries/server';
 
 export default async function Mainboard() {
+  await connection();
+
   const queryClient = new QueryClient();
   await Promise.all([
     queryClient.prefetchQuery({
