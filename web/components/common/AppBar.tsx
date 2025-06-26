@@ -2,14 +2,8 @@
 
 import { useState } from 'react';
 
-import {
-  ChevronLeft as ChevronLeftIcon,
-  HelpOutline as HelpOutlineIcon,
-  Menu as MenuIcon,
-  Notifications as NotificationsIcon,
-  Settings as SettingsIcon,
-} from '@mui/icons-material';
-import { Badge, Divider, Drawer, IconButton, AppBar as MuiAppBar, Toolbar, Typography } from '@mui/material';
+import { ChevronLeft as ChevronLeftIcon, HelpOutline as HelpOutlineIcon, Menu as MenuIcon } from '@mui/icons-material';
+import { Badge, Divider, Drawer, IconButton, Link, AppBar as MuiAppBar, Toolbar, Typography } from '@mui/material';
 
 import LogoutButton from '@/components/common/LogoutButton';
 import NavSideBar from '@/components/common/NavSideBar';
@@ -52,19 +46,9 @@ export default function AppBar() {
 
           <IconButton color="inherit">
             <Badge color="secondary">
-              <HelpOutlineIcon onClick={() => window.open('https://github.com/dapucita/haxbotron/wiki', '_blank')} />
-            </Badge>
-          </IconButton>
-
-          <IconButton color="inherit">
-            <Badge color="secondary">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-
-          <IconButton color="inherit">
-            <Badge color="secondary">
-              <SettingsIcon />
+              <HelpOutlineIcon>
+                <Link href="https://github.com/dapucita/haxbotron/wiki" target="_blank" />
+              </HelpOutlineIcon>
             </Badge>
           </IconButton>
 

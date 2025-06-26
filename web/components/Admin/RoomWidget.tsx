@@ -26,10 +26,16 @@ export default function RoomWidget() {
         <TableBody>
           {rooms &&
             rooms.slice(0, 3).map((item) => (
-              <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
-                <TableCell>{item.ruid}</TableCell>
-                <TableCell>{item.roomName}</TableCell>
-                <TableCell align="right">{item.onlinePlayers}</TableCell>
+              <TableRow hover key={item.ruid} className="cursor-pointer">
+                <TableCell>
+                  <Link href={`/admin/room/${item.ruid}`}>{item.ruid}</Link>
+                </TableCell>
+                <TableCell>
+                  <Link href={`/admin/room/${item.ruid}`}>{item.roomName}</Link>
+                </TableCell>
+                <TableCell align="right">
+                  <Link href={`/admin/room/${item.ruid}`}>{item.onlinePlayers}</Link>
+                </TableCell>
               </TableRow>
             ))}
         </TableBody>

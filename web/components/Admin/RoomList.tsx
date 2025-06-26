@@ -47,11 +47,19 @@ export default function RoomList() {
                 <TableBody>
                   {roomsInfoList &&
                     roomsInfoList.map((item) => (
-                      <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
-                        <TableCell align="left">{item.ruid}</TableCell>
-                        <TableCell>{item.roomName}</TableCell>
-                        <TableCell align="right">{item.roomLink}</TableCell>
-                        <TableCell align="right">{item.onlinePlayers}</TableCell>
+                      <TableRow hover key={item.ruid} className="cursor-pointer">
+                        <TableCell align="left">
+                          <Link href={`/admin/room/${item.ruid}`}>{item.ruid}</Link>
+                        </TableCell>
+                        <TableCell>
+                          <Link href={`/admin/room/${item.ruid}`}>{item.roomName}</Link>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Link href={`/admin/room/${item.ruid}`}>{item.roomLink}</Link>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Link href={`/admin/room/${item.ruid}`}>{item.onlinePlayers}</Link>
+                        </TableCell>
                       </TableRow>
                     ))}
                 </TableBody>
@@ -76,9 +84,13 @@ export default function RoomList() {
                 <TableBody>
                   {allRoomsList &&
                     allRoomsList.map((item) => (
-                      <TableRow hover key={item.ruid} component={Link} href={`/admin/room/${item.ruid}`}>
-                        <TableCell align="left">{item.ruid}</TableCell>
-                        <TableCell align="right">{item.online ? 'online' : 'offline'}</TableCell>
+                      <TableRow hover key={item.ruid} className="cursor-pointer">
+                        <TableCell align="left">
+                          <Link href={`/admin/room/${item.ruid}`}>{item.ruid}</Link>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Link href={`/admin/room/${item.ruid}`}>{item.online ? 'online' : 'offline'}</Link>
+                        </TableCell>
                       </TableRow>
                     ))}
                 </TableBody>
