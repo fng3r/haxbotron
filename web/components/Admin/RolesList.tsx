@@ -66,13 +66,18 @@ export default function RoomPlayerList() {
   const [eventsPage, setEventsPage] = useState(1);
   const [eventsPagingCount, setEventsPagingCount] = useState(10);
 
-  const [searchQuery, setSearchQuery] = useDebounce('', 300);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQueryDebounced] = useDebounce(searchQuery, 300);
 
-  const { data: roles } = queries.getPlayersRoles({ page, pagingCount, searchQuery });
-  const { data: roleEvents } = queries.getPlayersRoleEvents({
+  const { data: roles, isPlaceholderData: isRolesPlaceholderData } = queries.getPlayersRoles({
+    page,
+    pagingCount,
+    searchQuery: searchQueryDebounced,
+  });
+  const { data: roleEvents, isPlaceholderData: isEventsPlaceholderData } = queries.getPlayersRoleEvents({
     page: eventsPage,
     pagingCount: eventsPagingCount,
-    searchQuery,
+    searchQuery: searchQueryDebounced,
   });
 
   const addRoleMutation = mutations.addRole();
@@ -292,7 +297,7 @@ export default function RoomPlayerList() {
                       <TableCell></TableCell>
                     </TableRow>
                   </TableHead>
-                  <TableBody>
+                  <TableBody className={isRolesPlaceholderData ? 'opacity-50' : ''}>
                     {roles &&
                       roles.map((item, idx) => (
                         <TableRow key={item.auth} className="*:border-none!">
@@ -392,7 +397,7 @@ export default function RoomPlayerList() {
                         </TableCell>
                       </TableRow>
                     </TableHead>
-                    <TableBody>
+                    <TableBody className={isEventsPlaceholderData ? 'opacity-50' : ''}>
                       {roleEvents &&
                         roleEvents.map((event) => (
                           <TableRow key={event.timestamp} className="*:border-none!">
