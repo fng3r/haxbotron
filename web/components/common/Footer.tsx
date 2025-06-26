@@ -1,15 +1,24 @@
-'use client';
-
-import React from 'react';
-
-import Copyright from './Footer.Copyright';
-import { Container } from '@mui/material';
+import { Container, Link, Typography } from '@mui/material';
 
 export default function Footer() {
   return (
-    <footer className="relative bottom-0 mt-auto w-full bg-gray-100 p-6 dark:bg-gray-800">
+    <footer className="relative bottom-0 mt-auto w-full bg-neutral-100 p-6">
       <Container maxWidth="sm">
-        <Copyright />
+        <>
+          <Typography variant="body1" align="center">
+            {'Powered by '}
+            <Link color="inherit" href="https://github.com/dapucita/haxbotron">
+              Haxbotron
+            </Link>
+          </Typography>
+          <Typography variant="body2" color="textSecondary" align="center">
+            {'MIT License Copyright © '}
+            {new Date().getFullYear()}{' '}
+            <Link color="inherit" href="https://github.com/dapucita">
+              dapucita
+            </Link>
+          </Typography>
+        </>
       </Container>
     </footer>
   );
