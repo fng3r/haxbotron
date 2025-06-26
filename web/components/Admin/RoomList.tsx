@@ -49,16 +49,24 @@ export default function RoomList() {
                     roomsInfoList.map((item) => (
                       <TableRow hover key={item.ruid} className="cursor-pointer">
                         <TableCell align="left">
-                          <Link href={`/admin/room/${item.ruid}`}>{item.ruid}</Link>
+                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
+                            {item.ruid}
+                          </Link>
                         </TableCell>
                         <TableCell>
-                          <Link href={`/admin/room/${item.ruid}`}>{item.roomName}</Link>
+                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
+                            {item.roomName}
+                          </Link>
                         </TableCell>
                         <TableCell align="right">
-                          <Link href={`/admin/room/${item.ruid}`}>{item.roomLink}</Link>
+                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
+                            {item.roomLink}
+                          </Link>
                         </TableCell>
                         <TableCell align="right">
-                          <Link href={`/admin/room/${item.ruid}`}>{item.onlinePlayers}</Link>
+                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
+                            {item.onlinePlayers}
+                          </Link>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -86,10 +94,14 @@ export default function RoomList() {
                     allRoomsList.map((item) => (
                       <TableRow hover key={item.ruid} className="cursor-pointer">
                         <TableCell align="left">
-                          <Link href={`/admin/room/${item.ruid}`}>{item.ruid}</Link>
+                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
+                            {item.ruid}
+                          </Link>
                         </TableCell>
                         <TableCell align="right">
-                          <Link href={`/admin/room/${item.ruid}`}>{item.online ? 'online' : 'offline'}</Link>
+                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
+                            {item.online ? 'online' : 'offline'}
+                          </Link>
                         </TableCell>
                       </TableRow>
                     ))}
