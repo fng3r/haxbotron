@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 
-import { ChevronLeft as ChevronLeftIcon, HelpOutline as HelpOutlineIcon, Menu as MenuIcon } from '@mui/icons-material';
-import { Badge, Divider, Drawer, IconButton, Link, AppBar as MuiAppBar, Toolbar, Typography } from '@mui/material';
+import { ChevronLeft as ChevronLeftIcon, Menu as MenuIcon } from '@mui/icons-material';
+import { Divider, Drawer, IconButton, AppBar as MuiAppBar, Toolbar, Typography } from '@mui/material';
 
 import LogoutButton from '@/components/common/LogoutButton';
 import NavSideBar from '@/components/common/NavSideBar';
@@ -43,14 +43,6 @@ export default function AppBar() {
           <Typography component="h1" variant="h6" color="inherit" noWrap className="m-2 w-full grow p-2 mt-10 mb-2">
             Haxbotron Administrative Dashboard
           </Typography>
-
-          <IconButton color="inherit">
-            <Badge color="secondary">
-              <HelpOutlineIcon>
-                <Link href="https://github.com/dapucita/haxbotron/wiki" target="_blank" />
-              </HelpOutlineIcon>
-            </Badge>
-          </IconButton>
 
           <LogoutButton />
         </Toolbar>
