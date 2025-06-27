@@ -2,75 +2,64 @@
 
 import { useState } from 'react';
 
-import { ChevronLeft as ChevronLeftIcon, Menu as MenuIcon } from '@mui/icons-material';
-import { Divider, Drawer, IconButton, AppBar as MuiAppBar, Toolbar, Typography } from '@mui/material';
+import { ChevronLeft, Menu } from 'lucide-react';
 
 import LogoutButton from '@/components/common/LogoutButton';
 import NavSideBar from '@/components/common/NavSideBar';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 export default function AppBar() {
-  const [open, setOpen] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(true);
 
   const handleDrawerOpen = () => {
-    setOpen(true);
+    setDrawerOpen(true);
   };
   const handleDrawerClose = () => {
-    setOpen(false);
+    setDrawerOpen(false);
   };
 
   return (
     <>
-      <MuiAppBar
-        position="relative"
-        className={
-          open
-            ? 'ml-[240px]! w-[calc(100%-240px)]! transition-all! duration-300 ease-in-out'
-            : 'z-1201 transition-all! duration-300 ease-in-out'
-        }
+      {/* Main App Bar */}
+      <header
+        className={`relative z-50 flex h-16 items-center bg-blue-700 px-5 text-primary-foreground shadow-sm transition-all duration-300 ease-in-out ${
+          drawerOpen ? 'ml-[240px] w-[calc(100%-240px)]' : 'w-full'
+        }`}
       >
-        <Toolbar sx={{ paddingRight: '24px' }}>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            className={open ? 'hidden!' : 'mr-10! w-8!'}
-          >
-            <MenuIcon />
-          </IconButton>
+        <div className="flex w-full items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleDrawerOpen}
+              className={`${drawerOpen ? 'hidden' : 'mr-4'}`}
+            >
+              <Menu className="size-5" />
+            </Button>
 
-          <div className="m-2 flex-grow p-2"></div>
-          <Typography component="h1" variant="h6" color="inherit" noWrap className="m-2 w-full grow p-2 mt-10 mb-2">
-            Haxbotron Administrative Dashboard
-          </Typography>
+            <h1 className="text-xl font-semibold">Haxbotron Administrative Dashboard</h1>
+          </div>
 
           <LogoutButton />
-        </Toolbar>
-      </MuiAppBar>
+        </div>
+      </header>
 
-      <aside>
-        <Drawer
-          PaperProps={{ className: 'overflow-hidden whitespace-nowrap' }}
-          variant="permanent"
-          open={open}
-          className="overflow-hidden"
+      {/* Sidebar */}
+      <aside className="fixed left-0 top-0 z-40 h-full">
+        <div
+          className={`h-full bg-background border-r transition-all duration-300 ease-in-out overflow-hidden ${
+            drawerOpen ? 'w-[240px]' : 'w-[72px]'
+          }`}
         >
-          <div
-            className={
-              open
-                ? `transition-width w-[240px] duration-300 ease-in-out`
-                : 'transition-width w-[58px] duration-300 ease-in-out'
-            }
-          >
-            <div className="flex h-16 items-center justify-end p-2">
-              <IconButton onClick={handleDrawerClose}>
-                <ChevronLeftIcon />
-              </IconButton>
-            </div>
-            <Divider />
-            <NavSideBar />
+          <div className="flex h-16 items-center justify-end p-2">
+            <Button variant="ghost" size="icon" onClick={handleDrawerClose} className="size-10">
+              <ChevronLeft className="size-5" />
+            </Button>
           </div>
-        </Drawer>
+          <Separator />
+          <NavSideBar open={drawerOpen} />
+        </div>
       </aside>
     </>
   );
