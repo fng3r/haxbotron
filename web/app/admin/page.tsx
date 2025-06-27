@@ -31,9 +31,7 @@ export default async function Mainboard() {
       <Container maxWidth="lg" className="py-8">
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, md: 4, lg: 3 }}>
-            <Paper className="p-4">
-              <ServerInfoWidget />
-            </Paper>
+            <ServerInfoWidget />
           </Grid>
           <Grid size={{ xs: 12 }}>
             <Paper className="p-4">

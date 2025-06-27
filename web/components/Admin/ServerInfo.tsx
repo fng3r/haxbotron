@@ -1,10 +1,6 @@
 'use client';
 
-import React from 'react';
-
-import { Container, Grid2 as Grid, Paper, Typography } from '@mui/material';
-
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { queries } from '@/lib/queries/server';
 
@@ -12,39 +8,33 @@ export default function ServerInfo() {
   const { data: serverInfo } = queries.getInfo();
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 4, lg: 3 }}>
-          <Paper className="p-4">
-            <>
-              <WidgetTitle>Memory Usage</WidgetTitle>
-              <Typography component="p" variant="h4">
-                {serverInfo?.usedMemoryMB || 0}MB
-              </Typography>
-            </>
-          </Paper>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4, lg: 3 }}>
-          <Paper className="p-4">
-            <React.Fragment>
-              <WidgetTitle>Server Uptime</WidgetTitle>
-              <Typography component="p" variant="h4">
-                {Math.round((serverInfo?.upTimeSecs || 0) / 60)} minutes
-              </Typography>
-            </React.Fragment>
-          </Paper>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4, lg: 3 }}>
-          <Paper className="p-4">
-            <React.Fragment>
-              <WidgetTitle>Server Version</WidgetTitle>
-              <Typography component="p" variant="h4">
-                v{serverInfo?.serverVersion}
-              </Typography>
-            </React.Fragment>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+    <div className="max-w-6xl mx-auto py-8">
+      <div className="flex flex-wrap gap-6">
+        <Card className="w-80">
+          <CardHeader>
+            <CardTitle className="text-2xl text-blue-500">Memory Usage</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-semibold">{serverInfo?.usedMemoryMB || 0}MB</p>
+          </CardContent>
+        </Card>
+        <Card className="w-80">
+          <CardHeader>
+            <CardTitle className="text-2xl text-blue-500">Server Uptime</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-semibold">{Math.round((serverInfo?.upTimeSecs || 0) / 60)} minutes</p>
+          </CardContent>
+        </Card>
+        <Card className="w-80">
+          <CardHeader>
+            <CardTitle className="text-2xl text-blue-500">Server Version</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-semibold">v{serverInfo?.serverVersion}</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
