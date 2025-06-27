@@ -21,6 +21,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDebounce } from 'use-debounce';
 
 import WidgetTitle from '@/components/common/WidgetTitle';
 
@@ -41,6 +42,7 @@ export default function RoomPlayerList({ ruid }: { ruid: string }) {
   const [page, setPage] = useState(1);
   const [pagingCount, setPagingCount] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchQueryDebounced] = useDebounce(searchQuery, 300);
 
   useEffect(() => {
     const invalidateRoomPlayers = (content: { ruid: string }) => {
@@ -78,10 +80,10 @@ export default function RoomPlayerList({ ruid }: { ruid: string }) {
     setSearchQuery(query);
   };
 
-  const { data: players } = queries.getPlayerAccountList(ruid, {
+  const { data: players, isPlaceholderData } = queries.getPlayerAccountList(ruid, {
     page,
     pagingCount,
-    searchQuery,
+    searchQuery: searchQueryDebounced,
   });
 
   return (
@@ -155,7 +157,7 @@ export default function RoomPlayerList({ ruid }: { ruid: string }) {
               <TableCell />
             </TableRow>
           </TableHead>
-          <TableBody>
+          <TableBody className={isPlaceholderData ? 'opacity-50' : ''}>
             {players && players.map((item, idx) => <PlayerAccountRow key={idx} idx={idx} row={item} />)}
           </TableBody>
         </Table>
