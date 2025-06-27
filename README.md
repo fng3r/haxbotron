@@ -20,7 +20,9 @@ Please donate and support this project by [Patreon](https://www.patreon.com/dapu
 ## Features
 ![Node.js](https://img.shields.io/badge/-Node.js-339933?style=for-the-badge&logo=node%2ejs&logoColor=fff)
 ![Typescript](https://img.shields.io/badge/-Typescript-007acc?style=for-the-badge&logo=typescript&logoColor=fff)
+![Next.js](https://img.shields.io/badge/Next.js-000?logo=nextdotjs&logoColor=fff&style=for-the-badge)
 ![React](https://img.shields.io/badge/-React-61dafb?style=for-the-badge&logo=react&logoColor=fff)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38BDF8?style=for-the-badge&logo=tailwind-css&logoColor=fff)
 ![SQLite](https://img.shields.io/badge/-SQLite-003b57?style=for-the-badge&logo=sqlite&logoColor=fff)
 ![Chrome](https://img.shields.io/badge/-Chrome-4285f4?style=for-the-badge&logo=google%20chrome&logoColor=fff)
 - Powered on multi platforms: Windows, Linux, OS X and so on.

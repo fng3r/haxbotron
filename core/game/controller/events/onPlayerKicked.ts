@@ -1,11 +1,9 @@
-import * as Tst from "../Translator";
-import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { getUnixTimestamp } from "../DateTimeUtils";
-import { setBanlistDataToDB } from "../Storage";
+import { getBanlistDataFromDB, setBanlistDataToDB } from "../Storage";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 
-export function onPlayerKickedListener(kickedPlayer: PlayerObject, reason: string, ban: boolean, byPlayer: PlayerObject): void {
+export async function onPlayerKickedListener(kickedPlayer: PlayerObject, reason: string, ban: boolean, byPlayer: PlayerObject): Promise<void> {
     /* Event called when a player has been kicked from the room. This is always called after the onPlayerLeave event.
         byPlayer is the player which caused the event (can be null if the event wasn't caused by a player). */
     const kickedTime: number = getUnixTimestamp();
@@ -31,7 +29,10 @@ export function onPlayerKickedListener(kickedPlayer: PlayerObject, reason: strin
             window.gameRoom.logger.i('onPlayerKicked', `${kickedPlayer.name}#${kickedPlayer.id} has been banned by ${byPlayer.name}#${byPlayer.id} (reason:${placeholderKick.reason}), but it is negated.`);
         } else { // if by super admin player
             if (ban) { // ban
-                setBanlistDataToDB({ conn: existingKickedPlayer!.conn, auth: existingKickedPlayer!.auth, reason: reason, register: kickedTime, expire: -1 }); // register into ban list
+                const existingBan = await getBanlistDataFromDB(existingKickedPlayer!.conn);
+                if (!existingBan) {
+                    setBanlistDataToDB({ conn: existingKickedPlayer!.conn, auth: existingKickedPlayer!.auth, reason: reason, register: kickedTime, expire: -1 }); // register into ban list
+                }
                 window.gameRoom.logger.i('onPlayerKicked', `${kickedPlayer.name}#${kickedPlayer.id} has been banned by ${byPlayer.name}#${byPlayer.id}. (reason:${placeholderKick.reason}).`);
             } else { // kick
                 window.gameRoom.logger.i('onPlayerKicked', `${kickedPlayer.name}#${kickedPlayer.id} has been kicked by ${byPlayer.name}#${byPlayer.id}. (reason:${placeholderKick.reason})`);
@@ -39,7 +40,10 @@ export function onPlayerKickedListener(kickedPlayer: PlayerObject, reason: strin
         }
     } else {
         if (ban) { // ban
-            setBanlistDataToDB({ conn: existingKickedPlayer!.conn, auth: existingKickedPlayer!.auth, reason: placeholderKick.reason, register: kickedTime, expire: -1 }); // register into ban list
+            const existingBan = await getBanlistDataFromDB(existingKickedPlayer!.conn);
+            if (!existingBan) {
+                setBanlistDataToDB({ conn: existingKickedPlayer!.conn, auth: existingKickedPlayer!.auth, reason: reason, register: kickedTime, expire: -1 }); // register into ban list
+            }
         }
         window.gameRoom.logger.i('onPlayerKicked', `${kickedPlayer.name}#${kickedPlayer.id} has been kicked. (ban:${ban},reason:${placeholderKick.reason})`);
     }

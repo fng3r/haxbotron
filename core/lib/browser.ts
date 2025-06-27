@@ -6,10 +6,12 @@ import * as dbUtilityInject from "./db.injection";
 import { loadStadiumData } from "./stadiumLoader";
 import { Server as SIOserver, } from "socket.io";
 import { TeamID } from "../game/model/GameObject/TeamID";
-import Discord, {MessageEmbed} from 'discord.js';
+import { AttachmentBuilder, EmbedBuilder, WebhookClient } from 'discord.js';
 import { DiscordWebhookConfig } from "./browser.interface";
 import moment from "moment";
+import {v4 as uuid} from "uuid";
 import {PlayerObject} from "../game/model/GameObject/PlayerObject";
+import { getUnixTimestamp } from "../game/controller/DateTimeUtils";
 
 function typedArrayToBuffer(array: Uint8Array): ArrayBuffer {
     return array.buffer.slice(array.byteOffset, array.byteLength + array.byteOffset)
@@ -121,8 +123,6 @@ export class HeadlessBrowser {
         const existPages = await this._BrowserContainer?.pages(); // get exist pages for check if first blank page is exist
         if (existPages?.length == 2 && this._PageContainer.size == 0) existPages[0].close(); // close useless blank page
 
-
-
         page.on('console', (msg: any) => {
             switch (msg.type()) {
                 case "log": {
@@ -172,7 +172,7 @@ export class HeadlessBrowser {
 
         // add event listeners ============================================================
         page.addListener('_SIO.Log', (event: any) => {
-            this._SIOserver?.sockets.emit('log', { ruid: ruid, origin: event.origin, type: event.type, message: event.message });
+            this._SIOserver?.sockets.emit('log', { id: uuid(), ruid: ruid, origin: event.origin, type: event.type, message: event.message, timestamp: event.timestamp });
         });
         page.addListener('_SIO.InOut', (event: any) => {
             this._SIOserver?.sockets.emit('joinleft', { ruid: ruid, playerID: event.playerID });
@@ -180,8 +180,18 @@ export class HeadlessBrowser {
         page.addListener('_SIO.StatusChange', (event: any) => {
             this._SIOserver?.sockets.emit('statuschange', { ruid: ruid, playerID: event.playerID });
         });
-        page.addListener('_SOCIAL.DiscordWebhook', (event: any) => {
-            const webhookClient = new Discord.WebhookClient(event.id, event.token);
+        page.addListener('_SOCIAL.DiscordWebhook', async (event: any) => {
+            let webhookClient;
+            try {
+                webhookClient = new WebhookClient({
+                    id: event.id,
+                    token: event.token
+                });
+            }
+            catch (e) {
+                winstonLogger.error(`Failed to create Discord webhook client. Error: ${e}`);
+                return;
+            }
 
             switch (event.type as string) {
                 case "replay": {
@@ -194,36 +204,49 @@ export class HeadlessBrowser {
                     const bufferData = Buffer.from(JSON.parse(event.content.data));
                     const replayDateString = moment(matchStats.startedAt).format('DD-MM-YYTHH-mm-ss');
                     const filename = `${roomId}_${replayDateString}.hbr2`;
-                    const attachment = new Discord.MessageAttachment(bufferData, filename);
+                    const attachment = new AttachmentBuilder(bufferData, { name: filename });
 
-                    const embed = new Discord.MessageEmbed();
-                    embed.setColor('WHITE');
-                    embed.setAuthor('CIS-HAXBALL', 'https://cis-haxball.ru/static/img/logo_try.png', 'https://cis-haxball.ru/')
-                    embed.setThumbnail('https://cis-haxball.ru/static/img/logo_try.png')
-                    embed.setTitle(`${roomId} | ${matchStartString}`);
-                    embed.setDescription(`[${matchDurationString}]  ${matchScoreString}\n`);
-                    embed.addFields([
-                        {
-                            name: '🔴\t\tRed Team\t\t\t\n-----------------------',
-                            value: matchStats.startingLineup.red.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
-                            inline: true
-                        },
-                        {
-                            name: '🔵\t\tBlue Team\t\t\t\n-----------------------',
-                            value: matchStats.startingLineup.blue.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
-                            inline: true
-                        }
-                    ]);
-                    embed.addField(' ', '-------------------------------------------------');
-                    embed.setFooter(`Replay: ${filename}`);
-                    embed.setTimestamp(moment.now());
+                    const embed = new EmbedBuilder()
+                        .setColor('White')
+                        .setAuthor({ name: 'CIS-HAXBALL', iconURL: 'https://cis-haxball.ru/static/img/logo_try.png', url: 'https://cis-haxball.ru/' })
+                        .setThumbnail('https://cis-haxball.ru/static/img/logo_try.png')
+                        .setTitle(`${roomId} | ${matchStartString}`)
+                        .setDescription(`[${matchDurationString}]  ${matchScoreString}\n`)
+                        .addFields([
+                            {
+                                name: '🔴\t\tRed Team\t\t\t\n-----------------------',
+                                value: matchStats.startingLineup.red.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
+                                inline: true
+                            },
+                            {
+                                name: '🔵\t\tBlue Team\t\t\t\n-----------------------',
+                                value: matchStats.startingLineup.blue.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
+                                inline: true
+                            },
+                            {
+                                name: ' ',
+                                value: '-------------------------------------------------'
+                            }
+                        ])
+                        .setFooter({ text: `Replay: ${filename}` })
+                        .setTimestamp();
 
-                    webhookClient.send({embeds: [embed]});
-                    webhookClient.send({files: [attachment]});
+                    try {
+                        await webhookClient.send({embeds: [embed]});
+                        await webhookClient.send({files: [attachment]});
+                    } catch (error) {
+                        winstonLogger.error(`[core] Error on sending data to discord webhook: ${error}`);
+                    }
+
                     break;
                 }
                 case "password": {
-                    webhookClient.send(event.content.message);
+                    try {
+                        await webhookClient.send(event.content.message);
+                    } catch (error) {
+                        winstonLogger.error(`[core] Error on sending data to discord webhook: ${error}`);
+                    }
+
                     break;
                 }
             }
@@ -233,7 +256,7 @@ export class HeadlessBrowser {
         // ================================================================================
         // inject some functions ==========================================================
         await page.exposeFunction('_emitSIOLogEvent', (origin: string, type: string, message: string) => {
-            page.emit('_SIO.Log', { origin: origin, type: type, message: message });
+            page.emit('_SIO.Log', { origin: origin, type: type, message: message, timestamp: getUnixTimestamp() });
         });
         await page.exposeFunction('_emitSIOPlayerInOutEvent', (playerID: number) => {
             page.emit('_SIO.InOut', { playerID: playerID });
@@ -486,12 +509,12 @@ export class HeadlessBrowser {
      * Get notice message.
      * @param ruid Game room's UID
      */
-    public async getNotice(ruid: string): Promise<string | undefined> {
+    public async getNotice(ruid: string): Promise<string | null> {
         return await this._PageContainer.get(ruid)!.evaluate(() => {
             if (window.gameRoom.notice) {
                 return window.gameRoom.notice;
             } else {
-                return undefined;
+                return null;
             }
         });
     }
