@@ -1,28 +1,17 @@
 'use client';
 
-import React, { ChangeEvent, useState } from 'react';
+import React, { useState } from 'react';
 
-import { AddCircle, Cancel, Help, Refresh } from '@mui/icons-material';
-import BackspaceOutlined from '@mui/icons-material/BackspaceOutlined';
-import {
-  Button,
-  Container,
-  Divider,
-  Grid2 as Grid,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { ChevronLeft, ChevronRight, PlusCircle, RefreshCw, Trash2, X } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { isNumber } from '@/lib/numcheck';
 import { mutations, queries } from '@/lib/queries/roles';
@@ -48,13 +37,13 @@ const convertEventToString = (event: PlayerRoleEvent): string => {
 const convertEventTypeToIcon = (eventType: PlayerRoleEventType): React.ReactNode => {
   switch (eventType) {
     case PlayerRoleEventType.addRole:
-      return <AddCircle titleAccess="Player added" htmlColor="green" />;
+      return <PlusCircle className="size-5 text-green-600" aria-label="Player added" />;
     case PlayerRoleEventType.updateRole:
-      return <Refresh titleAccess="Role updated" htmlColor="blue" />;
+      return <RefreshCw className="size-5 text-blue-600" aria-label="Role updated" />;
     case PlayerRoleEventType.removeRole:
-      return <Cancel titleAccess="Player removed" htmlColor="red" />;
+      return <X className="size-5 text-red-600" aria-label="Player removed" />;
     default:
-      return <Help />;
+      throw new Error(`Unknown event type: ${eventType}`);
   }
 };
 
@@ -68,15 +57,17 @@ export default function RoomPlayerList() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchQueryDebounced] = useDebounce(searchQuery, 300);
+  const [pagingCountDebounced] = useDebounce(pagingCount, 300);
+  const [eventsPagingCountDebounced] = useDebounce(eventsPagingCount, 300);
 
   const { data: roles, isPlaceholderData: isRolesPlaceholderData } = queries.getPlayersRoles({
     page,
-    pagingCount,
+    pagingCount: pagingCountDebounced,
     searchQuery: searchQueryDebounced,
   });
   const { data: roleEvents, isPlaceholderData: isEventsPlaceholderData } = queries.getPlayersRoleEvents({
     page: eventsPage,
-    pagingCount: eventsPagingCount,
+    pagingCount: eventsPagingCountDebounced,
     searchQuery: searchQueryDebounced,
   });
 
@@ -138,15 +129,14 @@ export default function RoomPlayerList() {
     });
   };
 
-  const updateRole = async (e: ChangeEvent<HTMLSelectElement>, playerIndex: number) => {
-    const { value: role } = e.target;
+  const updateRole = async (role: string, playerIndex: number) => {
     const selectedRole = roles![playerIndex];
 
     updateRoleMutation.mutate(
       { ...selectedRole, role },
       {
         onSuccess: () => {
-          SnackBarNotification.success(`Player's ${newRole.name} was updated to '${role}'.`);
+          SnackBarNotification.success(`Player's ${selectedRole.name} was updated to '${role}'.`);
         },
         onError: (error) => {
           SnackBarNotification.error(error.message);
@@ -170,254 +160,197 @@ export default function RoomPlayerList() {
   };
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12 }}>
-          <Paper className="p-4">
-            <React.Fragment>
-              <WidgetTitle>Player Accounts List</WidgetTitle>
-              <Grid container spacing={1} flexDirection="column">
-                <form className="w-full" onSubmit={addRole} method="post">
-                  <Grid size={{ xs: 12, sm: 12 }} className="space-x-1!">
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newRole.name}
-                      onChange={onChangeNewRole}
-                      id="name"
-                      label="Name"
-                      name="name"
-                    />
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newRole.auth}
-                      onChange={onChangeNewRole}
-                      id="auth"
-                      label="Public id"
-                      name="auth"
-                      style={{ width: 450 }}
-                    />
-                    <select
-                      value={newRole.role}
-                      onChange={onChangeNewRole}
-                      id="role"
-                      name="role"
-                      className="w-24 mt-4 mr-2 p-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    >
-                      <option value="player">player</option>
-                      <option value="adm">adm</option>
-                      <option value="s-adm">s-adm</option>
-                      <option value="co-host">co-host</option>
-                      <option value="bad">bad</option>
-                    </select>
-                    <Button size="small" type="submit" variant="contained" color="primary">
-                      Add
-                    </Button>
-                  </Grid>
-                </form>
+    <div className="max-w-6xl mx-auto py-8 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Player Accounts List</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="w-full space-y-4" onSubmit={addRole} method="post">
+            <div className="flex gap-4 items-end">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="name">Name</Label>
+                <Input id="name" name="name" required value={newRole.name} onChange={onChangeNewRole} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="auth">Public id</Label>
+                <Input
+                  id="auth"
+                  name="auth"
+                  required
+                  value={newRole.auth}
+                  onChange={onChangeNewRole}
+                  className="w-[450px]"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  name="role"
+                  value={newRole.role}
+                  onValueChange={(value) => setNewRole({ ...newRole, role: value })}
+                >
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="player">player</SelectItem>
+                    <SelectItem value="adm">adm</SelectItem>
+                    <SelectItem value="s-adm">s-adm</SelectItem>
+                    <SelectItem value="co-host">co-host</SelectItem>
+                    <SelectItem value="bad">bad</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" size="sm">
+                Add
+              </Button>
+            </div>
+          </form>
 
-                <Grid container size={12} spacing={1} flexDirection="row" mb={2}>
-                  <Grid size={{ xs: 12, sm: 5 }}>
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      size="small"
-                      value={searchQuery}
-                      onChange={onChangeSearchQuery}
-                      id="searchQuery"
-                      label="Search query"
-                      name="searchQuery"
-                      fullWidth
-                    />
-                  </Grid>
+          <div className="flex gap-4 items-end mt-6">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="searchQuery">Search query</Label>
+              <Input
+                id="searchQuery"
+                name="searchQuery"
+                value={searchQuery}
+                onChange={onChangeSearchQuery}
+                className="w-[300px]"
+              />
+            </div>
 
-                  <Grid size={{ xs: 12, sm: 5 }}>
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      size="small"
-                      style={{ width: 150 }}
-                      id="pagingCountInput"
-                      label="Paging Items Count"
-                      name="pagingCountInput"
-                      type="number"
-                      value={pagingCount}
-                      onChange={onChangePagingCountInput}
-                      slotProps={{ htmlInput: { min: 1, max: 50 } }}
-                    />
-                    {/* previous page */}
-                    <Button
-                      onClick={() => onClickPaging(-1)}
-                      size="small"
-                      type="button"
-                      variant="outlined"
-                      color="inherit"
-                      className="mt-6!"
-                    >
-                      &lt;&lt;
-                    </Button>
-                    {/* next page */}
-                    <Button
-                      onClick={() => onClickPaging(1)}
-                      size="small"
-                      type="button"
-                      variant="outlined"
-                      color="inherit"
-                      className="mt-6!"
-                    >
-                      &gt;&gt;
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Grid>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="pagingCountInput">Paging Items Count</Label>
+              <Input
+                id="pagingCountInput"
+                name="pagingCountInput"
+                type="number"
+                value={pagingCount}
+                onChange={onChangePagingCountInput}
+                min={1}
+                max={50}
+                className="w-[150px]"
+              />
+            </div>
 
-              <Grid container spacing={1}>
-                <Grid size={12}>
-                  <Typography>Page {page}</Typography>
-                </Grid>
+            <div className="flex gap-2">
+              <Button onClick={() => onClickPaging(-1)} size="icon" type="button" variant="outline">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => onClickPaging(1)} size="icon" type="button" variant="outline">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
 
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell width="20%" className="font-bold!">
-                        Name
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground mb-2">Page {page}</p>
+
+            <Table>
+              {!roles || (roles.length === 0 && <TableCaption>No players found</TableCaption>)}
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[20%] font-bold">Name</TableHead>
+                  <TableHead className="w-[35%] font-bold">Public id</TableHead>
+                  <TableHead className="w-[10%] font-bold">Role</TableHead>
+                  <TableHead className="w-[5%]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className={isRolesPlaceholderData ? 'opacity-50' : ''}>
+                {roles &&
+                  roles.map((item, idx) => (
+                    <TableRow key={item.auth}>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell>{item.auth}</TableCell>
+                      <TableCell>
+                        <Select value={item.role} onValueChange={(value) => updateRole(value, idx)}>
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="player">player</SelectItem>
+                            <SelectItem value="adm">adm</SelectItem>
+                            <SelectItem value="s-adm">s-adm</SelectItem>
+                            <SelectItem value="co-host">co-host</SelectItem>
+                            <SelectItem value="bad">bad</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
-                      <TableCell width="35%" className="font-bold!">
-                        Public id
+                      <TableCell>
+                        <Button
+                          type="button"
+                          title="Remove player"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteRole(item.auth, item.name)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 className="size-5" aria-label="Remove player" />
+                        </Button>
                       </TableCell>
-                      <TableCell width="10%" className="font-bold!">
-                        Role
-                      </TableCell>
-                      <TableCell></TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody className={isRolesPlaceholderData ? 'opacity-50' : ''}>
-                    {roles &&
-                      roles.map((item, idx) => (
-                        <TableRow key={item.auth} className="*:border-none!">
-                          <TableCell width="20%" component="th" scope="row">
-                            {item.name}
-                          </TableCell>
-                          <TableCell width="35%">{item.auth}</TableCell>
-                          <TableCell width="5%">
-                            <select
-                              value={item.role}
-                              onChange={(e) => updateRole(e, idx)}
-                              id="role"
-                              name="role"
-                              className="w-24 p-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                              <option value="player">player</option>
-                              <option value="adm">adm</option>
-                              <option value="s-adm">s-adm</option>
-                              <option value="co-host">co-host</option>
-                              <option value="bad">bad</option>
-                            </select>
-                          </TableCell>
-                          <TableCell align="left">
-                            <IconButton
-                              name={item.auth}
-                              onClick={() => deleteRole(item.auth, item.name)}
-                              aria-label="delete"
-                            >
-                              <BackspaceOutlined fontSize="small" />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </Grid>
-            </React.Fragment>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
-            <Divider className="mb-3!" />
+      <Card>
+        <CardHeader>
+          <CardTitle>Event log</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 items-end mb-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="eventsPagingCountInput">Paging Items Count</Label>
+              <Input
+                id="eventsPagingCountInput"
+                name="eventsPagingCountInput"
+                type="number"
+                value={eventsPagingCount}
+                onChange={onChangeEventsPagingCountInput}
+                min={1}
+                max={50}
+                className="w-[150px]"
+              />
+            </div>
 
-            <React.Fragment>
-              <WidgetTitle>Event log</WidgetTitle>
+            <div className="flex gap-2">
+              <Button onClick={() => onClickEventsPaging(-1)} size="icon" type="button" variant="outline">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => onClickEventsPaging(1)} size="icon" type="button" variant="outline">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
 
-              <Grid container spacing={1}>
-                <Grid size={12} mb={2}>
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    size="small"
-                    style={{ width: 150 }}
-                    id="eventsPagingCountInput"
-                    label="Paging Items Count"
-                    name="pagingCountInput"
-                    type="number"
-                    value={eventsPagingCount}
-                    onChange={onChangeEventsPagingCountInput}
-                    slotProps={{ htmlInput: { min: 1, max: 50 } }}
-                  />
-                  {/* previous page */}
-                  <Button
-                    onClick={() => onClickEventsPaging(-1)}
-                    size="small"
-                    type="button"
-                    variant="outlined"
-                    color="inherit"
-                    className="mt-6!"
-                  >
-                    &lt;&lt;
-                  </Button>
-                  {/* next page */}
-                  <Button
-                    onClick={() => onClickEventsPaging(1)}
-                    size="small"
-                    type="button"
-                    variant="outlined"
-                    color="inherit"
-                    className="mt-6!"
-                  >
-                    &gt;&gt;
-                  </Button>
-                </Grid>
+          <p className="text-sm text-muted-foreground mb-2">Page {eventsPage}</p>
 
-                <Grid container size={12} spacing={1}>
-                  <Typography>Page {eventsPage}</Typography>
-
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell width="5%" className="font-bold!">
-                          Type
-                        </TableCell>
-                        <TableCell width="75%" className="font-bold!">
-                          Event
-                        </TableCell>
-                        <TableCell width="20%" className="font-bold!">
-                          Date
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody className={isEventsPlaceholderData ? 'opacity-50' : ''}>
-                      {roleEvents &&
-                        roleEvents.map((event) => (
-                          <TableRow key={event.timestamp} className="*:border-none!">
-                            <TableCell width="5%" component="th" scope="row">
-                              {convertEventTypeToIcon(event.type)}
-                            </TableCell>
-                            <TableCell width="75%" component="th" scope="row">
-                              {convertEventToString(event)}
-                            </TableCell>
-                            <TableCell width="20%">{convertDate(event.timestamp)}</TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </Grid>
-              </Grid>
-            </React.Fragment>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+          <Table>
+            {!roleEvents || (roleEvents.length === 0 && <TableCaption>No events found</TableCaption>)}
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[5%] font-bold">Type</TableHead>
+                <TableHead className="w-[75%] font-bold">Event</TableHead>
+                <TableHead className="w-[20%] font-bold">Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className={isEventsPlaceholderData ? 'opacity-50' : ''}>
+              {roleEvents &&
+                roleEvents.map((event) => (
+                  <TableRow key={event.timestamp}>
+                    <TableCell className="font-medium">{convertEventTypeToIcon(event.type)}</TableCell>
+                    <TableCell>{convertEventToString(event)}</TableCell>
+                    <TableCell>{convertDate(event.timestamp)}</TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
