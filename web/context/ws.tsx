@@ -7,7 +7,7 @@ import io from 'socket.io-client';
 
 import { queryKeys } from '@/lib/queries/room';
 
-const ws = io(process.env.CORE_API_URL || 'http://localhost:15001', {
+const ws = io(process.env.NEXT_PUBLIC_CORE_API_URL || 'http://localhost:15001', {
   path: '/ws',
   transports: ['websocket'],
   autoConnect: false,
