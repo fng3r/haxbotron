@@ -28,6 +28,10 @@ import DefaultConfigSet from '@/lib/defaultroomconfig.json';
 import { isNumber } from '@/lib/numcheck';
 import { mutations } from '@/lib/queries/room';
 
+const stringifySettings = (settings: BrowserHostRoomSettings) => {
+  return JSON.stringify(settings, null, 4);
+};
+
 export default function RoomCreate() {
   const router = useRouter();
 
@@ -35,7 +39,9 @@ export default function RoomCreate() {
   const [configFormField, setConfigFormField] = useState(DefaultConfigSet._config); // Room Configuration Form
   const [rulesFormField, setRulesFormField] = useState(DefaultConfigSet.rules); // Game Rules Configuration Form
   const [settingsFormField, setSettingsFormField] = useState(DefaultConfigSet.settings); // Bot Settings Configuration Form
-  const [settingsFormStringifiedField, setSettingsFormStringifiedField] = useState('');
+  const [settingsFormStringifiedField, setSettingsFormStringifiedField] = useState(
+    stringifySettings(DefaultConfigSet.settings),
+  );
 
   const roomPublic = configFormField.public;
   const teamLock = rulesFormField.requisite.teamLock;
@@ -55,7 +61,7 @@ export default function RoomCreate() {
         setConfigFormField(config._config);
         setRulesFormField(config.rules);
         setSettingsFormField(config.settings);
-        setSettingsFormStringifiedField(JSON.stringify(config.settings, null, 4));
+        setSettingsFormStringifiedField(stringifySettings(config.settings));
       }
     } catch (error) {
       console.error(`Error loading room config from localStorage:`, error);
@@ -113,7 +119,7 @@ export default function RoomCreate() {
     e.preventDefault();
 
     try {
-      setSettingsFormStringifiedField(JSON.stringify(settingsFormField, null, 4));
+      setSettingsFormStringifiedField(stringifySettings(settingsFormField));
     } catch (error) {
       console.error('Failed to stringify settings:', error);
     }
