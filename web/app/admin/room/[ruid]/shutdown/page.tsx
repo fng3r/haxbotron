@@ -1,13 +1,10 @@
 'use client';
 
-import React from 'react';
-
 import { useParams, useRouter } from 'next/navigation';
 
-import { Button, Container, Grid2 as Grid, Paper } from '@mui/material';
-
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { mutations } from '@/lib/queries/room';
 
@@ -17,9 +14,7 @@ export default function RoomPower() {
 
   const shutdownRoomMutation = mutations.shutdownRoom();
 
-  const handleShutdownClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault();
-
+  const handleShutdownClick = async () => {
     shutdownRoomMutation.mutate(ruid, {
       onSuccess: () => {
         SnackBarNotification.success('Shutdown succeeded.');
@@ -32,26 +27,17 @@ export default function RoomPower() {
   };
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <Paper className="p-4">
-            <React.Fragment>
-              <WidgetTitle>{ruid}</WidgetTitle>
-              <Button
-                type="submit"
-                variant="contained"
-                color="error"
-                className="mt-3!"
-                onClick={handleShutdownClick}
-                fullWidth
-              >
-                Shutdown this room right now
-              </Button>
-            </React.Fragment>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+    <div className="max-w-6xl mx-auto py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>{ruid}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button type="button" variant="destructive" className="w-full" onClick={handleShutdownClick}>
+            Shutdown this room right now
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
