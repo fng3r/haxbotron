@@ -342,7 +342,7 @@ export default function RoomPlayerList() {
               <WidgetTitle>Event log</WidgetTitle>
 
               <Grid container spacing={1}>
-                <Grid size={{ xs: 8, sm: 4 }} mb={2}>
+                <Grid size={12} mb={2}>
                   <TextField
                     variant="outlined"
                     margin="normal"
@@ -380,7 +380,7 @@ export default function RoomPlayerList() {
                   </Button>
                 </Grid>
 
-                <Grid container spacing={1}>
+                <Grid container size={12} spacing={1}>
                   <Typography>Page {eventsPage}</Typography>
 
                   <Table size="small">
