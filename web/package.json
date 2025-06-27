@@ -19,10 +19,13 @@
     "@types/socket.io-client": "^1.4.36",
     "axios": "^1.7.9",
     "bcrypt": "^6.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "fs": "^0.0.1-security",
     "immutable": "^5.1.3",
     "jose": "^6.0.11",
     "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.523.0",
     "next": "^15.3.3",
     "node-persist": "^4.0.4",
     "notistack": "^3.0.2",
@@ -30,6 +33,7 @@
     "react-color": "^2.19.3",
     "react-dom": "^19.0.0",
     "socket.io-client": "^4.8.1",
+    "tailwind-merge": "^3.3.1",
     "use-debounce": "^10.0.5"
   },
   "devDependencies": {
@@ -49,6 +53,7 @@
     "prettier": "^3.5.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.8",
+    "tw-animate-css": "^1.3.4",
     "typescript": "^5"
   }
 }
