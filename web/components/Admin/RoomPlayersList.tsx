@@ -215,39 +215,6 @@ function PlayerAccountRow(props: { idx: number; row: RoomPlayer }) {
                   </TableRow>
                 </TableBody>
               </Table>
-              <Typography variant="h6" gutterBottom component="div">
-                Statistics
-              </Typography>
-              <Table size="small" aria-label="player information">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Rating</TableCell>
-                    <TableCell>Wins/Totals</TableCell>
-                    <TableCell>Goals</TableCell>
-                    <TableCell>Assists</TableCell>
-                    <TableCell>OGs</TableCell>
-                    <TableCell>Lose Points</TableCell>
-                    <TableCell>Pass Succ</TableCell>
-                    <TableCell>Disconnections</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow key={idx}>
-                    <TableCell component="th" scope="row">
-                      {row.rating}
-                    </TableCell>
-                    <TableCell>
-                      {row.wins}/{row.totals} ({Math.round((row.wins / row.totals) * 100) || 0}%)
-                    </TableCell>
-                    <TableCell>{row.goals}</TableCell>
-                    <TableCell>{row.assists}</TableCell>
-                    <TableCell>{row.ogs}</TableCell>
-                    <TableCell>{row.losePoints}</TableCell>
-                    <TableCell>{Math.round((row.passed / row.balltouch) * 100) || 0}%</TableCell>
-                    <TableCell>{row.disconns}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
             </Box>
           </Collapse>
         </TableCell>
