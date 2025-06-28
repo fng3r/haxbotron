@@ -8,10 +8,10 @@ import {
   Gamepad2,
   LayoutDashboard,
   List,
-  Paperclip,
   PlusCircle,
   Server,
   Share2,
+  Shirt,
   User,
   Users2,
   XOctagon,
@@ -39,7 +39,7 @@ export default function NavSideBar({ open }: { open: boolean }) {
           <NavItem href={`/admin/room/${ruid}/social`} label="Social" Icon={Share2} open={open} />
           <NavItem href={`/admin/room/${ruid}/players`} label="Player List" Icon={User} open={open} />
           <NavItem href={`/admin/room/${ruid}/bans`} label="Ban List" Icon={Ban} open={open} />
-          <NavItem href={`/admin/room/${ruid}/assets`} label="Assets" Icon={Paperclip} open={open} />
+          <NavItem href={`/admin/room/${ruid}/kits`} label="Kits" Icon={Shirt} open={open} />
           <NavItem href={`/admin/room/${ruid}/shutdown`} label="Close this room" Icon={XOctagon} open={open} />
         </>
       )}
