@@ -2,7 +2,7 @@ import { useState } from 'react';
 import TurndownService from 'turndown';
 
 import { invariant } from '@epic-web/invariant';
-import { Copy } from 'lucide-react';
+import { CheckCheck, Copy } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
@@ -11,6 +11,11 @@ interface CopyButtonProps extends React.ComponentProps<typeof Button> {
    * Plain text content to copy to clipboard. Takes precedence over auto-generated plain-text version if HTML is provided.
    */
   text?: string;
+
+  /**
+   * Text displayed on the copy button. If not provided, the button will only show the copied icon.
+   */
+  buttonText?: string;
 
   /**
    * HTML content to copy to clipboard. Will be converted to markdown for plain text format.
@@ -25,7 +30,7 @@ interface CopyButtonProps extends React.ComponentProps<typeof Button> {
   htmlRef?: React.RefObject<HTMLElement | HTMLInputElement | null>;
 }
 
-export function CopyButton({ text, html, htmlRef, className, ...props }: CopyButtonProps) {
+export function CopyButton({ text, buttonText, html, htmlRef, className, ...props }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = async () => {
@@ -67,8 +72,8 @@ export function CopyButton({ text, html, htmlRef, className, ...props }: CopyBut
 
   return (
     <Button variant="outline" size="sm" className={className} onClick={copyToClipboard} {...props}>
-      <Copy className="mr-2 h-4 w-4" />
-      {copied ? 'Copied!' : 'Copy'}
+      {copied ? <CheckCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      {buttonText && <span className="ml-1">{copied ? 'Copied!' : buttonText}</span>}
     </Button>
   );
 }
