@@ -2,27 +2,14 @@
 
 import React, { useState } from 'react';
 
-import {
-  KeyboardArrowDown as KeyboardArrowDownIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon,
-} from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Collapse,
-  Grid2 as Grid,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { Player } from '@/../core/game/model/GameObject/Player';
 import { isNumber } from '@/lib/numcheck';
@@ -36,60 +23,54 @@ const convertDate = (timestamp: number): string => {
 
 export default function OnlinePlayerList({ ruid }: { ruid: string }) {
   const { data: onlinePlayers } = queries.getOnlinePlayersID(ruid);
-
   return (
-    <>
-      <WidgetTitle>Online Players</WidgetTitle>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell width="20%" className="font-bold!">
-              Name
-            </TableCell>
-            <TableCell className="font-bold!">AUTH</TableCell>
-            <TableCell className="font-bold!">CONN</TableCell>
-            <TableCell className="font-bold!">Team</TableCell>
-            <TableCell className="font-bold!">Chat</TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {onlinePlayers && onlinePlayers.map((item, idx) => <OnlinePlayerRow key={idx} row={item} ruid={ruid} />)}
-        </TableBody>
-      </Table>
-    </>
+    <Card>
+      <CardHeader>
+        <CardTitle>Online Players</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-1/5">Name</TableHead>
+              <TableHead>AUTH</TableHead>
+              <TableHead>CONN</TableHead>
+              <TableHead>Team</TableHead>
+              <TableHead>Chat</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {onlinePlayers && onlinePlayers.map((item, idx) => <OnlinePlayerRow key={idx} row={item} ruid={ruid} />)}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
 
 function OnlinePlayerRow(props: { ruid: string; row: Player }) {
   const { ruid, row } = props;
   const [open, setOpen] = useState(false);
-
   const [kickReason, setKickReason] = useState('');
   const [newBan, setNewBan] = useState({ reason: '', seconds: 180 } as BanOptions);
-
   const [whisperMessage, setWhisperMessage] = useState('');
-
   const mutePlayerMutation = mutations.mutePlayer();
   const unmutePlayerMutation = mutations.unmutePlayer();
   const kickPlayerMutation = mutations.kickPlayer();
   const banPlayerMutation = mutations.banPlayer();
   const sendWhisperMutation = mutations.sendWhisper();
-
   const convertTeamID = (teamID: number): string => {
     if (teamID === 1) return 'Red';
     if (teamID === 2) return 'Blue';
     return 'Spec';
   };
-
   const onChangeKickReason = (e: React.ChangeEvent<HTMLInputElement>) => {
     setKickReason(e.target.value);
   };
-
   const onChangeNewBan = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name === 'newbanseconds' && isNumber(parseInt(value))) {
+    if (name === 'seconds' && isNumber(parseInt(value))) {
       setNewBan({
         ...newBan,
         seconds: parseInt(value),
@@ -101,14 +82,11 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
       });
     }
   };
-
   const onChangeWhisperMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
     setWhisperMessage(e.target.value);
   };
-
   const handleWhisper = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     sendWhisperMutation.mutate(
       { ruid, player: row, message: whisperMessage },
       {
@@ -122,10 +100,8 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
       },
     );
   };
-
   const handleKick = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     kickPlayerMutation.mutate(
       { ruid, player: row, reason: kickReason },
       {
@@ -139,10 +115,8 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
       },
     );
   };
-
   const handleBan = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     banPlayerMutation.mutate(
       { ruid, player: row, banOptions: newBan },
       {
@@ -156,10 +130,8 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
       },
     );
   };
-
   const handleOnlinePlayerMute = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.preventDefault();
-
     if (row.permissions.mute) {
       unmutePlayerMutation.mutate(
         { ruid, player: row },
@@ -186,120 +158,90 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
       );
     }
   };
-
   return (
     <>
-      <TableRow className="*:border-none">
-        <TableCell component="th" scope="row">
+      <TableRow>
+        <TableCell>
           {row.name}#{row.id}
         </TableCell>
         <TableCell>{row.auth}</TableCell>
         <TableCell>{row.conn}</TableCell>
         <TableCell>{convertTeamID(row.team)}</TableCell>
         <TableCell>
-          <Button size="small" type="button" variant="text" color="inherit" onClick={handleOnlinePlayerMute}>
+          <Button size="sm" type="button" variant="ghost" onClick={handleOnlinePlayerMute}>
             {row.permissions.mute ? 'Unmute' : 'Mute'}
           </Button>
         </TableCell>
         <TableCell>
-          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
+          <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} aria-label="expand row">
+            {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </Button>
         </TableCell>
       </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box margin={1}>
-              <Grid container spacing={1} direction={'column'}>
-                <form onSubmit={handleWhisper} method="post">
-                  <Grid size={{ xs: 12, sm: 12 }}>
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={whisperMessage}
-                      onChange={onChangeWhisperMessage}
-                      id="whisper"
-                      label="Whisper"
-                      name="whisper"
-                    />
-                    <Button size="small" type="submit" variant="contained" color="primary" className="mt-5! ml-1!">
-                      Send
-                    </Button>
-                  </Grid>
+      {open && (
+        <TableRow>
+          <TableCell colSpan={6} className="p-0 bg-muted/30">
+            <div className="p-4 flex flex-col gap-4">
+              <form onSubmit={handleWhisper} className="flex gap-2 items-end">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="whisper">Whisper</Label>
+                  <Input
+                    required
+                    value={whisperMessage}
+                    onChange={onChangeWhisperMessage}
+                    id="whisper"
+                    name="whisper"
+                  />
+                </div>
+                <Button type="submit" variant="default">
+                  Send
+                </Button>
+              </form>
+              <div className="flex gap-4">
+                <form onSubmit={handleKick} className="flex gap-2 items-end">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="kickReason">Kick Reason</Label>
+                    <Input value={kickReason} onChange={onChangeKickReason} id="kickReason" name="kickReason" />
+                  </div>
+                  <Button type="submit" variant="destructive">
+                    Kick
+                  </Button>
                 </form>
-                <Grid container columnSpacing={4}>
-                  <form onSubmit={handleKick} method="post">
-                    <Grid size={{ xs: 12, sm: 12 }}>
-                      <TextField
-                        variant="outlined"
-                        margin="normal"
-                        size="small"
-                        value={kickReason}
-                        onChange={onChangeKickReason}
-                        id="reason"
-                        label="Reason"
-                        name="reason"
-                        className="mr-1!"
-                      />
-                      <Button size="small" type="submit" variant="contained" color="secondary" className="mt-5!">
-                        Kick
-                      </Button>
-                    </Grid>
-                  </form>
-
-                  <form onSubmit={handleBan} method="post">
-                    <Grid size={{ xs: 12, sm: 12 }}>
-                      <TextField
-                        variant="outlined"
-                        margin="normal"
-                        size="small"
-                        value={newBan.reason}
-                        onChange={onChangeNewBan}
-                        id="reason"
-                        label="Reason"
-                        name="reason"
-                        className="mr-2!"
-                      />
-                      <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
-                        size="small"
-                        value={newBan.seconds}
-                        onChange={onChangeNewBan}
-                        type="number"
-                        id="seconds"
-                        label="Time(secs)"
-                        name="seconds"
-                        className="mr-1!"
-                      />
-                      <Button size="small" type="submit" variant="contained" color="error" className="mt-5!">
-                        Ban
-                      </Button>
-                    </Grid>
-                  </form>
-                </Grid>
-              </Grid>
-              <Typography variant="h6" gutterBottom component="div">
-                Information
-              </Typography>
-              <Table size="small" aria-label="statistics">
-                <TableHead>
+                <form onSubmit={handleBan} className="flex gap-2 items-end">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="banReason">Ban Reason</Label>
+                    <Input value={newBan.reason} onChange={onChangeNewBan} id="banReason" name="reason" />
+                  </div>
+                  <div className="flex flex-col gap-2 w-32">
+                    <Label htmlFor="banSeconds">Ban Time (secs)</Label>
+                    <Input
+                      required
+                      value={newBan.seconds}
+                      onChange={onChangeNewBan}
+                      type="number"
+                      id="banSeconds"
+                      name="seconds"
+                      min={0}
+                    />
+                  </div>
+                  <Button type="submit" variant="destructive">
+                    Ban
+                  </Button>
+                </form>
+              </div>
+              <div className="font-semibold mb-2">Information</div>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell>Permissions</TableCell>
-                    <TableCell>Mute</TableCell>
-                    <TableCell>Mute Expiration</TableCell>
-                    <TableCell>Join Date</TableCell>
+                    <TableHead>Permissions</TableHead>
+                    <TableHead>Mute</TableHead>
+                    <TableHead>Mute Expiration</TableHead>
+                    <TableHead>Join Date</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
-                  <TableRow key={row.id}>
-                    <TableCell component="th" scope="row">
-                      {row.admin ? 'Admin' : '-'}
-                    </TableCell>
+                  <TableRow>
+                    <TableCell>{row.admin ? 'Admin' : '-'}</TableCell>
                     <TableCell>{row.permissions.mute ? 'Yes' : 'No'}</TableCell>
                     <TableCell>
                       {row.permissions.muteExpire === 0 ? '-' : convertDate(row.permissions.muteExpire)}
@@ -308,10 +250,10 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
                   </TableRow>
                 </TableBody>
               </Table>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
     </>
   );
 }

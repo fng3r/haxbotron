@@ -100,6 +100,7 @@ export const banPlayer = async ({
 }): Promise<void> => {
   try {
     const apiClient = getApiClient();
+    console.log(banOptions.reason);
     await apiClient.delete(`/api/v1/room/${ruid}/player/${player.id}`, {
       data: {
         ban: true,

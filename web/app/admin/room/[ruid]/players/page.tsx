@@ -1,4 +1,3 @@
-import { Container, Divider, Grid2 as Grid, Paper } from '@mui/material';
 import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
 
 import OnlinePlayerList from '@/components/Admin/OnlinePlayersList';
@@ -24,18 +23,11 @@ export default async function RoomPlayerList({ params }: { params: Promise<{ rui
   ]);
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <Paper className="p-4!">
-            <HydrationBoundary state={dehydrate(queryClient)}>
-              <OnlinePlayerList ruid={ruid} />
-              <Divider className="mb-2!" />
-              <RoomPlayersList ruid={ruid} />
-            </HydrationBoundary>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+    <div className="max-w-6xl mx-auto py-8 space-y-4">
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <OnlinePlayerList ruid={ruid} />
+        <RoomPlayersList ruid={ruid} />
+      </HydrationBoundary>
+    </div>
   );
 }

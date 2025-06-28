@@ -1,17 +1,17 @@
+import { AttachmentBuilder, EmbedBuilder, WebhookClient } from "discord.js";
+import moment from "moment";
 import puppeteer from "puppeteer";
+import { Server as SIOserver, } from "socket.io";
+import { v4 as uuid } from "uuid";
+import { getUnixTimestamp } from "../game/controller/DateTimeUtils";
 import { Player } from "../game/model/GameObject/Player";
+import { PlayerObject } from "../game/model/GameObject/PlayerObject";
+import { TeamID } from "../game/model/GameObject/TeamID";
 import { winstonLogger } from "../winstonLoggerSystem";
 import { BrowserHostRoomInitConfig } from "./browser.hostconfig";
+import { DiscordWebhookConfig } from "./browser.interface";
 import * as dbUtilityInject from "./db.injection";
 import { loadStadiumData } from "./stadiumLoader";
-import { Server as SIOserver, } from "socket.io";
-import { TeamID } from "../game/model/GameObject/TeamID";
-import { AttachmentBuilder, EmbedBuilder, WebhookClient } from 'discord.js';
-import { DiscordWebhookConfig } from "./browser.interface";
-import moment from "moment";
-import {v4 as uuid} from "uuid";
-import {PlayerObject} from "../game/model/GameObject/PlayerObject";
-import { getUnixTimestamp } from "../game/controller/DateTimeUtils";
 
 function typedArrayToBuffer(array: Uint8Array): ArrayBuffer {
     return array.buffer.slice(array.byteOffset, array.byteLength + array.byteOffset)
@@ -462,13 +462,13 @@ export class HeadlessBrowser {
      * @param message Reason
      * @param seconds Fixed-term ban duration
      */
-    public async banPlayerFixedTerm(ruid: string, id: number, ban: boolean, message: string, seconds: number): Promise<void> {
-        await this._PageContainer.get(ruid)?.evaluate(async (id: number, ban: boolean, message: string, seconds: number) => {
+    public async banPlayerFixedTerm(ruid: string, id: number, ban: boolean, reason: string, seconds: number): Promise<void> {
+        await this._PageContainer.get(ruid)?.evaluate(async (id: number, ban: boolean, reason: string, seconds: number) => {
             if (window.gameRoom.playerList.has(id)) {
                 const banItem = {
                     conn: window.gameRoom.playerList.get(id)!.conn,
                     auth: window.gameRoom.playerList.get(id)!.auth,
-                    reason: message,
+                    reason: reason,
                     register: Math.floor(Date.now()),
                     expire: Math.floor(Date.now()) + (seconds * 1000)
                 }
@@ -479,10 +479,10 @@ export class HeadlessBrowser {
                     // or create new one
                     await window._createBanlistDB(window.gameRoom.config._RUID, banItem);
                 }
-                window.gameRoom._room.kickPlayer(id, message, ban);
-                window.gameRoom.logger.i('system', `[Kick] #${id} has been ${ban ? 'banned' : 'kicked'} by operator. (duration: ${seconds}secs, reason: ${message})`);
+                window.gameRoom._room.kickPlayer(id, reason, ban);
+                window.gameRoom.logger.i('system', `[Kick] #${id} has been ${ban ? 'banned' : 'kicked'} by operator. (duration: ${seconds}secs, reason: ${reason})`);
             }
-        }, id, ban, message, seconds);
+        }, id, ban, reason, seconds);
     }
 
     /**
