@@ -8,7 +8,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset>
+        <SidebarInset className="m-0!">
           <header className="mb-2 w-7xl mx-auto flex items-center gap-3 px-4 pt-3">
             <SidebarTrigger />
             <Separator orientation="vertical" />
