@@ -8,9 +8,11 @@ import { useDebounce } from 'use-debounce';
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CopyButton } from '@/components/ui/copy-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { isNumber } from '@/lib/numcheck';
@@ -208,7 +210,9 @@ export default function RoomPlayerList() {
             </div>
           </form>
 
-          <div className="flex gap-4 items-end mt-6">
+          <Separator className="my-4" />
+
+          <div className="flex flex-col gap-4 mt-6">
             <div className="flex flex-col gap-2">
               <Label htmlFor="searchQuery">Search query</Label>
               <Input
@@ -216,31 +220,33 @@ export default function RoomPlayerList() {
                 name="searchQuery"
                 value={searchQuery}
                 onChange={onChangeSearchQuery}
-                className="w-[300px]"
+                className="w-[400px]"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="pagingCountInput">Paging Items Count</Label>
-              <Input
-                id="pagingCountInput"
-                name="pagingCountInput"
-                type="number"
-                value={pagingCount}
-                onChange={onChangePagingCountInput}
-                min={1}
-                max={50}
-                className="w-[150px]"
-              />
-            </div>
+            <div className="flex gap-2 items-end">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="pagingCountInput">Paging Items Count</Label>
+                <Input
+                  id="pagingCountInput"
+                  name="pagingCountInput"
+                  type="number"
+                  value={pagingCount}
+                  onChange={onChangePagingCountInput}
+                  min={1}
+                  max={50}
+                  className="w-[150px]"
+                />
+              </div>
 
-            <div className="flex gap-2">
-              <Button onClick={() => onClickPaging(-1)} size="icon" type="button" variant="outline">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button onClick={() => onClickPaging(1)} size="icon" type="button" variant="outline">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => onClickPaging(-1)} size="icon" type="button" variant="outline">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button onClick={() => onClickPaging(1)} size="icon" type="button" variant="outline">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -262,7 +268,12 @@ export default function RoomPlayerList() {
                   roles.map((item, idx) => (
                     <TableRow key={item.auth}>
                       <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell>{item.auth}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span>{item.auth}</span>
+                          <CopyButton text={item.auth} />
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Select value={item.role} onValueChange={(value) => updateRole(value, idx)}>
                           <SelectTrigger className="w-[120px]">
@@ -302,7 +313,7 @@ export default function RoomPlayerList() {
           <CardTitle>Event log</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 items-end mb-4">
+          <div className="flex gap-2 items-end mb-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="eventsPagingCountInput">Paging Items Count</Label>
               <Input

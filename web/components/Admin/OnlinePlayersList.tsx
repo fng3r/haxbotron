@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CopyButton } from '@/components/ui/copy-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -164,8 +165,18 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
         <TableCell>
           {row.name}#{row.id}
         </TableCell>
-        <TableCell>{row.auth}</TableCell>
-        <TableCell>{row.conn}</TableCell>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            <span>{row.auth}</span>
+            <CopyButton text={row.auth} />
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            <span>{row.conn}</span>
+            <CopyButton text={row.conn} />
+          </div>
+        </TableCell>
         <TableCell>{convertTeamID(row.team)}</TableCell>
         <TableCell>
           <Button size="sm" type="button" variant="ghost" onClick={handleOnlinePlayerMute}>
