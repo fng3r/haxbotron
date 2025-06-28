@@ -2,38 +2,23 @@
 
 import React, { useState } from 'react';
 
-import BackspaceOutlined from '@mui/icons-material/BackspaceOutlined';
-import {
-  Button,
-  Container,
-  Divider,
-  Grid2 as Grid,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { isNumber } from '@/lib/numcheck';
 import { mutations, queries } from '@/lib/queries/player';
 import { NewBanEntry } from '@/lib/types/player';
 
 export default function RoomBanList({ ruid }: { ruid: string }) {
-  const [newBan, setNewBan] = useState({ conn: '', reason: '', seconds: 0 } as NewBanEntry);
-
+  const [newBan, setNewBan] = useState({ conn: '', auth: '', reason: '', seconds: 0 } as NewBanEntry);
   const [page, setPage] = useState(1);
-  const [pagingCount, setPagingCount] = useState(10);
-
-  const { data: bans } = queries.getPlayersBans(ruid, { page, pagingCount });
-
+  const { data: bans } = queries.getPlayersBans(ruid, { page, pagingCount: 10 });
   const addPlayerBanMutation = mutations.addBan();
   const removePlayerBanMutation = mutations.removeBan();
 
@@ -45,18 +30,9 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
     setPage((prev) => Math.max(prev + shift, 1));
   };
 
-  const onChangePagingCountInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isNumber(parseInt(e.target.value))) {
-      const count: number = parseInt(e.target.value);
-      if (count >= 1) {
-        setPagingCount(count);
-      }
-    }
-  };
-
   const onChangeNewBan = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name === 'newbanseconds' && isNumber(parseInt(value))) {
+    if (name === 'seconds' && isNumber(parseInt(value))) {
       setNewBan({
         ...newBan,
         seconds: parseInt(value),
@@ -71,7 +47,6 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
 
   const handleAdd = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     addPlayerBanMutation.mutate(
       { ruid, banEntry: newBan },
       {
@@ -101,146 +76,107 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
   };
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <Paper className="p-4!">
-            <React.Fragment>
-              <WidgetTitle>Bans List</WidgetTitle>
-              <Grid container spacing={2}>
-                <form className="w-full" onSubmit={handleAdd} method="post">
-                  <Grid container size={12} columnSpacing={0.5}>
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newBan.conn}
-                      onChange={onChangeNewBan}
-                      id="conn"
-                      label="CONN"
-                      name="conn"
-                    />
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newBan.auth}
-                      onChange={onChangeNewBan}
-                      id="auth"
-                      label="AUTH"
-                      name="auth"
-                    />
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newBan.reason}
-                      onChange={onChangeNewBan}
-                      id="reason"
-                      label="Reason"
-                      name="reason"
-                    />
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newBan.seconds}
-                      onChange={onChangeNewBan}
-                      type="number"
-                      id="seconds"
-                      label="Ban Time(secs)"
-                      name="seconds"
-                    />
-                    <Button
-                      size="small"
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      className="mt-5! mb-4! ml-2!"
-                    >
-                      Ban
-                    </Button>
-                  </Grid>
-                </form>
-              </Grid>
-              <Divider />
+    <div className="max-w-7xl mx-auto py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Bans List</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="flex flex-wrap gap-2 mb-4 w-full" onSubmit={handleAdd} method="post">
+            <div className="flex flex-col gap-1 flex-1 min-w-0">
+              <label htmlFor="conn" className="text-xs font-medium">
+                CONN
+              </label>
+              <Input required value={newBan.conn} onChange={onChangeNewBan} id="conn" name="conn" size={10} />
+            </div>
+            <div className="flex flex-col gap-1 flex-1 min-w-0">
+              <label htmlFor="auth" className="text-xs font-medium">
+                AUTH
+              </label>
+              <Input required value={newBan.auth} onChange={onChangeNewBan} id="auth" name="auth" size={10} />
+            </div>
+            <div className="flex flex-col gap-1 flex-1 min-w-0">
+              <label htmlFor="reason" className="text-xs font-medium">
+                Reason
+              </label>
+              <Input required value={newBan.reason} onChange={onChangeNewBan} id="reason" name="reason" size={20} />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="seconds" className="text-xs font-medium">
+                Ban Time (secs)
+              </label>
+              <Input
+                required
+                value={newBan.seconds}
+                onChange={onChangeNewBan}
+                type="number"
+                id="seconds"
+                name="seconds"
+                size={10}
+                min={0}
+                className="w-30"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button type="submit">Ban</Button>
+            </div>
+          </form>
 
-              <Grid container spacing={1}>
-                <Grid size={{ xs: 8, sm: 4 }}>
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    size="small"
-                    id="pagingCountInput"
-                    label="Paging Items Count"
-                    name="pagingCountInput"
-                    type="number"
-                    value={pagingCount}
-                    onChange={onChangePagingCountInput}
-                  />
-                  <Button
-                    onClick={() => onClickPaging(-1)}
-                    size="small"
-                    type="button"
-                    variant="outlined"
-                    color="inherit"
-                    className="mt-5! ml-1!"
-                  >
-                    &lt;&lt;
-                  </Button>
-                  <Button
-                    onClick={() => onClickPaging(1)}
-                    size="small"
-                    type="button"
-                    variant="outlined"
-                    color="inherit"
-                    className="mt-5!"
-                  >
-                    &gt;&gt;
-                  </Button>
+          <Separator className="mb-4" />
 
-                  <Typography>Page {page}</Typography>
-                </Grid>
-              </Grid>
-              <Divider />
-
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>CONN</TableCell>
-                    <TableCell>Auth</TableCell>
-                    <TableCell>Reason</TableCell>
-                    <TableCell>Registered Date</TableCell>
-                    <TableCell>Expiration Date</TableCell>
-                    <TableCell align="right"></TableCell>
+          <Table className="table-auto">
+            <TableHeader>
+              <TableRow>
+                <TableHead>CONN</TableHead>
+                <TableHead>Auth</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead>Registered Date</TableHead>
+                <TableHead>Expiration Date</TableHead>
+                <TableHead className="text-right"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {bans &&
+                bans.map((item, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <span className="break-all break-words hyphens-auto">{item.conn}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="break-all break-words hyphens-auto">{item.auth}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="break-all break-words hyphens-auto">{item.reason}</span>
+                    </TableCell>
+                    <TableCell>{convertDate(item.register)}</TableCell>
+                    <TableCell>{convertDate(item.expire)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(item.conn)} aria-label="delete">
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {bans &&
-                    bans.map((item, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell>{item.conn}</TableCell>
-                        <TableCell>{item.auth}</TableCell>
-                        <TableCell>{item.reason}</TableCell>
-                        <TableCell>{convertDate(item.register)}</TableCell>
-                        <TableCell>{convertDate(item.expire)}</TableCell>
-                        <TableCell align="right">
-                          <IconButton name={item.conn} onClick={() => handleDelete(item.conn)} aria-label="delete">
-                            <BackspaceOutlined fontSize="small" />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </React.Fragment>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+                ))}
+            </TableBody>
+          </Table>
+
+          <div className="mt-2 w-full flex justify-center items-center gap-2 py-2">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => onClickPaging(-1)}
+              aria-label="Previous page"
+              size="icon"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="mx-2">Page {page}</span>
+            <Button variant="outline" type="button" onClick={() => onClickPaging(1)} aria-label="Next page" size="icon">
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
