@@ -210,260 +210,258 @@ export default function RoomCreate() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New Game Room</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {createRoomMutation.isPending && (
-            <Alert variant="default" className="mb-4">
-              <Hourglass />
-              <AlertTitle>The room is launching. Please, wait</AlertTitle>
-            </Alert>
-          )}
+    <Card>
+      <CardHeader>
+        <CardTitle>Create New Game Room</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {createRoomMutation.isPending && (
+          <Alert variant="default" className="mb-4">
+            <Hourglass />
+            <AlertTitle>The room is launching. Please, wait</AlertTitle>
+          </Alert>
+        )}
 
-          <form className="w-full flex flex-col gap-4 justify-center" onSubmit={handleSubmit} method="post">
-            <div className="flex gap-4">
-              <Button type="submit" className="flex-1">
-                Create
-              </Button>
+        <form className="w-full flex flex-col gap-4 justify-center" onSubmit={handleSubmit} method="post">
+          <div className="flex gap-4">
+            <Button type="submit" className="flex-1">
+              Create
+            </Button>
+          </div>
+          <Separator />
+
+          {/* Room Configuration */}
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-lg font-semibold text-primary mb-2">Room Configuration</h2>
+              <p className="text-sm font-medium text-muted-foreground mb-4">
+                Do not reuse the same RUID and token if they are already in use.
+              </p>
             </div>
-            <Separator />
 
-            {/* Room Configuration */}
-            <div className="space-y-5">
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-3 flex flex-col gap-2">
+                <Label htmlFor="ruid">RUID</Label>
+                <Input id="ruid" name="ruid" required autoFocus value={roomUIDFormField} onChange={onChangeRUID} />
+              </div>
+              <div className="col-span-4 flex flex-col gap-2">
+                <Label htmlFor="token">Headless Token</Label>
+                <Input id="token" name="token" required value={configFormField.token} onChange={onChangeRoomConfig} />
+              </div>
+              <div className="flex items-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => window.open('https://www.haxball.com/headlesstoken', '_blank')}
+                >
+                  <OpenInNew />
+                </Button>
+              </div>
+              <div className="col-span-2 mb-2.5 flex items-end gap-2">
+                <Switch checked={roomPublic} onCheckedChange={onChangePublic} className="cursor-pointer" />
+                <Label htmlFor="public">Public</Label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-4 flex flex-col gap-2">
+                <Label htmlFor="roomName">Room Title</Label>
+                <Input
+                  id="roomName"
+                  name="roomName"
+                  required
+                  value={configFormField.roomName}
+                  onChange={onChangeRoomConfig}
+                />
+              </div>
+              <div className="col-span-3 flex flex-col gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" name="password" value={configFormField.password} onChange={onChangeRoomConfig} />
+              </div>
+              <div className="col-span-2 flex flex-col gap-2">
+                <Label htmlFor="maxPlayers">Max Players</Label>
+                <Input
+                  id="maxPlayers"
+                  name="maxPlayers"
+                  type="number"
+                  required
+                  value={configFormField.maxPlayers}
+                  onChange={onChangeRoomConfig}
+                />
+              </div>
+            </div>
+          </div>
+          <Separator />
+
+          {/* Game Rules */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-primary">Game Rules</h2>
+
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-2 flex flex-col gap-2">
+                <Label htmlFor="ruleName">Rule Name</Label>
+                <Input
+                  id="ruleName"
+                  name="ruleName"
+                  required
+                  value={rulesFormField.ruleName}
+                  onChange={onChangeRules}
+                />
+              </div>
+              <div className="col-span-4 flex flex-col gap-2">
+                <Label htmlFor="ruleDescription">Rule Description</Label>
+                <Input
+                  id="ruleDescription"
+                  name="ruleDescription"
+                  required
+                  value={rulesFormField.ruleDescription}
+                  onChange={onChangeRules}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-2 flex flex-col gap-2">
+                <Label htmlFor="minimumPlayers">Minimum Players Need</Label>
+                <Input
+                  id="minimumPlayers"
+                  name="minimumPlayers"
+                  type="number"
+                  required
+                  value={rulesFormField?.requisite && rulesFormField.requisite.minimumPlayers}
+                  onChange={onChangeRulesRequisite}
+                />
+              </div>
+              <div className="col-span-2 flex flex-col gap-2">
+                <Label htmlFor="eachTeamPlayers">Number of Team Players</Label>
+                <Input
+                  id="eachTeamPlayers"
+                  name="eachTeamPlayers"
+                  type="number"
+                  required
+                  value={rulesFormField?.requisite && rulesFormField.requisite.eachTeamPlayers}
+                  onChange={onChangeRulesRequisite}
+                />
+              </div>
+              <div className="col-span-2 flex flex-col gap-2">
+                <Label htmlFor="timeLimit">Time Limit</Label>
+                <Input
+                  id="timeLimit"
+                  name="timeLimit"
+                  type="number"
+                  required
+                  value={rulesFormField?.requisite && rulesFormField.requisite.timeLimit}
+                  onChange={onChangeRulesRequisite}
+                />
+              </div>
+              <div className="col-span-2 flex flex-col gap-2">
+                <Label htmlFor="scoreLimit">Score Limit</Label>
+                <Input
+                  id="scoreLimit"
+                  name="scoreLimit"
+                  type="number"
+                  required
+                  value={rulesFormField?.requisite && rulesFormField.requisite.scoreLimit}
+                  onChange={onChangeRulesRequisite}
+                />
+              </div>
+              <div className="col-span-2 mb-2.5 flex items-end gap-2">
+                <Switch checked={teamLock} onCheckedChange={onChangeTeamLock} className="cursor-pointer" />
+                <Label htmlFor="teamLock">Team Lock</Label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-2 mb-2.5 flex items-center gap-2">
+                <Switch
+                  checked={rulesSwitches.autoAdmin}
+                  onCheckedChange={onChangeAutoAdmin}
+                  className="cursor-pointer"
+                />
+                <Label htmlFor="autoAdmin">Auto Admin</Label>
+              </div>
+              <div className="col-span-2 mb-2.5 flex items-center gap-2">
+                <Switch
+                  checked={rulesSwitches.whitelistEnabled}
+                  onCheckedChange={onChangeWhitelistEnabled}
+                  className="cursor-pointer"
+                />
+                <Label htmlFor="whitelistEnabled">Whitelist</Label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-2 flex flex-col gap-2">
+                <Label htmlFor="defaultMapName">Default Map Name</Label>
+                <Input
+                  id="defaultMapName"
+                  name="defaultMapName"
+                  required
+                  value={rulesFormField.defaultMapName}
+                  onChange={onChangeRules}
+                />
+              </div>
+              <div className="col-span-2 flex flex-col gap-2">
+                <Label htmlFor="readyMapName">Ready Map Name</Label>
+                <Input
+                  id="readyMapName"
+                  name="readyMapName"
+                  required
+                  value={rulesFormField.readyMapName}
+                  onChange={onChangeRules}
+                />
+              </div>
+              <div className="col-span-2 flex items-end">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={(e) => {
+                        e.preventDefault();
+                      }}
+                    >
+                      <LiveHelp />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="text-sm">
+                    Available maps: big, bigeasy, classic, gbhotclassic, gbhotbig, realsoccer, futsal1v1, futsal4v4,
+                    bff4v4, icebear, 6man
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
+          <Separator />
+
+          {/* Bot Settings */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-primary">Bot Settings</h2>
+
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="botSettings">Configuration</Label>
+                <Textarea
+                  id="botSettings"
+                  name="botSettings"
+                  required
+                  value={settingsFormStringifiedField}
+                  onChange={onChangeStringifiedField}
+                  onBlur={onBlurStringifiedField}
+                  className="min-h-[200px]"
+                />
+              </div>
               <div>
-                <h2 className="text-lg font-semibold text-primary mb-2">Room Configuration</h2>
-                <p className="text-sm font-medium text-muted-foreground mb-4">
-                  Do not reuse the same RUID and token if they are already in use.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-3 flex flex-col gap-2">
-                  <Label htmlFor="ruid">RUID</Label>
-                  <Input id="ruid" name="ruid" required autoFocus value={roomUIDFormField} onChange={onChangeRUID} />
-                </div>
-                <div className="col-span-4 flex flex-col gap-2">
-                  <Label htmlFor="token">Headless Token</Label>
-                  <Input id="token" name="token" required value={configFormField.token} onChange={onChangeRoomConfig} />
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => window.open('https://www.haxball.com/headlesstoken', '_blank')}
-                  >
-                    <OpenInNew />
-                  </Button>
-                </div>
-                <div className="col-span-2 mb-2.5 flex items-end gap-2">
-                  <Switch checked={roomPublic} onCheckedChange={onChangePublic} className="cursor-pointer" />
-                  <Label htmlFor="public">Public</Label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-4 flex flex-col gap-2">
-                  <Label htmlFor="roomName">Room Title</Label>
-                  <Input
-                    id="roomName"
-                    name="roomName"
-                    required
-                    value={configFormField.roomName}
-                    onChange={onChangeRoomConfig}
-                  />
-                </div>
-                <div className="col-span-3 flex flex-col gap-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input id="password" name="password" value={configFormField.password} onChange={onChangeRoomConfig} />
-                </div>
-                <div className="col-span-2 flex flex-col gap-2">
-                  <Label htmlFor="maxPlayers">Max Players</Label>
-                  <Input
-                    id="maxPlayers"
-                    name="maxPlayers"
-                    type="number"
-                    required
-                    value={configFormField.maxPlayers}
-                    onChange={onChangeRoomConfig}
-                  />
-                </div>
+                <Button type="button" variant="outline" onClick={handleJSONBeautify}>
+                  Beautify JSON
+                </Button>
               </div>
             </div>
-            <Separator />
-
-            {/* Game Rules */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-primary">Game Rules</h2>
-
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-2 flex flex-col gap-2">
-                  <Label htmlFor="ruleName">Rule Name</Label>
-                  <Input
-                    id="ruleName"
-                    name="ruleName"
-                    required
-                    value={rulesFormField.ruleName}
-                    onChange={onChangeRules}
-                  />
-                </div>
-                <div className="col-span-4 flex flex-col gap-2">
-                  <Label htmlFor="ruleDescription">Rule Description</Label>
-                  <Input
-                    id="ruleDescription"
-                    name="ruleDescription"
-                    required
-                    value={rulesFormField.ruleDescription}
-                    onChange={onChangeRules}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-2 flex flex-col gap-2">
-                  <Label htmlFor="minimumPlayers">Minimum Players Need</Label>
-                  <Input
-                    id="minimumPlayers"
-                    name="minimumPlayers"
-                    type="number"
-                    required
-                    value={rulesFormField?.requisite && rulesFormField.requisite.minimumPlayers}
-                    onChange={onChangeRulesRequisite}
-                  />
-                </div>
-                <div className="col-span-2 flex flex-col gap-2">
-                  <Label htmlFor="eachTeamPlayers">Number of Team Players</Label>
-                  <Input
-                    id="eachTeamPlayers"
-                    name="eachTeamPlayers"
-                    type="number"
-                    required
-                    value={rulesFormField?.requisite && rulesFormField.requisite.eachTeamPlayers}
-                    onChange={onChangeRulesRequisite}
-                  />
-                </div>
-                <div className="col-span-2 flex flex-col gap-2">
-                  <Label htmlFor="timeLimit">Time Limit</Label>
-                  <Input
-                    id="timeLimit"
-                    name="timeLimit"
-                    type="number"
-                    required
-                    value={rulesFormField?.requisite && rulesFormField.requisite.timeLimit}
-                    onChange={onChangeRulesRequisite}
-                  />
-                </div>
-                <div className="col-span-2 flex flex-col gap-2">
-                  <Label htmlFor="scoreLimit">Score Limit</Label>
-                  <Input
-                    id="scoreLimit"
-                    name="scoreLimit"
-                    type="number"
-                    required
-                    value={rulesFormField?.requisite && rulesFormField.requisite.scoreLimit}
-                    onChange={onChangeRulesRequisite}
-                  />
-                </div>
-                <div className="col-span-2 mb-2.5 flex items-end gap-2">
-                  <Switch checked={teamLock} onCheckedChange={onChangeTeamLock} className="cursor-pointer" />
-                  <Label htmlFor="teamLock">Team Lock</Label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-2 mb-2.5 flex items-center gap-2">
-                  <Switch
-                    checked={rulesSwitches.autoAdmin}
-                    onCheckedChange={onChangeAutoAdmin}
-                    className="cursor-pointer"
-                  />
-                  <Label htmlFor="autoAdmin">Auto Admin</Label>
-                </div>
-                <div className="col-span-2 mb-2.5 flex items-center gap-2">
-                  <Switch
-                    checked={rulesSwitches.whitelistEnabled}
-                    onCheckedChange={onChangeWhitelistEnabled}
-                    className="cursor-pointer"
-                  />
-                  <Label htmlFor="whitelistEnabled">Whitelist</Label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-2 flex flex-col gap-2">
-                  <Label htmlFor="defaultMapName">Default Map Name</Label>
-                  <Input
-                    id="defaultMapName"
-                    name="defaultMapName"
-                    required
-                    value={rulesFormField.defaultMapName}
-                    onChange={onChangeRules}
-                  />
-                </div>
-                <div className="col-span-2 flex flex-col gap-2">
-                  <Label htmlFor="readyMapName">Ready Map Name</Label>
-                  <Input
-                    id="readyMapName"
-                    name="readyMapName"
-                    required
-                    value={rulesFormField.readyMapName}
-                    onChange={onChangeRules}
-                  />
-                </div>
-                <div className="col-span-2 flex items-end">
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={(e) => {
-                          e.preventDefault();
-                        }}
-                      >
-                        <LiveHelp />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="text-sm">
-                      Available maps: big, bigeasy, classic, gbhotclassic, gbhotbig, realsoccer, futsal1v1, futsal4v4,
-                      bff4v4, icebear, 6man
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </div>
-            </div>
-            <Separator />
-
-            {/* Bot Settings */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-primary">Bot Settings</h2>
-
-              <div className="space-y-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="botSettings">Configuration</Label>
-                  <Textarea
-                    id="botSettings"
-                    name="botSettings"
-                    required
-                    value={settingsFormStringifiedField}
-                    onChange={onChangeStringifiedField}
-                    onBlur={onBlurStringifiedField}
-                    className="min-h-[200px]"
-                  />
-                </div>
-                <div>
-                  <Button type="button" variant="outline" onClick={handleJSONBeautify}>
-                    Beautify JSON
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

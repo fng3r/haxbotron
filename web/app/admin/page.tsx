@@ -27,11 +27,9 @@ export default async function Mainboard() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="max-w-6xl mx-auto py-8">
-        <div className="flex flex-col gap-6">
-          <ServerInfoWidget />
-          <RoomWidget />
-        </div>
+      <div className="flex flex-col gap-6">
+        <ServerInfoWidget />
+        <RoomWidget />
       </div>
     </HydrationBoundary>
   );

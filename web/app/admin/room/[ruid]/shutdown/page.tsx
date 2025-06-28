@@ -27,17 +27,15 @@ export default function RoomPower() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>{ruid}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Button type="button" variant="destructive" className="w-full" onClick={handleShutdownClick}>
-            Shutdown this room right now
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>{ruid}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Button type="button" variant="destructive" className="w-full" onClick={handleShutdownClick}>
+          Shutdown this room right now
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

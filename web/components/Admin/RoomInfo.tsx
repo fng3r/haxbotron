@@ -88,7 +88,7 @@ export default function RoomInfo({ ruid }: { ruid: string }) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-8 flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       {roomInfo?.isOnline === false && (
         <Alert variant="destructive">
           <LucideAlertCircle className="size-5" />

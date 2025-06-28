@@ -6,7 +6,6 @@ import { Inter } from 'next/font/google';
 import { CssBaseline } from '@mui/material';
 
 import SnackBarProviderWrapper from '@/components/Notifications/SnackBarProviderWrapper';
-import Footer from '@/components/common/Footer';
 
 import { WSocketProvider } from '@/context/ws';
 import ThemeProvider from '@/providers/MUIThemeProvider';
@@ -33,7 +32,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <WSocketProvider>
               <SnackBarProviderWrapper />
               {children}
-              <Footer />
             </WSocketProvider>
           </ReactQueryProvider>
         </ThemeProvider>

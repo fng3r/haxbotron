@@ -73,7 +73,7 @@ export default function RoomLogs() {
   }, [ws, ruid]);
 
   return (
-    <div className="max-w-6xl mx-auto py-8 flex flex-col gap-y-6">
+    <div className="flex flex-col gap-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Broadcast</CardTitle>

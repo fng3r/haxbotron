@@ -147,7 +147,7 @@ export default function RoomSocial({ ruid }: { ruid: string }) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-8 flex flex-col gap-y-6">
+    <div className="flex flex-col gap-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Notice</CardTitle>

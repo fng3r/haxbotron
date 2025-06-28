@@ -23,7 +23,7 @@ export default async function RoomPlayerList({ params }: { params: Promise<{ rui
   ]);
 
   return (
-    <div className="max-w-6xl mx-auto py-8 space-y-4">
+    <div className="space-y-4">
       <HydrationBoundary state={dehydrate(queryClient)}>
         <OnlinePlayerList ruid={ruid} />
         <RoomPlayersList ruid={ruid} />

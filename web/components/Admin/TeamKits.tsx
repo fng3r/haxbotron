@@ -380,7 +380,7 @@ export default function TeamKits({ ruid }: { ruid: string }) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-8 space-y-6">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Team Kits</CardTitle>

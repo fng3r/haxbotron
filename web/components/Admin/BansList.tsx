@@ -76,107 +76,105 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Bans List</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="flex flex-wrap gap-2 mb-4 w-full" onSubmit={handleAdd} method="post">
-            <div className="flex flex-col gap-1 flex-1 min-w-0">
-              <label htmlFor="conn" className="text-xs font-medium">
-                CONN
-              </label>
-              <Input required value={newBan.conn} onChange={onChangeNewBan} id="conn" name="conn" size={10} />
-            </div>
-            <div className="flex flex-col gap-1 flex-1 min-w-0">
-              <label htmlFor="auth" className="text-xs font-medium">
-                AUTH
-              </label>
-              <Input required value={newBan.auth} onChange={onChangeNewBan} id="auth" name="auth" size={10} />
-            </div>
-            <div className="flex flex-col gap-1 flex-1 min-w-0">
-              <label htmlFor="reason" className="text-xs font-medium">
-                Reason
-              </label>
-              <Input required value={newBan.reason} onChange={onChangeNewBan} id="reason" name="reason" size={20} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="seconds" className="text-xs font-medium">
-                Ban Time (secs)
-              </label>
-              <Input
-                required
-                value={newBan.seconds}
-                onChange={onChangeNewBan}
-                type="number"
-                id="seconds"
-                name="seconds"
-                size={10}
-                min={0}
-                className="w-30"
-              />
-            </div>
-            <div className="flex items-end">
-              <Button type="submit">Ban</Button>
-            </div>
-          </form>
-
-          <Separator className="mb-4" />
-
-          <Table className="table-auto">
-            <TableHeader>
-              <TableRow>
-                <TableHead>CONN</TableHead>
-                <TableHead>Auth</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead>Registered Date</TableHead>
-                <TableHead>Expiration Date</TableHead>
-                <TableHead className="text-right"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {bans &&
-                bans.map((item, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>
-                      <span className="break-all break-words hyphens-auto">{item.conn}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="break-all break-words hyphens-auto">{item.auth}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="break-all break-words hyphens-auto">{item.reason}</span>
-                    </TableCell>
-                    <TableCell>{convertDate(item.register)}</TableCell>
-                    <TableCell>{convertDate(item.expire)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(item.conn)} aria-label="delete">
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-
-          <div className="mt-2 w-full flex justify-center items-center gap-2 py-2">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => onClickPaging(-1)}
-              aria-label="Previous page"
-              size="icon"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="mx-2">Page {page}</span>
-            <Button variant="outline" type="button" onClick={() => onClickPaging(1)} aria-label="Next page" size="icon">
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+    <Card>
+      <CardHeader>
+        <CardTitle>Bans List</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form className="flex flex-wrap gap-2 mb-4 w-full" onSubmit={handleAdd} method="post">
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
+            <label htmlFor="conn" className="text-xs font-medium">
+              CONN
+            </label>
+            <Input required value={newBan.conn} onChange={onChangeNewBan} id="conn" name="conn" size={10} />
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
+            <label htmlFor="auth" className="text-xs font-medium">
+              AUTH
+            </label>
+            <Input required value={newBan.auth} onChange={onChangeNewBan} id="auth" name="auth" size={10} />
+          </div>
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
+            <label htmlFor="reason" className="text-xs font-medium">
+              Reason
+            </label>
+            <Input required value={newBan.reason} onChange={onChangeNewBan} id="reason" name="reason" size={20} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="seconds" className="text-xs font-medium">
+              Ban Time (secs)
+            </label>
+            <Input
+              required
+              value={newBan.seconds}
+              onChange={onChangeNewBan}
+              type="number"
+              id="seconds"
+              name="seconds"
+              size={10}
+              min={0}
+              className="w-30"
+            />
+          </div>
+          <div className="flex items-end">
+            <Button type="submit">Ban</Button>
+          </div>
+        </form>
+
+        <Separator className="mb-4" />
+
+        <Table className="table-auto">
+          <TableHeader>
+            <TableRow>
+              <TableHead>CONN</TableHead>
+              <TableHead>Auth</TableHead>
+              <TableHead>Reason</TableHead>
+              <TableHead>Registered Date</TableHead>
+              <TableHead>Expiration Date</TableHead>
+              <TableHead className="text-right"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {bans &&
+              bans.map((item, idx) => (
+                <TableRow key={idx}>
+                  <TableCell>
+                    <span className="break-all break-words hyphens-auto">{item.conn}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="break-all break-words hyphens-auto">{item.auth}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="break-all break-words hyphens-auto">{item.reason}</span>
+                  </TableCell>
+                  <TableCell>{convertDate(item.register)}</TableCell>
+                  <TableCell>{convertDate(item.expire)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(item.conn)} aria-label="delete">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+
+        <div className="mt-2 w-full flex justify-center items-center gap-2 py-2">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => onClickPaging(-1)}
+            aria-label="Previous page"
+            size="icon"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <span className="mx-2">Page {page}</span>
+          <Button variant="outline" type="button" onClick={() => onClickPaging(1)} aria-label="Next page" size="icon">
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

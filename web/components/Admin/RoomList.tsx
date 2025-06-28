@@ -13,7 +13,7 @@ export default function RoomList() {
   const { data: allRoomsList } = queries.getAllRoomsList();
 
   return (
-    <div className="max-w-6xl mx-auto py-8 space-y-6">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Current Game Rooms</CardTitle>
