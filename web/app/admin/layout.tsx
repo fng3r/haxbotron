@@ -9,7 +9,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="w-7xl mx-auto flex items-center gap-3 px-4 pt-3">
+          <header className="mb-2 w-7xl mx-auto flex items-center gap-3 px-4 pt-3">
             <SidebarTrigger />
             <Separator orientation="vertical" />
             <span className="text-lg font-bold">Haxbotron Admin Dashboard</span>
