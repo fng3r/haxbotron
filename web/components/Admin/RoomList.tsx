@@ -3,6 +3,7 @@
 import Link from 'next/link';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CopyButton } from '@/components/ui/copy-button';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { queries } from '@/lib/queries/room';
@@ -43,9 +44,10 @@ export default function RoomList() {
                       </Link>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/admin/room/${item.ruid}`} className="block w-full">
-                        {item.roomLink}
-                      </Link>
+                      <div className="flex justify-end items-center gap-2">
+                        <span>{item.roomLink}</span>
+                        <CopyButton text={item.roomLink} />
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <Link href={`/admin/room/${item.ruid}`} className="block w-full">
