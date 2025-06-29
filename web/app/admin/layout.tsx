@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <header className="mb-2 w-full max-w-7xl mx-auto flex justify-between px-4 pt-3">
             <div className="flex items-center gap-3">
               <SidebarTrigger />
-              <Separator orientation="vertical" />
+              <Separator orientation="vertical" className="h-6!" />
               <span className="text-lg font-bold">Haxbotron Admin Dashboard</span>
             </div>
             <ModeToggle />
