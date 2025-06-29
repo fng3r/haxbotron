@@ -4,8 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { LiveHelp, OpenInNew } from '@mui/icons-material';
-import { Hourglass } from 'lucide-react';
+import { ExternalLink, HelpCircle, Hourglass } from 'lucide-react';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Button } from '@/components/ui/button';
@@ -254,7 +253,7 @@ export default function RoomCreate() {
                   size="icon"
                   onClick={() => window.open('https://www.haxball.com/headlesstoken', '_blank')}
                 >
-                  <OpenInNew />
+                  <ExternalLink className="size-5" />
                 </Button>
               </div>
               <div className="col-span-2 mb-2.5 flex items-end gap-2">
@@ -422,7 +421,7 @@ export default function RoomCreate() {
                         e.preventDefault();
                       }}
                     >
-                      <LiveHelp />
+                      <HelpCircle className="size-5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="text-sm">
