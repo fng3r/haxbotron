@@ -24,7 +24,7 @@ import { mutations, queries } from '@/lib/queries/roles';
 import { PlayerRoleEvent, PlayerRoleEventType } from '@/lib/types/roles';
 
 const addRoleFormSchema = z.object({
-  name: z.string().min(1, { message: 'Name is required' }),
+  name: z.string().trim().min(1, { message: 'Name is required' }),
   auth: z.string().length(43, { message: 'Public ID must be 43 characters long' }),
   role: z.enum(['player', 'adm', 's-adm', 'co-host', 'bad'], {
     required_error: 'Please select a role',
