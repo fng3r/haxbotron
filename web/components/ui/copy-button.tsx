@@ -2,7 +2,7 @@ import { useState } from 'react';
 import TurndownService from 'turndown';
 
 import { invariant } from '@epic-web/invariant';
-import { CheckCheck, Copy } from 'lucide-react';
+import { Check, Copy } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
@@ -72,7 +72,7 @@ export function CopyButton({ text, buttonText, html, htmlRef, className, ...prop
 
   return (
     <Button variant="outline" size="sm" className={className} onClick={copyToClipboard} {...props}>
-      {copied ? <CheckCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
       {buttonText && <span className="ml-1">{copied ? 'Copied!' : buttonText}</span>}
     </Button>
   );
