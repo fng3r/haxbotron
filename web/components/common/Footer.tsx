@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="relative bottom-0 mt-auto w-full bg-accent p-5">
+    <footer className="relative bottom-0 mt-auto w-full bg-neutral-100 dark:bg-neutral-900 p-5">
       <div className="mx-auto max-w-sm">
         <p className="text-center text-base">
           {'Powered by '}
@@ -11,8 +11,7 @@ export default function Footer() {
           </Link>
         </p>
         <p className="text-center text-sm text-muted-foreground">
-          {'MIT License Copyright © '}
-          {new Date().getFullYear()}{' '}
+          {`MIT License Copyright © ${new Date().getFullYear()} `}
           <Link href="https://github.com/dapucita" className="text-inherit hover:underline">
             dapucita
           </Link>
