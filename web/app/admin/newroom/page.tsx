@@ -8,7 +8,6 @@ import { LiveHelp, OpenInNew } from '@mui/icons-material';
 import { Hourglass } from 'lucide-react';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
-import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -215,17 +214,17 @@ export default function RoomCreate() {
         <CardTitle>Create New Game Room</CardTitle>
       </CardHeader>
       <CardContent>
-        {createRoomMutation.isPending && (
-          <Alert variant="default" className="mb-4">
-            <Hourglass />
-            <AlertTitle>The room is launching. Please, wait</AlertTitle>
-          </Alert>
-        )}
-
         <form className="w-full flex flex-col gap-4 justify-center" onSubmit={handleSubmit} method="post">
           <div className="flex gap-4">
-            <Button type="submit" className="flex-1">
-              Create
+            <Button type="submit" className="flex-1" disabled={createRoomMutation.isPending}>
+              {createRoomMutation.isPending ? (
+                <>
+                  <Hourglass className="size-4" />
+                  The room is launching. Please, wait
+                </>
+              ) : (
+                'Create'
+              )}
             </Button>
           </div>
           <Separator />
