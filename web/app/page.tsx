@@ -12,7 +12,7 @@ export default function Main() {
               Haxbotron 🤖
             </Typography>
             <Typography variant="h5" component="h2" gutterBottom>
-              Welcome to use Haxbotron!
+              Welcome to Haxbotron!
             </Typography>
           </Grid>
 
