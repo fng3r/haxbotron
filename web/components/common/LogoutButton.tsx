@@ -1,16 +1,13 @@
-'use client';
+import { LogOut } from 'lucide-react';
 
-import { PowerSettingsNew as PowerSettingsNewIcon } from '@mui/icons-material';
-import { Badge, IconButton } from '@mui/material';
+import { Button } from '@/components/ui/button';
 
 import { logout } from '@/app/actions/auth';
 
-export default function SignOutButton() {
+export default function LogoutButton() {
   return (
-    <IconButton color="inherit" onClick={logout}>
-      <Badge color="secondary">
-        <PowerSettingsNewIcon />
-      </Badge>
-    </IconButton>
+    <Button variant="outline" size="icon" onClick={logout} aria-label="Sign out">
+      <LogOut />
+    </Button>
   );
 }

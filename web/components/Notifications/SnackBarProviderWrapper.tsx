@@ -3,8 +3,9 @@
 import { SnackbarKey, SnackbarProvider, useSnackbar } from 'notistack';
 
 import { SnackbarUtilsConfigurator } from './SnackBarNotification';
-import { Close } from '@mui/icons-material';
-import { IconButton } from '@mui/material';
+import { X } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 
 export default function SnackBarProviderWrapper() {
   return (
@@ -21,8 +22,8 @@ export default function SnackBarProviderWrapper() {
 function SnackbarCloseButton({ snackbarKey }: { snackbarKey: SnackbarKey }) {
   const { closeSnackbar } = useSnackbar();
   return (
-    <IconButton onClick={() => closeSnackbar(snackbarKey)}>
-      <Close className="text-white dark:text-gray-500" />
-    </IconButton>
+    <Button variant="ghost" size="icon" className="hover:bg-transparent" onClick={() => closeSnackbar(snackbarKey)}>
+      <X className="text-white size-4" />
+    </Button>
   );
 }

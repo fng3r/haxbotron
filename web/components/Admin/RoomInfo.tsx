@@ -2,10 +2,16 @@
 
 import React, { useState } from 'react';
 
-import { Alert, Button, Container, Divider, Grid2 as Grid, Paper, TextField } from '@mui/material';
+import { LucideAlertCircle } from 'lucide-react';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CopyButton } from '@/components/ui/copy-button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 import { mutations, queries } from '@/lib/queries/room';
 
@@ -39,7 +45,7 @@ export default function RoomInfo({ ruid }: { ruid: string }) {
         onSuccess: () => {
           SnackBarNotification.success(`Successfully set password (pass: ${password}).`);
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
           SnackBarNotification.error(error.message);
         },
       },
@@ -56,7 +62,7 @@ export default function RoomInfo({ ruid }: { ruid: string }) {
           SnackBarNotification.success('Successfully cleared password.');
           setPassword('');
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
           SnackBarNotification.error(error.message);
         },
       },
@@ -74,7 +80,7 @@ export default function RoomInfo({ ruid }: { ruid: string }) {
             freezeStatus ? 'Successfully unfreezed whole chat.' : 'Successfully freezed whole chat.',
           );
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
           SnackBarNotification.error(error.message);
         },
       },
@@ -82,97 +88,69 @@ export default function RoomInfo({ ruid }: { ruid: string }) {
   };
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Grid container spacing={3}>
-        <Grid size={12} rowSpacing={4}>
-          <Paper className="p-4">
-            {roomInfo?.isOnline == false && (
-              <Alert severity="error" className="mb-2">
-                Room is offline
-              </Alert>
-            )}
-
-            <WidgetTitle>Room Information</WidgetTitle>
-
-            <Grid container spacing={2}>
-              <Grid size={12}>
-                <Button
-                  size="small"
-                  type="button"
-                  variant="contained"
-                  color="inherit"
-                  className="mt-1!"
-                  onClick={handleFreezeChat}
-                  disabled={freezeStatusError !== null}
-                >
-                  {freezeStatus ? 'Unfreeze Chat' : 'Freeze Chat'}
-                </Button>
-
-                <form className="mt-6 w-full" onSubmit={handleSetPassword} method="post">
-                  <Grid container spacing={0} alignItems="center">
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={password}
-                      onChange={onChangePassword}
-                      id="password"
-                      label="Password"
-                      name="password"
-                    />
-                    <Grid size={3} alignContent="center">
-                      <Button size="small" type="submit" variant="contained" className="mt-4!" color="primary">
-                        Set
-                      </Button>
-                      <Button
-                        size="small"
-                        type="button"
-                        variant="contained"
-                        className="mt-4!"
-                        color="secondary"
-                        onClick={handleClearPassword}
-                      >
-                        Clear
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </form>
-
-                <TextField
-                  variant="outlined"
-                  margin="normal"
+    <div className="flex flex-col gap-4">
+      {roomInfo?.isOnline === false && (
+        <Alert variant="destructive">
+          <LucideAlertCircle className="size-5" />
+          <AlertTitle>Room is offline</AlertTitle>
+        </Alert>
+      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Room Information</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 max-w-80">
+            <Button
+              type="button"
+              variant="default"
+              onClick={handleFreezeChat}
+              disabled={freezeStatusError !== null}
+              className="w-fit"
+            >
+              {freezeStatus ? 'Unfreeze Chat' : 'Freeze Chat'}
+            </Button>
+            <form className="flex gap-2 w-full md:w-auto" onSubmit={handleSetPassword} method="post">
+              <div className="flex flex-col gap-2 flex-1">
+                <Label htmlFor="password">Password</Label>
+                <Input
                   required
-                  size="small"
-                  value={roomInfo?.adminPassword}
-                  id="admin-password"
-                  label="Admin password"
-                  name="admin-password"
-                  slotProps={{ input: { readOnly: true } }}
+                  value={password}
+                  onChange={onChangePassword}
+                  id="password"
+                  name="password"
+                  autoComplete="off"
                 />
-              </Grid>
-            </Grid>
-
-            <Divider />
-
-            <Grid container spacing={2}>
-              <Grid size={12}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  margin="normal"
-                  multiline
-                  value={roomInfoJSON}
-                  id="roomInfoJSONText"
-                  name="roomInfoJSONText"
-                  label="JSON Data"
-                  slotProps={{ input: { readOnly: true } }}
-                />
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+              </div>
+              <div className="flex gap-2 items-end">
+                <Button type="submit" variant="default">
+                  Set
+                </Button>
+                <Button type="button" variant="secondary" onClick={handleClearPassword}>
+                  Clear
+                </Button>
+              </div>
+            </form>
+            <div className="flex flex-col gap-2 flex-1">
+              <Label htmlFor="admin-password">Admin password</Label>
+              <div className="flex gap-2 items-center">
+                <Input value={roomInfo?.adminPassword || ''} id="admin-password" name="admin-password" readOnly />
+                <CopyButton text={roomInfo?.adminPassword || ''} />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="roomInfoJSONText">JSON Data</Label>
+            <Textarea
+              value={roomInfoJSON}
+              id="roomInfoJSONText"
+              name="roomInfoJSONText"
+              readOnly
+              className="font-mono"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

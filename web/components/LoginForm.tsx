@@ -2,7 +2,11 @@
 
 import { useActionState, useState } from 'react';
 
-import { Alert, Button, TextField } from '@mui/material';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 import { login } from '@/app/actions/auth';
 
@@ -21,41 +25,54 @@ export default function LoginForm() {
   };
 
   return (
-    <>
-      {state.error && (
-        <Alert severity="error" className="w-full mt-3! mb-2">
-          {state.error}
-        </Alert>
-      )}
-      <form className="mt-1 w-full" action={formAction}>
-        <TextField
-          variant="outlined"
-          margin="normal"
-          required
-          fullWidth
-          id="username"
-          label="Account Name"
-          name="username"
-          value={username}
-          onChange={onChangeUsername}
-          autoFocus
-        />
-        <TextField
-          variant="outlined"
-          margin="normal"
-          required
-          fullWidth
-          name="password"
-          label="Password"
-          type="password"
-          id="password"
-          value={password}
-          onChange={onChangePassword}
-        />
-        <Button type="submit" fullWidth variant="contained" color="primary" className="mt-1!">
-          Login
-        </Button>
-      </form>
-    </>
+    <div className="flex flex-col gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Login to admin account</CardTitle>
+          <CardDescription>Enter your credentials below to access admin panel</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={formAction}>
+            <div className="flex flex-col gap-6">
+              <div className="grid gap-3">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={onChangeUsername}
+                  required
+                  autoFocus
+                />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={onChangePassword}
+                  required
+                />
+              </div>
+              {state.error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{state.error}</AlertDescription>
+                </Alert>
+              )}
+              <div className="flex flex-col gap-3">
+                <Button type="submit" className="w-full">
+                  Login
+                </Button>
+              </div>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 
-import WidgetTitle from '../common/WidgetTitle';
-import { Grid2 as Grid, Link as MuiLink, Typography } from '@mui/material';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { queries } from '@/lib/queries/server';
 
@@ -11,26 +10,23 @@ export default function ServerInfoWidget() {
   const { data: serverInfo } = queries.getInfo();
 
   return (
-    <Grid container flexDirection="column" className="h-40">
-      <Grid size={12} sx={{ flex: 1 }}>
-        <WidgetTitle>Server Info</WidgetTitle>
+    <Card className="py-4 w-60">
+      <CardHeader>
+        <CardTitle className="text-xl">Server Info</CardTitle>
+      </CardHeader>
+      <CardContent>
         {serverInfo && (
           <>
-            <Typography component="p" variant="h4">
-              {serverInfo.usedMemoryMB}MB
-            </Typography>
-            <Typography color="textSecondary">uptime {Math.round(serverInfo.upTimeSecs / 60)} minutes.</Typography>
+            <p className="text-3xl font-semibold">{serverInfo.usedMemoryMB}MB</p>
+            <p className="text-sm text-muted-foreground">uptime {Math.round(serverInfo.upTimeSecs / 60)} minutes.</p>
           </>
         )}
-      </Grid>
-
-      <Grid size={12}>
-        <MuiLink component={Link} href="/admin/serverinfo" underline="hover">
-          <Typography variant="body2" color="primary">
-            Get more information
-          </Typography>
-        </MuiLink>
-      </Grid>
-    </Grid>
+      </CardContent>
+      <CardFooter>
+        <Link href="/admin/serverinfo" className="text-sm text-blue-600 hover:underline">
+          Get more information
+        </Link>
+      </CardFooter>
+    </Card>
   );
 }

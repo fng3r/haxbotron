@@ -4,8 +4,11 @@ import { useActionState, useState } from 'react';
 
 import Link from 'next/link';
 
-import { LockOutlined } from '@mui/icons-material';
-import { Avatar, Button, Container, Grid2 as Grid, Link as MuiLink, TextField, Typography } from '@mui/material';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 import { signup } from '@/app/actions/auth';
 
@@ -28,59 +31,66 @@ export default function SignUp() {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Container className="mt-16 flex flex-col items-center">
-        <Avatar>
-          <LockOutlined />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          Initial Configuration
-        </Typography>
-        <Typography variant="body1">Sign up new admin account.</Typography>
-        <form action={signupAction} style={{ marginTop: 20 }}>
-          <Grid container spacing={2}>
-            <Grid size={12}>
-              <TextField
-                name="username"
-                variant="outlined"
-                required
-                fullWidth
-                id="username"
-                label="Account Name"
-                autoFocus
-                value={username}
-                onChange={onChange}
-              />
-            </Grid>
-            <Grid size={12}>
-              <TextField
-                variant="outlined"
-                required
-                fullWidth
-                name="password"
-                label="Password (3-20 characters)"
-                type="password"
-                id="password"
-                value={password}
-                onChange={onChange}
-              />
-            </Grid>
-            <Grid size={12}>
-              <Button type="submit" fullWidth variant="contained" color="primary">
-                Sign Up
-              </Button>
-            </Grid>
-          </Grid>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold tracking-tight">Initial Configuration</h1>
+        </div>
 
-          <Grid container justifyContent="end" marginTop={1}>
-            <Grid justifySelf="end">
-              <MuiLink component={Link} href="/admin" variant="body2">
-                Already have an account? Sign in
-              </MuiLink>
-            </Grid>
-          </Grid>
-        </form>
-      </Container>
-    </Container>
+        <Card>
+          <CardHeader>
+            <CardTitle>Create admin account</CardTitle>
+            <CardDescription>Enter credentials below to create admin account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form action={signupAction}>
+              <div className="flex flex-col gap-6">
+                <div className="grid gap-3">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={onChange}
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="password">Password (3-20 characters)</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={onChange}
+                    required
+                  />
+                </div>
+                {signupState.error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{signupState.error}</AlertDescription>
+                  </Alert>
+                )}
+                <div className="flex flex-col gap-3">
+                  <Button type="submit" className="w-full">
+                    Sign Up
+                  </Button>
+                </div>
+              </div>
+            </form>
+            <div className="mt-4 text-center text-sm">
+              Already have an account?{' '}
+              <Link href="/admin" className="underline underline-offset-4 hover:underline">
+                Sign in
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

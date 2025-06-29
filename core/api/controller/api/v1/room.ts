@@ -124,14 +124,14 @@ export async function getPlayerInfo(ctx: Context) {
  */
 export async function kickOnlinePlayer(ctx: Context) {
     const { ruid, id } = ctx.params;
-    const { ban, seconds, message } = ctx.request.body;
+    const { ban, seconds, reason } = ctx.request.body;
     if (ban === undefined || !seconds) {
         ctx.status = 400; // Unfulfilled error
         return;
     }
     const playerId = parseInt(id);
     if (browser.checkExistRoom(ruid) && await browser.checkOnlinePlayer(ruid, playerId)) {
-        await browser.banPlayerFixedTerm(ruid, playerId, ban, message, seconds);
+        await browser.banPlayerFixedTerm(ruid, playerId, ban, reason, seconds);
         ctx.status = 204;
     } else {
         ctx.status = 404;

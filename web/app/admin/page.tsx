@@ -1,6 +1,5 @@
 import { connection } from 'next/server';
 
-import { Container, Grid2 as Grid, Paper } from '@mui/material';
 import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
 
 import RoomWidget from '@/components/Admin/RoomWidget';
@@ -28,20 +27,10 @@ export default async function Mainboard() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Container maxWidth="lg" className="py-8">
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 4, lg: 3 }}>
-            <Paper className="p-4">
-              <ServerInfoWidget />
-            </Paper>
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <Paper className="p-4">
-              <RoomWidget />
-            </Paper>
-          </Grid>
-        </Grid>
-      </Container>
+      <div className="flex flex-col gap-6">
+        <ServerInfoWidget />
+        <RoomWidget />
+      </div>
     </HydrationBoundary>
   );
 }

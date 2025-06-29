@@ -46,7 +46,7 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     password: password,
   };
   if (!isAdminAccount(adminAccounts, account) || !(await isCorrectPassword(adminAccounts, account))) {
-    return { error: `Username or password is incorrect.` };
+    return { error: `Username or password is incorrect` };
   }
 
   const token = await generateToken(account.accountName);
