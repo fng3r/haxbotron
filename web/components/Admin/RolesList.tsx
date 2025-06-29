@@ -1,14 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronLeft, ChevronRight, PlusCircle, RefreshCw, Trash2, X } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
+import { z } from 'zod';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CopyButton } from '@/components/ui/copy-button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,7 +21,17 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 
 import { isNumber } from '@/lib/numcheck';
 import { mutations, queries } from '@/lib/queries/roles';
-import { NewRole, PlayerRoleEvent, PlayerRoleEventType } from '@/lib/types/roles';
+import { PlayerRoleEvent, PlayerRoleEventType } from '@/lib/types/roles';
+
+const addRoleFormSchema = z.object({
+  name: z.string().min(1, { message: 'Name is required' }),
+  auth: z.string().length(43, { message: 'Public ID must be 43 characters long' }),
+  role: z.enum(['player', 'adm', 's-adm', 'co-host', 'bad'], {
+    required_error: 'Please select a role',
+  }),
+});
+
+type AddRoleFormValues = z.infer<typeof addRoleFormSchema>;
 
 const convertDate = (timestamp: number): string => {
   return new Date(timestamp).toLocaleString();
@@ -50,7 +64,6 @@ const convertEventTypeToIcon = (eventType: PlayerRoleEventType): React.ReactNode
 };
 
 export default function RoomPlayerList() {
-  const [newRole, setNewRole] = useState({ auth: '', name: '', role: 'player' } as NewRole);
   const [page, setPage] = useState(1);
   const [pagingCount, setPagingCount] = useState(10);
 
@@ -61,6 +74,16 @@ export default function RoomPlayerList() {
   const [searchQueryDebounced] = useDebounce(searchQuery, 300);
   const [pagingCountDebounced] = useDebounce(pagingCount, 300);
   const [eventsPagingCountDebounced] = useDebounce(eventsPagingCount, 300);
+
+  // Form setup
+  const form = useForm<AddRoleFormValues>({
+    resolver: zodResolver(addRoleFormSchema),
+    defaultValues: {
+      name: '',
+      auth: '',
+      role: 'player',
+    },
+  });
 
   const { data: roles, isPlaceholderData: isRolesPlaceholderData } = queries.getPlayersRoles({
     page,
@@ -95,15 +118,6 @@ export default function RoomPlayerList() {
     setSearchQuery(query);
   };
 
-  const onChangeNewRole = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-
-    setNewRole({
-      ...newRole,
-      [name]: value,
-    });
-  };
-
   const onClickEventsPaging = (shift: number) => {
     setEventsPage((prev) => Math.max(prev + shift, 1));
   };
@@ -117,13 +131,11 @@ export default function RoomPlayerList() {
     }
   };
 
-  const addRole = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    addRoleMutation.mutate(newRole, {
+  const onSubmitAddRole = (values: AddRoleFormValues) => {
+    addRoleMutation.mutate(values, {
       onSuccess: () => {
-        SnackBarNotification.success(`Player ${newRole.name} (id: ${newRole.auth}) was added.`);
-        setNewRole({ auth: '', name: '', role: 'player' });
+        SnackBarNotification.success(`Player ${values.name} (id: ${values.auth}) was added.`);
+        form.reset();
       },
       onError: (error) => {
         SnackBarNotification.error(error.message);
@@ -165,50 +177,68 @@ export default function RoomPlayerList() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Player Accounts List</CardTitle>
+          <CardTitle>Player Roles</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="w-full space-y-4" onSubmit={addRole} method="post">
-            <div className="flex gap-4 items-end">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" required value={newRole.name} onChange={onChangeNewRole} />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="auth">Public id</Label>
-                <Input
-                  id="auth"
-                  name="auth"
-                  required
-                  value={newRole.auth}
-                  onChange={onChangeNewRole}
-                  className="w-[450px]"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmitAddRole)} className="w-full space-y-4">
+              <div className="flex gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter player name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="role">Role</Label>
-                <Select
+                <FormField
+                  control={form.control}
+                  name="auth"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>Public ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter public ID" className="w-[450px]" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="role"
-                  value={newRole.role}
-                  onValueChange={(value) => setNewRole({ ...newRole, role: value })}
-                >
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="player">player</SelectItem>
-                    <SelectItem value="adm">adm</SelectItem>
-                    <SelectItem value="s-adm">s-adm</SelectItem>
-                    <SelectItem value="co-host">co-host</SelectItem>
-                    <SelectItem value="bad">bad</SelectItem>
-                  </SelectContent>
-                </Select>
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>Role</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="player">player</SelectItem>
+                          <SelectItem value="adm">adm</SelectItem>
+                          <SelectItem value="s-adm">s-adm</SelectItem>
+                          <SelectItem value="co-host">co-host</SelectItem>
+                          <SelectItem value="bad">bad</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" size="sm" className="mt-6">
+                  Add
+                </Button>
               </div>
-              <Button type="submit" size="sm">
-                Add
-              </Button>
-            </div>
-          </form>
+            </form>
+          </Form>
 
           <Separator className="my-4" />
 
@@ -220,6 +250,7 @@ export default function RoomPlayerList() {
                 name="searchQuery"
                 value={searchQuery}
                 onChange={onChangeSearchQuery}
+                placeholder="Search by name or public id"
                 className="w-[400px]"
               />
             </div>
