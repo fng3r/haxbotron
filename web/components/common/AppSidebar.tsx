@@ -157,7 +157,10 @@ export default function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild className="group-data-[collapsible=icon]:p-0!">
+                <SidebarMenuButton
+                  asChild
+                  className="group-data-[collapsible=icon]:p-0! hover:bg-transparent active:bg-transparent"
+                >
                   <div className="flex items-center justify-between gap-3">
                     <>
                       <Avatar>
