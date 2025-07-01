@@ -155,7 +155,7 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
           <TableHeader>
             <TableRow>
               <TableHead>CONN</TableHead>
-              <TableHead>Auth</TableHead>
+              <TableHead>Public ID</TableHead>
               <TableHead>Reason</TableHead>
               <TableHead>Registered Date</TableHead>
               <TableHead>Expiration Date</TableHead>

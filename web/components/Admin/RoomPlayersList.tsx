@@ -126,7 +126,7 @@ export default function RoomPlayerList({ ruid }: { ruid: string }) {
           <TableHeader>
             <TableRow>
               <TableHead className="w-1/5">Name</TableHead>
-              <TableHead>AUTH</TableHead>
+              <TableHead>Public ID</TableHead>
               <TableHead>CONN</TableHead>
               <TableHead></TableHead>
             </TableRow>
