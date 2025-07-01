@@ -234,7 +234,7 @@ export default function RoomSocial({ ruid }: { ruid: string }) {
                 />
               </div>
             </div>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col md:flex-row flex-wrap gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="discordReplaysWebhookID">Replays Webhook ID</Label>
                 <Input
@@ -256,7 +256,7 @@ export default function RoomSocial({ ruid }: { ruid: string }) {
                 />
               </div>
             </div>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col md:flex-row flex-wrap gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="discordPasswordWebhookID">Password Webhook ID</Label>
                 <Input

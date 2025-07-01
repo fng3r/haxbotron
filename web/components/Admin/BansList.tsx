@@ -81,7 +81,7 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
         <CardTitle>Bans List</CardTitle>
       </CardHeader>
       <CardContent>
-        <form className="flex flex-wrap gap-2 mb-4 w-full" onSubmit={handleAdd} method="post">
+        <form className="flex flex-col lg:flex-row gap-2 mb-4 w-full" onSubmit={handleAdd} method="post">
           <div className="flex flex-col gap-1 flex-1 min-w-0">
             <label htmlFor="conn" className="text-xs font-medium">
               CONN

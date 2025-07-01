@@ -81,8 +81,9 @@ export default function RoomPlayerList({ ruid }: { ruid: string }) {
               onChange={onChangeSearchQuery}
               id="searchQuery"
               name="searchQuery"
+              placeholder="Search by name, public ID, or player conn"
               autoComplete="off"
-              className="w-100"
+              className="max-w-[420px]"
             />
           </div>
 

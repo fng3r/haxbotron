@@ -182,7 +182,7 @@ export default function RoomPlayerList() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmitAddRole)} className="w-full space-y-4">
-              <div className="flex gap-4">
+              <div className="flex flex-col md:flex-row gap-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -200,10 +200,10 @@ export default function RoomPlayerList() {
                   control={form.control}
                   name="auth"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col gap-2">
+                    <FormItem className="flex flex-col grow-1 md:max-w-[420px] gap-2">
                       <FormLabel>Public ID</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter public ID" className="w-[450px]" {...field} />
+                        <Input placeholder="Enter public ID" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -243,7 +243,7 @@ export default function RoomPlayerList() {
           <Separator className="my-4" />
 
           <div className="flex flex-col gap-4 mt-6">
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col grow-1 gap-2 md:max-w-[420px]">
               <Label htmlFor="searchQuery">Search query</Label>
               <Input
                 id="searchQuery"
@@ -251,7 +251,6 @@ export default function RoomPlayerList() {
                 value={searchQuery}
                 onChange={onChangeSearchQuery}
                 placeholder="Search by name or public id"
-                className="w-[400px]"
               />
             </div>
 
