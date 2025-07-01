@@ -1,14 +1,13 @@
-import { Logger } from "../game/controller/Logger"
-import { RoomConfig } from '../game/model/RoomObject/RoomConfig';
-import { KickStack } from "../game/model/GameObject/BallTrace";
 import { Logger } from "../game/controller/Logger";
-import { GameRoomConfig } from "../game/model/Configuration/GameRoomConfig";
-import { Room } from "../game/model/RoomObject/RoomObject";
-import { BanList } from "../game/model/PlayerBan/BanList";
-import {PlayerObject, PlayerStorage} from "../game/model/GameObject/PlayerObject";
-import {PlayersSet} from "../game/model/GameObject/PlayersSet";
 import ChatActivityMap from "../game/model/ChatActivityMap";
-import {PlayerRole} from "../game/model/PlayerRole/PlayerRole";
+import { GameRoomConfig } from "../game/model/Configuration/GameRoomConfig";
+import { KickStack } from "../game/model/GameObject/BallTrace";
+import { PlayerObject, PlayerStorage } from "../game/model/GameObject/PlayerObject";
+import { PlayersSet } from "../game/model/GameObject/PlayersSet";
+import { BanList } from "../game/model/PlayerBan/BanList";
+import { PlayerRole } from "../game/model/PlayerRole/PlayerRole";
+import { RoomConfig } from '../game/model/RoomObject/RoomConfig';
+import { Room } from "../game/model/RoomObject/RoomObject";
 
 declare global {
     interface Window {
@@ -33,7 +32,6 @@ declare global {
 
             stadiumData: {
                 default: string
-                training: string
             }
 
             bannedWordsPool: {

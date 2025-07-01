@@ -4,22 +4,13 @@ import React, { useEffect, useState } from 'react';
 
 import { useParams } from 'next/navigation';
 
-import { CircleNotificationsTwoTone } from '@mui/icons-material';
-import {
-  Button,
-  Container,
-  Divider,
-  Grid2 as Grid,
-  List,
-  ListItem,
-  ListItemIcon,
-  Paper,
-  TextField,
-} from '@mui/material';
-import { OrderedSet } from 'immutable';
+import { Bell } from 'lucide-react';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 import { useWSocket } from '@/context/ws';
 import { mutations } from '@/lib/queries/room';
@@ -37,7 +28,7 @@ export default function RoomLogs() {
   const ws = useWSocket();
   const { ruid } = useParams<{ ruid: string }>();
 
-  const [logMessages, setLogMessages] = useState(OrderedSet.of<LogMessage>());
+  const [logMessages, setLogMessages] = useState<LogMessage[]>([]);
 
   const [broadcastMessage, setBroadcastMessage] = useState('');
 
@@ -67,7 +58,10 @@ export default function RoomLogs() {
   useEffect(() => {
     const updateMessages = (content: LogMessage) => {
       if (content.ruid === ruid) {
-        setLogMessages((prev) => prev.add(content));
+        setLogMessages((prev: LogMessage[]) => {
+          if (prev.some((msg) => msg.id === content.id)) return prev;
+          return [...prev, content];
+        });
       }
     };
 
@@ -79,49 +73,50 @@ export default function RoomLogs() {
   }, [ws, ruid]);
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <Paper className="overflow-auto p-4">
-            <>
-              <WidgetTitle>Broadcast</WidgetTitle>
-              <form className="mt-2 w-full" onSubmit={handleBroadcast} method="post">
-                <TextField
-                  variant="outlined"
-                  margin="normal"
-                  required
-                  size="small"
-                  id="broadcast"
-                  label="Message"
-                  name="broadcast"
-                  value={broadcastMessage}
-                  onChange={onChangeBroadcastMessage}
-                  autoFocus
-                  sx={{ width: '50%' }}
-                />
-                <Button size="small" type="submit" variant="contained" color="primary" className="mt-5! ml-1!">
-                  Send
-                </Button>
-              </form>
-            </>
-            <Divider />
-
-            <>
-              <WidgetTitle>Log Messages</WidgetTitle>
-              <List>
-                {logMessages.map((message) => (
-                  <ListItem key={message.id}>
-                    <ListItemIcon sx={{ minWidth: '30px' }}>
-                      <CircleNotificationsTwoTone />
-                    </ListItemIcon>
-                    [{message.origin}] {message.message}
-                  </ListItem>
-                ))}
-              </List>
-            </>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+    <div className="flex flex-col gap-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Broadcast</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="flex gap-2 w-full" onSubmit={handleBroadcast} method="post">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="broadcast">Message</Label>
+              <Input
+                required
+                id="broadcast"
+                name="broadcast"
+                value={broadcastMessage}
+                onChange={onChangeBroadcastMessage}
+                autoFocus
+                className="w-lg"
+              />
+            </div>
+            <div className="flex gap-2 items-end">
+              <Button type="submit" variant="default">
+                Send
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Log Messages</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="flex flex-col gap-2 max-h-[400px] overflow-auto">
+            {logMessages.map((message: LogMessage) => (
+              <li key={message.id} className="flex items-center gap-2 text-sm">
+                <Bell className="size-4 shrink-0 font-semibold" />
+                <span>
+                  [{message.origin}] {message.message}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -1,20 +1,20 @@
 // ENTRYPOINT
 
-import * as LangRes from "./resource/strings";
-import * as eventListener from "./controller/events/eventListeners";
-import * as Tst from "./controller/Translator";
-import { Player } from "./model/GameObject/Player";
-import { Logger } from "./controller/Logger";
-import { PlayerObject } from "./model/GameObject/PlayerObject";
-import { ScoresObject } from "./model/GameObject/ScoresObject";
-import { KickStack } from "./model/GameObject/BallTrace";
+import { generateRandomString } from "../lib/utils";
 import { getUnixTimestamp } from "./controller/DateTimeUtils";
-import { TeamID } from "./model/GameObject/TeamID";
-import { EmergencyTools } from "./model/ExposeLibs/EmergencyTools";
-import { GameRoomConfig } from "./model/Configuration/GameRoomConfig";
-import {generateRandomString} from "../lib/utils";
-import {PlayersSet} from "./model/GameObject/PlayersSet";
+import * as eventListener from "./controller/events/eventListeners";
+import { Logger } from "./controller/Logger";
+import * as Tst from "./controller/Translator";
 import ChatActivityMap from "./model/ChatActivityMap";
+import { GameRoomConfig } from "./model/Configuration/GameRoomConfig";
+import { EmergencyTools } from "./model/ExposeLibs/EmergencyTools";
+import { KickStack } from "./model/GameObject/BallTrace";
+import { Player } from "./model/GameObject/Player";
+import { PlayerObject } from "./model/GameObject/PlayerObject";
+import { PlayersSet } from "./model/GameObject/PlayersSet";
+import { ScoresObject } from "./model/GameObject/ScoresObject";
+import { TeamID } from "./model/GameObject/TeamID";
+import * as LangRes from "./resource/strings";
 
 
 makeRoom();
@@ -53,7 +53,6 @@ function createRoom(): void {
         }
         ,stadiumData: {
             default: localStorage.getItem('_defaultMap')!
-            ,training: localStorage.getItem('_readyMap')!
         }
         ,bannedWordsPool: {
             nickname: []
@@ -92,7 +91,6 @@ function createRoom(): void {
     // clear localStorage
     localStorage.removeItem('_initConfig');
     localStorage.removeItem('_defaultMap');
-    localStorage.removeItem('_readyMap');
 
     window.document.title = `Haxbotron ${window.gameRoom.config._RUID}`;
     
@@ -101,10 +99,10 @@ function createRoom(): void {
 
 
 function setDefaultSettings(): void {
-    window.gameRoom._room.setCustomStadium(window.gameRoom.stadiumData.training);
-    window.gameRoom._room.setScoreLimit(window.gameRoom.config.rules.requisite.scoreLimit);
-    window.gameRoom._room.setTimeLimit(window.gameRoom.config.rules.requisite.timeLimit);
-    window.gameRoom._room.setTeamsLock(window.gameRoom.config.rules.requisite.teamLock);
+    window.gameRoom._room.setCustomStadium(window.gameRoom.stadiumData.default);
+    window.gameRoom._room.setScoreLimit(window.gameRoom.config.rules.scoreLimit);
+    window.gameRoom._room.setTimeLimit(window.gameRoom.config.rules.timeLimit);
+    window.gameRoom._room.setTeamsLock(window.gameRoom.config.rules.teamLock);
 
     window._feedSocialDiscordWebhook(window.gameRoom.social.discordWebhook.passwordWebhookId, window.gameRoom.social.discordWebhook.passwordWebhookToken, "password", {
         message: Tst.maketext(

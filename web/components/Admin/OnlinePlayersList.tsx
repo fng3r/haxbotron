@@ -1,31 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
-import {
-  KeyboardArrowDown as KeyboardArrowDownIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon,
-} from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Collapse,
-  Grid2 as Grid,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { z } from 'zod';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CopyButton } from '@/components/ui/copy-button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { Player } from '@/../core/game/model/GameObject/Player';
-import { isNumber } from '@/lib/numcheck';
 import { mutations, queries } from '@/lib/queries/player';
 import { BanOptions } from '@/lib/types/player';
 
@@ -38,128 +28,71 @@ export default function OnlinePlayerList({ ruid }: { ruid: string }) {
   const { data: onlinePlayers } = queries.getOnlinePlayersID(ruid);
 
   return (
-    <>
-      <WidgetTitle>Online Players</WidgetTitle>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell width="20%" className="font-bold!">
-              Name
-            </TableCell>
-            <TableCell className="font-bold!">AUTH</TableCell>
-            <TableCell className="font-bold!">CONN</TableCell>
-            <TableCell className="font-bold!">Team</TableCell>
-            <TableCell className="font-bold!">Chat</TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {onlinePlayers && onlinePlayers.map((item, idx) => <OnlinePlayerRow key={idx} row={item} ruid={ruid} />)}
-        </TableBody>
-      </Table>
-    </>
+    <Card>
+      <CardHeader>
+        <CardTitle>Online Players</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-1/5">Name</TableHead>
+              <TableHead>Public ID</TableHead>
+              <TableHead>CONN</TableHead>
+              <TableHead>Team</TableHead>
+              <TableHead>Chat</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {onlinePlayers && onlinePlayers.map((item, idx) => <OnlinePlayerRow key={idx} row={item} ruid={ruid} />)}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
+
+const whisperSchema = z.object({
+  whisper: z.string().min(1, { message: 'Message is required' }),
+});
+const kickSchema = z.object({
+  kickReason: z.string().optional(),
+});
+const banSchema = z.object({
+  banReason: z.string().optional(),
+  duration: z.coerce.number().min(1, { message: 'Ban duration must be positive' }),
+});
 
 function OnlinePlayerRow(props: { ruid: string; row: Player }) {
   const { ruid, row } = props;
   const [open, setOpen] = useState(false);
-
-  const [kickReason, setKickReason] = useState('');
-  const [newBan, setNewBan] = useState({ reason: '', seconds: 180 } as BanOptions);
-
-  const [whisperMessage, setWhisperMessage] = useState('');
-
   const mutePlayerMutation = mutations.mutePlayer();
   const unmutePlayerMutation = mutations.unmutePlayer();
   const kickPlayerMutation = mutations.kickPlayer();
   const banPlayerMutation = mutations.banPlayer();
   const sendWhisperMutation = mutations.sendWhisper();
-
   const convertTeamID = (teamID: number): string => {
     if (teamID === 1) return 'Red';
     if (teamID === 2) return 'Blue';
     return 'Spec';
   };
 
-  const onChangeKickReason = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKickReason(e.target.value);
-  };
+  const whisperForm = useForm<z.infer<typeof whisperSchema>>({
+    resolver: zodResolver(whisperSchema),
+    defaultValues: { whisper: '' },
+  });
+  const kickForm = useForm<z.infer<typeof kickSchema>>({
+    resolver: zodResolver(kickSchema),
+    defaultValues: { kickReason: '' },
+  });
+  const banForm = useForm<z.infer<typeof banSchema>>({
+    resolver: zodResolver(banSchema),
+    defaultValues: { banReason: '', duration: 5 },
+  });
 
-  const onChangeNewBan = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name === 'newbanseconds' && isNumber(parseInt(value))) {
-      setNewBan({
-        ...newBan,
-        seconds: parseInt(value),
-      });
-    } else {
-      setNewBan({
-        ...newBan,
-        [name]: value,
-      });
-    }
-  };
-
-  const onChangeWhisperMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setWhisperMessage(e.target.value);
-  };
-
-  const handleWhisper = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleMute = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.preventDefault();
-
-    sendWhisperMutation.mutate(
-      { ruid, player: row, message: whisperMessage },
-      {
-        onSuccess: () => {
-          SnackBarNotification.success(`Successfully sent whisper message to ${row.name}.`);
-          setWhisperMessage('');
-        },
-        onError: (error) => {
-          SnackBarNotification.error(error.message);
-        },
-      },
-    );
-  };
-
-  const handleKick = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    kickPlayerMutation.mutate(
-      { ruid, player: row, reason: kickReason },
-      {
-        onSuccess: () => {
-          SnackBarNotification.success(`Player ${row.name} has been kicked.`);
-          setKickReason('');
-        },
-        onError: (error) => {
-          SnackBarNotification.error(error.message);
-        },
-      },
-    );
-  };
-
-  const handleBan = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    banPlayerMutation.mutate(
-      { ruid, player: row, banOptions: newBan },
-      {
-        onSuccess: () => {
-          SnackBarNotification.success(`Player ${row.name} has been banned.`);
-        },
-        onError: (error) => {
-          SnackBarNotification.error(error.message);
-          setNewBan({ reason: '', seconds: 180 });
-        },
-      },
-    );
-  };
-
-  const handleOnlinePlayerMute = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    event.preventDefault();
-
     if (row.permissions.mute) {
       unmutePlayerMutation.mutate(
         { ruid, player: row },
@@ -187,119 +120,183 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
     }
   };
 
+  const handleKick = async (reason?: string) => {
+    kickPlayerMutation.mutate(
+      { ruid, player: row, reason },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Player ${row.name} has been kicked.`);
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
+  };
+
+  const handleWhisper = async (message: string) => {
+    sendWhisperMutation.mutate(
+      { ruid, player: row, message },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Successfully sent whisper message to ${row.name}.`);
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
+  };
+
+  const handleBan = async (banOptions: BanOptions) => {
+    banPlayerMutation.mutate(
+      { ruid, player: row, banOptions },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Player ${row.name} has been banned.`);
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
+  };
+
+  const onWhisper = (values: z.infer<typeof whisperSchema>) => {
+    handleWhisper(values.whisper);
+    whisperForm.reset();
+  };
+  const onKick = (values: z.infer<typeof kickSchema>) => {
+    handleKick(values.kickReason);
+    kickForm.reset();
+  };
+  const onBan = (values: z.infer<typeof banSchema>) => {
+    handleBan({ reason: values.banReason, seconds: values.duration * 60 });
+    banForm.reset();
+  };
+
   return (
     <>
-      <TableRow className="*:border-none">
-        <TableCell component="th" scope="row">
+      <TableRow>
+        <TableCell>
           {row.name}#{row.id}
         </TableCell>
-        <TableCell>{row.auth}</TableCell>
-        <TableCell>{row.conn}</TableCell>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            <span>{row.auth}</span>
+            <CopyButton text={row.auth} />
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            <span>{row.conn}</span>
+            <CopyButton text={row.conn} />
+          </div>
+        </TableCell>
         <TableCell>{convertTeamID(row.team)}</TableCell>
         <TableCell>
-          <Button size="small" type="button" variant="text" color="inherit" onClick={handleOnlinePlayerMute}>
+          <Button size="sm" type="button" variant="ghost" onClick={handleMute}>
             {row.permissions.mute ? 'Unmute' : 'Mute'}
           </Button>
         </TableCell>
         <TableCell>
-          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
+          <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} aria-label="expand row">
+            {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </Button>
         </TableCell>
       </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box margin={1}>
-              <Grid container spacing={1} direction={'column'}>
-                <form onSubmit={handleWhisper} method="post">
-                  <Grid size={{ xs: 12, sm: 12 }}>
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={whisperMessage}
-                      onChange={onChangeWhisperMessage}
-                      id="whisper"
-                      label="Whisper"
-                      name="whisper"
-                    />
-                    <Button size="small" type="submit" variant="contained" color="primary" className="mt-5! ml-1!">
-                      Send
-                    </Button>
-                  </Grid>
+      {open && (
+        <TableRow>
+          <TableCell colSpan={6} className="p-0 bg-muted/30">
+            <div className="p-4 flex flex-col gap-4">
+              <Form {...whisperForm}>
+                <form onSubmit={whisperForm.handleSubmit(onWhisper)} className="flex gap-2">
+                  <FormField
+                    control={whisperForm.control}
+                    name="whisper"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-2">
+                        <FormLabel>Whisper</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" variant="default" className="mt-5.5">
+                    Send
+                  </Button>
                 </form>
-                <Grid container columnSpacing={4}>
-                  <form onSubmit={handleKick} method="post">
-                    <Grid size={{ xs: 12, sm: 12 }}>
-                      <TextField
-                        variant="outlined"
-                        margin="normal"
-                        size="small"
-                        value={kickReason}
-                        onChange={onChangeKickReason}
-                        id="reason"
-                        label="Reason"
-                        name="reason"
-                        className="mr-1!"
-                      />
-                      <Button size="small" type="submit" variant="contained" color="secondary" className="mt-5!">
-                        Kick
-                      </Button>
-                    </Grid>
+              </Form>
+              <div className="flex gap-4 flex-col md:flex-row">
+                <Form {...kickForm}>
+                  <form onSubmit={kickForm.handleSubmit(onKick)} className="flex gap-2">
+                    <FormField
+                      control={kickForm.control}
+                      name="kickReason"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2">
+                          <FormLabel>Kick Reason</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" variant="destructive" className="mt-5.5">
+                      Kick
+                    </Button>
                   </form>
-
-                  <form onSubmit={handleBan} method="post">
-                    <Grid size={{ xs: 12, sm: 12 }}>
-                      <TextField
-                        variant="outlined"
-                        margin="normal"
-                        size="small"
-                        value={newBan.reason}
-                        onChange={onChangeNewBan}
-                        id="reason"
-                        label="Reason"
-                        name="reason"
-                        className="mr-2!"
-                      />
-                      <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
-                        size="small"
-                        value={newBan.seconds}
-                        onChange={onChangeNewBan}
-                        type="number"
-                        id="seconds"
-                        label="Time(secs)"
-                        name="seconds"
-                        className="mr-1!"
-                      />
-                      <Button size="small" type="submit" variant="contained" color="error" className="mt-5!">
-                        Ban
-                      </Button>
-                    </Grid>
+                </Form>
+                <Form {...banForm}>
+                  <form onSubmit={banForm.handleSubmit(onBan)} className="flex gap-2">
+                    <FormField
+                      control={banForm.control}
+                      name="banReason"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2">
+                          <FormLabel>Ban Reason</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={banForm.control}
+                      name="duration"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2 w-40">
+                          <FormLabel>Ban Duration (mins)</FormLabel>
+                          <FormControl>
+                            <Input type="number" min={1} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" variant="destructive" className="mt-5.5">
+                      Ban
+                    </Button>
                   </form>
-                </Grid>
-              </Grid>
-              <Typography variant="h6" gutterBottom component="div">
-                Information
-              </Typography>
-              <Table size="small" aria-label="statistics">
-                <TableHead>
+                </Form>
+              </div>
+              <div className="font-semibold mb-2">Information</div>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell>Permissions</TableCell>
-                    <TableCell>Mute</TableCell>
-                    <TableCell>Mute Expiration</TableCell>
-                    <TableCell>Join Date</TableCell>
+                    <TableHead>Permissions</TableHead>
+                    <TableHead>Mute</TableHead>
+                    <TableHead>Mute Expiration</TableHead>
+                    <TableHead>Join Date</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
-                  <TableRow key={row.id}>
-                    <TableCell component="th" scope="row">
-                      {row.admin ? 'Admin' : '-'}
-                    </TableCell>
+                  <TableRow>
+                    <TableCell>{row.admin ? 'Admin' : '-'}</TableCell>
                     <TableCell>{row.permissions.mute ? 'Yes' : 'No'}</TableCell>
                     <TableCell>
                       {row.permissions.muteExpire === 0 ? '-' : convertDate(row.permissions.muteExpire)}
@@ -308,10 +305,10 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
                   </TableRow>
                 </TableBody>
               </Table>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
     </>
   );
 }

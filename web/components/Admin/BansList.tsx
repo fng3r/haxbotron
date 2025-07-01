@@ -1,41 +1,46 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
-import BackspaceOutlined from '@mui/icons-material/BackspaceOutlined';
-import {
-  Button,
-  Container,
-  Divider,
-  Grid2 as Grid,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { z } from 'zod';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-import { isNumber } from '@/lib/numcheck';
 import { mutations, queries } from '@/lib/queries/player';
-import { NewBanEntry } from '@/lib/types/player';
+
+const banFormSchema = z.object({
+  conn: z.string().min(1, { message: 'CONN is required' }),
+  auth: z.string().min(1, { message: 'AUTH is required' }),
+  reason: z.string().min(1, { message: 'Reason is required' }),
+  duration: z.coerce.number().min(1, { message: 'Ban Duration must be positive' }),
+});
+
+type BanFormValues = z.infer<typeof banFormSchema>;
 
 export default function RoomBanList({ ruid }: { ruid: string }) {
-  const [newBan, setNewBan] = useState({ conn: '', reason: '', seconds: 0 } as NewBanEntry);
-
   const [page, setPage] = useState(1);
-  const [pagingCount, setPagingCount] = useState(10);
-
-  const { data: bans } = queries.getPlayersBans(ruid, { page, pagingCount });
-
+  const { data: bans } = queries.getPlayersBans(ruid, { page, pagingCount: 10 });
   const addPlayerBanMutation = mutations.addBan();
   const removePlayerBanMutation = mutations.removeBan();
+
+  const form = useForm<BanFormValues>({
+    resolver: zodResolver(banFormSchema),
+    defaultValues: {
+      conn: '',
+      auth: '',
+      reason: '',
+      duration: 5,
+    },
+  });
 
   const convertDate = (timestamp: number): string => {
     return new Date(timestamp).toLocaleString();
@@ -45,39 +50,17 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
     setPage((prev) => Math.max(prev + shift, 1));
   };
 
-  const onChangePagingCountInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isNumber(parseInt(e.target.value))) {
-      const count: number = parseInt(e.target.value);
-      if (count >= 1) {
-        setPagingCount(count);
-      }
-    }
+  const onSubmit = (values: BanFormValues) => {
+    handleAdd(values);
+    form.reset();
   };
 
-  const onChangeNewBan = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name === 'newbanseconds' && isNumber(parseInt(value))) {
-      setNewBan({
-        ...newBan,
-        seconds: parseInt(value),
-      });
-    } else {
-      setNewBan({
-        ...newBan,
-        [name]: value,
-      });
-    }
-  };
-
-  const handleAdd = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  const handleAdd = async (values: BanFormValues) => {
     addPlayerBanMutation.mutate(
-      { ruid, banEntry: newBan },
+      { ruid, banEntry: { ...values, seconds: values.duration * 60 } },
       {
         onSuccess: () => {
-          SnackBarNotification.success(`Successfully banned by conn: ${newBan.conn}.`);
-          setNewBan({ conn: '', auth: '', reason: '', seconds: 0 });
+          SnackBarNotification.success(`Successfully banned by conn: ${values.conn}.`);
         },
         onError: (error) => {
           SnackBarNotification.error(error.message);
@@ -101,146 +84,125 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
   };
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <Paper className="p-4!">
-            <React.Fragment>
-              <WidgetTitle>Bans List</WidgetTitle>
-              <Grid container spacing={2}>
-                <form className="w-full" onSubmit={handleAdd} method="post">
-                  <Grid container size={12} columnSpacing={0.5}>
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newBan.conn}
-                      onChange={onChangeNewBan}
-                      id="conn"
-                      label="CONN"
-                      name="conn"
-                    />
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newBan.auth}
-                      onChange={onChangeNewBan}
-                      id="auth"
-                      label="AUTH"
-                      name="auth"
-                    />
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newBan.reason}
-                      onChange={onChangeNewBan}
-                      id="reason"
-                      label="Reason"
-                      name="reason"
-                    />
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      size="small"
-                      value={newBan.seconds}
-                      onChange={onChangeNewBan}
-                      type="number"
-                      id="seconds"
-                      label="Ban Time(secs)"
-                      name="seconds"
-                    />
-                    <Button
-                      size="small"
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      className="mt-5! mb-4! ml-2!"
-                    >
-                      Ban
+    <Card>
+      <CardHeader>
+        <CardTitle>Bans List</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col lg:flex-row gap-2 mb-4 w-full">
+            <FormField
+              control={form.control}
+              name="conn"
+              render={({ field }) => (
+                <FormItem className="flex flex-col gap-1 flex-1 min-w-0">
+                  <FormLabel className="text-xs font-medium">CONN</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter player conn" className="w-full lg:w-auto" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="auth"
+              render={({ field }) => (
+                <FormItem className="flex flex-col gap-1 flex-1 min-w-0">
+                  <FormLabel className="text-xs font-medium">Public ID</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter player public ID" className="w-full lg:w-auto" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="reason"
+              render={({ field }) => (
+                <FormItem className="flex flex-col gap-1 flex-1 min-w-0">
+                  <FormLabel className="text-xs font-medium">Reason</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter ban reason" className="w-full lg:w-auto" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="duration"
+              render={({ field }) => (
+                <FormItem className="flex flex-col gap-1 w-30">
+                  <FormLabel className="text-xs font-medium">Ban Duration (mins)</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="mt-5">
+              Ban
+            </Button>
+          </form>
+        </Form>
+
+        <Separator className="mb-4" />
+
+        <Table className="table-auto">
+          <TableHeader>
+            <TableRow>
+              <TableHead>CONN</TableHead>
+              <TableHead>Public ID</TableHead>
+              <TableHead>Reason</TableHead>
+              <TableHead>Registered Date</TableHead>
+              <TableHead>Expiration Date</TableHead>
+              <TableHead className="text-right"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {bans &&
+              bans.map((item, idx) => (
+                <TableRow key={idx}>
+                  <TableCell>
+                    <span className="break-all break-words hyphens-auto">{item.conn}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="break-all break-words hyphens-auto">{item.auth}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="break-all break-words hyphens-auto">{item.reason}</span>
+                  </TableCell>
+                  <TableCell>{convertDate(item.register)}</TableCell>
+                  <TableCell>{convertDate(item.expire)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(item.conn)} aria-label="delete">
+                      <Trash2 className="size-4" />
                     </Button>
-                  </Grid>
-                </form>
-              </Grid>
-              <Divider />
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
 
-              <Grid container spacing={1}>
-                <Grid size={{ xs: 8, sm: 4 }}>
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    size="small"
-                    id="pagingCountInput"
-                    label="Paging Items Count"
-                    name="pagingCountInput"
-                    type="number"
-                    value={pagingCount}
-                    onChange={onChangePagingCountInput}
-                  />
-                  <Button
-                    onClick={() => onClickPaging(-1)}
-                    size="small"
-                    type="button"
-                    variant="outlined"
-                    color="inherit"
-                    className="mt-5! ml-1!"
-                  >
-                    &lt;&lt;
-                  </Button>
-                  <Button
-                    onClick={() => onClickPaging(1)}
-                    size="small"
-                    type="button"
-                    variant="outlined"
-                    color="inherit"
-                    className="mt-5!"
-                  >
-                    &gt;&gt;
-                  </Button>
-
-                  <Typography>Page {page}</Typography>
-                </Grid>
-              </Grid>
-              <Divider />
-
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>CONN</TableCell>
-                    <TableCell>Auth</TableCell>
-                    <TableCell>Reason</TableCell>
-                    <TableCell>Registered Date</TableCell>
-                    <TableCell>Expiration Date</TableCell>
-                    <TableCell align="right"></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {bans &&
-                    bans.map((item, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell>{item.conn}</TableCell>
-                        <TableCell>{item.auth}</TableCell>
-                        <TableCell>{item.reason}</TableCell>
-                        <TableCell>{convertDate(item.register)}</TableCell>
-                        <TableCell>{convertDate(item.expire)}</TableCell>
-                        <TableCell align="right">
-                          <IconButton name={item.conn} onClick={() => handleDelete(item.conn)} aria-label="delete">
-                            <BackspaceOutlined fontSize="small" />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </React.Fragment>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+        <div className="mt-2 w-full flex justify-center items-center gap-2 py-2">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => onClickPaging(-1)}
+            aria-label="Previous page"
+            size="icon"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <span className="mx-2">Page {page}</span>
+          <Button variant="outline" type="button" onClick={() => onClickPaging(1)} aria-label="Next page" size="icon">
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

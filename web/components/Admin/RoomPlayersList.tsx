@@ -2,28 +2,16 @@
 
 import { useEffect, useState } from 'react';
 
-import {
-  KeyboardArrowDown as KeyboardArrowDownIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon,
-} from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Collapse,
-  Grid2 as Grid,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CopyButton } from '@/components/ui/copy-button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { useWSocket } from '@/context/ws';
 import { isNumber } from '@/lib/numcheck';
@@ -38,7 +26,6 @@ const convertDate = (timestamp: number): string => {
 export default function RoomPlayerList({ ruid }: { ruid: string }) {
   const ws = useWSocket();
   const queryClient = useQueryClient();
-
   const [page, setPage] = useState(1);
   const [pagingCount, setPagingCount] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,11 +37,9 @@ export default function RoomPlayerList({ ruid }: { ruid: string }) {
         queryClient.invalidateQueries({ queryKey: queryKeys.players(ruid) });
       }
     };
-
     ws.on('roomct', invalidateRoomPlayers);
     ws.on('joinleft', invalidateRoomPlayers);
     ws.on('statuschange', invalidateRoomPlayers);
-
     return () => {
       ws.off('roomct', invalidateRoomPlayers);
       ws.off('joinleft', invalidateRoomPlayers);
@@ -65,7 +50,6 @@ export default function RoomPlayerList({ ruid }: { ruid: string }) {
   const onClickPaging = (shift: number) => {
     setPage((prev) => Math.max(prev + shift, 1));
   };
-
   const onChangePagingCountInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isNumber(parseInt(e.target.value))) {
       const count: number = parseInt(e.target.value);
@@ -74,139 +58,132 @@ export default function RoomPlayerList({ ruid }: { ruid: string }) {
       }
     }
   };
-
   const onChangeSearchQuery = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
+    setSearchQuery(e.target.value);
   };
-
   const { data: players, isPlaceholderData } = queries.getPlayerAccountList(ruid, {
     page,
     pagingCount,
     searchQuery: searchQueryDebounced,
   });
-
   return (
-    <>
-      <WidgetTitle>Player Accounts List</WidgetTitle>
-      <Grid container spacing={1}>
-        <Grid size={12}>
-          <Grid size={4}>
-            <TextField
-              variant="outlined"
-              margin="normal"
-              size="small"
+    <Card>
+      <CardHeader>
+        <CardTitle>Player Accounts List</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col gap-4 mb-4 w-full">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="searchQuery">Search query</Label>
+            <Input
+              type="search"
               value={searchQuery}
               onChange={onChangeSearchQuery}
               id="searchQuery"
-              label="Search query"
               name="searchQuery"
-              fullWidth
+              placeholder="Search by name, public ID, or player conn"
+              autoComplete="off"
+              className="max-w-[420px]"
             />
-          </Grid>
-        </Grid>
-        <Grid container spacing={1} size={12} flexDirection="column">
-          <Grid size={5}>
-            <TextField
-              variant="outlined"
-              margin="normal"
-              size="small"
-              sx={{ width: 150 }}
-              id="pagingCountInput"
-              label="Paging Items Count"
-              name="pagingCountInput"
-              type="number"
-              value={pagingCount}
-              onChange={onChangePagingCountInput}
-            />
-            {/* previous page */}
-            <Button
-              onClick={() => onClickPaging(-1)}
-              size="small"
-              type="button"
-              variant="outlined"
-              color="inherit"
-              className="mt-5! ml-1!"
-            >
-              &lt;&lt;
-            </Button>
-            {/* next page */}
-            <Button
-              onClick={() => onClickPaging(1)}
-              size="small"
-              type="button"
-              variant="outlined"
-              color="inherit"
-              className="mt-5!"
-            >
-              &gt;&gt;
-            </Button>
+          </div>
 
-            <Typography>Page {page}</Typography>
-          </Grid>
-        </Grid>
-
-        <Table size="small">
-          <TableHead>
+          <div className="flex gap-2">
+            <div className="flex flex-col gap-2 w-40">
+              <Label htmlFor="pagingCountInput">Paging Items Count</Label>
+              <Input
+                type="number"
+                id="pagingCountInput"
+                name="pagingCountInput"
+                value={pagingCount}
+                onChange={onChangePagingCountInput}
+                min={1}
+              />
+            </div>
+            <div className="flex gap-2 items-end">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => onClickPaging(-1)}
+                aria-label="Previous page"
+                size="icon"
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => onClickPaging(1)}
+                aria-label="Next page"
+                size="icon"
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground mb-2">Page {page}</p>
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell width="20%" className="font-bold!">
-                Name
-              </TableCell>
-              <TableCell className="font-bold!">AUTH</TableCell>
-              <TableCell className="font-bold!">CONN</TableCell>
-              <TableCell />
+              <TableHead className="w-1/5">Name</TableHead>
+              <TableHead>Public ID</TableHead>
+              <TableHead>CONN</TableHead>
+              <TableHead></TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
           <TableBody className={isPlaceholderData ? 'opacity-50' : ''}>
             {players && players.map((item, idx) => <PlayerAccountRow key={idx} idx={idx} row={item} />)}
           </TableBody>
         </Table>
-      </Grid>
-    </>
+      </CardContent>
+    </Card>
   );
 }
 
 function PlayerAccountRow(props: { idx: number; row: RoomPlayer }) {
   const { idx, row } = props;
   const [open, setOpen] = useState(false);
-
   return (
     <>
-      <TableRow className="*:border-none">
-        <TableCell component="th" scope="row">
-          {row.name}
-        </TableCell>
-        <TableCell>{row.auth}</TableCell>
-        <TableCell>{row.conn}</TableCell>
+      <TableRow>
+        <TableCell>{row.name}</TableCell>
         <TableCell>
-          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
+          <div className="flex items-center gap-2">
+            <span>{row.auth}</span>
+            <CopyButton text={row.auth} />
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            <span>{row.conn}</span>
+            <CopyButton text={row.conn} />
+          </div>
+        </TableCell>
+        <TableCell>
+          <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} aria-label="expand row">
+            {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
         </TableCell>
       </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box margin={1}>
-              <Typography variant="h6" gutterBottom component="div">
-                Information
-              </Typography>
-              <Table size="small" aria-label="player information">
-                <TableHead>
+      {open && (
+        <TableRow>
+          <TableCell colSpan={4} className="p-0 bg-muted/30">
+            <div className="p-4">
+              <div className="font-semibold mb-2">Information</div>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell>Muted</TableCell>
-                    <TableCell>Mute Expiration</TableCell>
-                    <TableCell>Rejoin Count</TableCell>
-                    <TableCell>Join</TableCell>
-                    <TableCell>Left</TableCell>
-                    <TableCell>Malicious Actions</TableCell>
+                    <TableHead>Muted</TableHead>
+                    <TableHead>Mute Expiration</TableHead>
+                    <TableHead>Rejoin Count</TableHead>
+                    <TableHead>Join</TableHead>
+                    <TableHead>Left</TableHead>
+                    <TableHead>Malicious Actions</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
-                  <TableRow key={idx}>
-                    <TableCell component="th" scope="row">
-                      {row.mute ? 'Yes' : 'no'}
-                    </TableCell>
+                  <TableRow>
+                    <TableCell>{row.mute ? 'Yes' : 'No'}</TableCell>
                     <TableCell>{row.muteExpire === 0 ? '-' : convertDate(row.muteExpire)}</TableCell>
                     <TableCell>{row.rejoinCount}</TableCell>
                     <TableCell>{row.joinDate === 0 ? '-' : convertDate(row.joinDate)}</TableCell>
@@ -215,10 +192,10 @@ function PlayerAccountRow(props: { idx: number; row: RoomPlayer }) {
                   </TableRow>
                 </TableBody>
               </Table>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
     </>
   );
 }

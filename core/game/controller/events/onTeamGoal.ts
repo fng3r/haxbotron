@@ -1,10 +1,7 @@
-import * as Tst from "../Translator";
-import * as LangRes from "../../resource/strings";
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { getUnixTimestamp } from "../DateTimeUtils";
-import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
 import { ScoresObject } from "../../model/GameObject/ScoresObject";
-import { setBanlistDataToDB } from "../Storage";
+import { TeamID } from "../../model/GameObject/TeamID";
+import * as LangRes from "../../resource/strings";
+import * as Tst from "../Translator";
 
 export async function onTeamGoalListener(team: TeamID): Promise<void> {
     // Event called when a team scores a goal.
@@ -22,13 +19,6 @@ export async function onTeamGoalListener(team: TeamID): Promise<void> {
         ogName: '',
         score: buildScoreString(scores?.red, scores?.blue),
         time: buildMatchTimeString(scores?.time),
-        gameRuleName: window.gameRoom.config.rules.ruleName,
-        gameRuleLimitTime: window.gameRoom.config.rules.requisite.timeLimit,
-        gameRuleLimitScore: window.gameRoom.config.rules.requisite.scoreLimit,
-        gameRuleNeedMin: window.gameRoom.config.rules.requisite.minimumPlayers,
-        possTeamRed: window.gameRoom.ballStack.possCalculate(TeamID.Red),
-        possTeamBlue: window.gameRoom.ballStack.possCalculate(TeamID.Blue)
-
     };
 
     if (team === TeamID.Red) {

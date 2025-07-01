@@ -2,19 +2,9 @@
 
 import Link from 'next/link';
 
-import {
-  Container,
-  Divider,
-  Grid2 as Grid,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@mui/material';
-
-import WidgetTitle from '@/components/common/WidgetTitle';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CopyButton } from '@/components/ui/copy-button';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { queries } from '@/lib/queries/room';
 
@@ -23,94 +13,87 @@ export default function RoomList() {
   const { data: allRoomsList } = queries.getAllRoomsList();
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <Paper className="p-4">
-            <>
-              <WidgetTitle>Current Game Rooms</WidgetTitle>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="left" className="font-bold!">
-                      RUID
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Current Game Rooms</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            {!roomsInfoList || (roomsInfoList.length === 0 && <TableCaption>No rooms</TableCaption>)}
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-left font-bold">RUID</TableHead>
+                <TableHead className="font-bold">Title</TableHead>
+                <TableHead className="text-right font-bold">Link</TableHead>
+                <TableHead className="text-right font-bold">Online Players</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {roomsInfoList &&
+                roomsInfoList.map((item) => (
+                  <TableRow key={item.ruid}>
+                    <TableCell className="text-left">
+                      <Link href={`/admin/room/${item.ruid}`} className="block w-full">
+                        {item.ruid}
+                      </Link>
                     </TableCell>
-                    <TableCell className="font-bold!">Title</TableCell>
-                    <TableCell align="right" className="font-bold!">
-                      Link
+                    <TableCell>
+                      <Link href={`/admin/room/${item.ruid}`} className="block w-full">
+                        {item.roomName}
+                      </Link>
                     </TableCell>
-                    <TableCell align="right" className="font-bold!">
-                      Online Players
+                    <TableCell className="text-right">
+                      <div className="flex justify-end items-center gap-2">
+                        <span>{item.roomLink}</span>
+                        <CopyButton text={item.roomLink} />
+                      </div>
                     </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {roomsInfoList &&
-                    roomsInfoList.map((item) => (
-                      <TableRow hover key={item.ruid} className="cursor-pointer">
-                        <TableCell align="left">
-                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
-                            {item.ruid}
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
-                            {item.roomName}
-                          </Link>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
-                            {item.roomLink}
-                          </Link>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
-                            {item.onlinePlayers}
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </>
-
-            <Divider className="mb-2!" />
-
-            <>
-              <WidgetTitle>All Rooms List</WidgetTitle>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="left" className="font-bold!">
-                      RUID
-                    </TableCell>
-                    <TableCell align="right" className="font-bold!">
-                      Status
+                    <TableCell className="text-right">
+                      <Link href={`/admin/room/${item.ruid}`} className="block w-full">
+                        {item.onlinePlayers}
+                      </Link>
                     </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {allRoomsList &&
-                    allRoomsList.map((item) => (
-                      <TableRow hover key={item.ruid} className="cursor-pointer">
-                        <TableCell align="left">
-                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
-                            {item.ruid}
-                          </Link>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Link href={`/admin/room/${item.ruid}`} className="block size-full">
-                            {item.online ? 'online' : 'offline'}
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+                ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>All Rooms List</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            {!allRoomsList || (allRoomsList.length === 0 && <TableCaption>No rooms</TableCaption>)}
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-left font-bold">RUID</TableHead>
+                <TableHead className="text-right font-bold">Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {allRoomsList &&
+                allRoomsList.map((item) => (
+                  <TableRow key={item.ruid}>
+                    <TableCell className="text-left">
+                      <Link href={`/admin/room/${item.ruid}`} className="block w-full">
+                        {item.ruid}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link href={`/admin/room/${item.ruid}`} className="block w-full">
+                        {item.online ? 'online' : 'offline'}
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
