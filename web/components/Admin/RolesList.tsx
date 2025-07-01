@@ -248,6 +248,7 @@ export default function RoomPlayerList() {
               <Input
                 id="searchQuery"
                 name="searchQuery"
+                type="search"
                 value={searchQuery}
                 onChange={onChangeSearchQuery}
                 placeholder="Search by name or public id"
