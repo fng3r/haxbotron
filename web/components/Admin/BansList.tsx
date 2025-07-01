@@ -119,7 +119,7 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
             />
             <FormField
               control={form.control}
-              name="banReason"
+              name="reason"
               render={({ field }) => (
                 <FormItem className="flex flex-col gap-1 flex-1 min-w-0">
                   <FormLabel className="text-xs font-medium">Reason</FormLabel>
