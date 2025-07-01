@@ -142,7 +142,7 @@ export default function AppSidebar() {
                   <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/shutdown`}>
                     <Link href={`/admin/room/${ruid}/shutdown`}>
                       <XOctagon className="size-5" />
-                      <span>Close this room</span>
+                      <span>Close room</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
