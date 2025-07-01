@@ -409,10 +409,10 @@ export class HeadlessBrowser {
                     roomName: window.gameRoom.config._config.roomName,
                     onlinePlayers: window.gameRoom.playerList.size(),
                     adminPassword: window.gameRoom.adminPassword,
-                    _link: window.gameRoom.link,
+                    link: window.gameRoom.link,
                     _roomConfig: window.gameRoom.config._config,
-                    _settings: window.gameRoom.config.settings,
-                    _rules: window.gameRoom.config.rules
+                    botSettings: window.gameRoom.config.settings,
+                    rules: window.gameRoom.config.rules
                 }
             });
         } else {

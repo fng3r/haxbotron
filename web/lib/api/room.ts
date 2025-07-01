@@ -19,12 +19,11 @@ export const getRoomsInfoList = async (): Promise<RoomInfoItem[]> => {
 
   return await Promise.all(
     roomList.map(async (ruid) => {
-      const apiClient = getApiClient();
       const result = await apiClient.get(`/api/v1/room/${ruid}/info`);
       return {
         ruid: ruid,
         roomName: result.data.roomName,
-        roomLink: result.data._link,
+        roomLink: result.data.link,
         onlinePlayers: result.data.onlinePlayers,
       };
     }),

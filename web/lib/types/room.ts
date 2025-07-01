@@ -26,10 +26,10 @@ export type RoomInfo = {
   roomName: string;
   onlinePlayers: number;
   adminPassword: string;
-  _link: string;
+  link: string;
   _roomConfig: BrowserHostRoomConfig;
-  _settings: BrowserHostRoomSettings;
-  _rules: BrowserHostRoomGameRules;
+  botSettings: BrowserHostRoomSettings;
+  rules: BrowserHostRoomGameRules;
 };
 
 export type DiscordWebhookConfig = {
