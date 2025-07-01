@@ -73,7 +73,7 @@ export const kickPlayer = async ({
 }: {
   ruid: string;
   player: Player;
-  reason: string;
+  reason?: string;
 }): Promise<void> => {
   try {
     const apiClient = getApiClient();

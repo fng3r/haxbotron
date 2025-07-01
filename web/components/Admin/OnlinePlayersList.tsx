@@ -1,19 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { z } from 'zod';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CopyButton } from '@/components/ui/copy-button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { Player } from '@/../core/game/model/GameObject/Player';
-import { isNumber } from '@/lib/numcheck';
 import { mutations, queries } from '@/lib/queries/player';
 import { BanOptions } from '@/lib/types/player';
 
@@ -24,6 +26,7 @@ const convertDate = (timestamp: number): string => {
 
 export default function OnlinePlayerList({ ruid }: { ruid: string }) {
   const { data: onlinePlayers } = queries.getOnlinePlayersID(ruid);
+
   return (
     <Card>
       <CardHeader>
@@ -50,12 +53,20 @@ export default function OnlinePlayerList({ ruid }: { ruid: string }) {
   );
 }
 
+const whisperSchema = z.object({
+  whisper: z.string().min(1, { message: 'Message is required' }),
+});
+const kickSchema = z.object({
+  kickReason: z.string().optional(),
+});
+const banSchema = z.object({
+  banReason: z.string().optional(),
+  duration: z.coerce.number().min(1, { message: 'Ban duration must be positive' }),
+});
+
 function OnlinePlayerRow(props: { ruid: string; row: Player }) {
   const { ruid, row } = props;
   const [open, setOpen] = useState(false);
-  const [kickReason, setKickReason] = useState('');
-  const [newBan, setNewBan] = useState({ reason: '', seconds: 180 } as BanOptions);
-  const [whisperMessage, setWhisperMessage] = useState('');
   const mutePlayerMutation = mutations.mutePlayer();
   const unmutePlayerMutation = mutations.unmutePlayer();
   const kickPlayerMutation = mutations.kickPlayer();
@@ -66,72 +77,21 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
     if (teamID === 2) return 'Blue';
     return 'Spec';
   };
-  const onChangeKickReason = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKickReason(e.target.value);
-  };
-  const onChangeNewBan = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name === 'seconds' && isNumber(parseInt(value))) {
-      setNewBan({
-        ...newBan,
-        seconds: parseInt(value),
-      });
-    } else {
-      setNewBan({
-        ...newBan,
-        [name]: value,
-      });
-    }
-  };
-  const onChangeWhisperMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setWhisperMessage(e.target.value);
-  };
-  const handleWhisper = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    sendWhisperMutation.mutate(
-      { ruid, player: row, message: whisperMessage },
-      {
-        onSuccess: () => {
-          SnackBarNotification.success(`Successfully sent whisper message to ${row.name}.`);
-          setWhisperMessage('');
-        },
-        onError: (error) => {
-          SnackBarNotification.error(error.message);
-        },
-      },
-    );
-  };
-  const handleKick = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    kickPlayerMutation.mutate(
-      { ruid, player: row, reason: kickReason },
-      {
-        onSuccess: () => {
-          SnackBarNotification.success(`Player ${row.name} has been kicked.`);
-          setKickReason('');
-        },
-        onError: (error) => {
-          SnackBarNotification.error(error.message);
-        },
-      },
-    );
-  };
-  const handleBan = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    banPlayerMutation.mutate(
-      { ruid, player: row, banOptions: newBan },
-      {
-        onSuccess: () => {
-          SnackBarNotification.success(`Player ${row.name} has been banned.`);
-        },
-        onError: (error) => {
-          SnackBarNotification.error(error.message);
-          setNewBan({ reason: '', seconds: 180 });
-        },
-      },
-    );
-  };
-  const handleOnlinePlayerMute = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+
+  const whisperForm = useForm<z.infer<typeof whisperSchema>>({
+    resolver: zodResolver(whisperSchema),
+    defaultValues: { whisper: '' },
+  });
+  const kickForm = useForm<z.infer<typeof kickSchema>>({
+    resolver: zodResolver(kickSchema),
+    defaultValues: { kickReason: '' },
+  });
+  const banForm = useForm<z.infer<typeof banSchema>>({
+    resolver: zodResolver(banSchema),
+    defaultValues: { banReason: '', duration: 5 },
+  });
+
+  const handleMute = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.preventDefault();
     if (row.permissions.mute) {
       unmutePlayerMutation.mutate(
@@ -159,6 +119,62 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
       );
     }
   };
+
+  const handleKick = async (reason?: string) => {
+    kickPlayerMutation.mutate(
+      { ruid, player: row, reason },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Player ${row.name} has been kicked.`);
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
+  };
+
+  const handleWhisper = async (message: string) => {
+    sendWhisperMutation.mutate(
+      { ruid, player: row, message },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Successfully sent whisper message to ${row.name}.`);
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
+  };
+
+  const handleBan = async (banOptions: BanOptions) => {
+    banPlayerMutation.mutate(
+      { ruid, player: row, banOptions },
+      {
+        onSuccess: () => {
+          SnackBarNotification.success(`Player ${row.name} has been banned.`);
+        },
+        onError: (error) => {
+          SnackBarNotification.error(error.message);
+        },
+      },
+    );
+  };
+
+  const onWhisper = (values: z.infer<typeof whisperSchema>) => {
+    handleWhisper(values.whisper);
+    whisperForm.reset();
+  };
+  const onKick = (values: z.infer<typeof kickSchema>) => {
+    handleKick(values.kickReason);
+    kickForm.reset();
+  };
+  const onBan = (values: z.infer<typeof banSchema>) => {
+    handleBan({ reason: values.banReason, seconds: values.duration * 60 });
+    banForm.reset();
+  };
+
   return (
     <>
       <TableRow>
@@ -179,7 +195,7 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
         </TableCell>
         <TableCell>{convertTeamID(row.team)}</TableCell>
         <TableCell>
-          <Button size="sm" type="button" variant="ghost" onClick={handleOnlinePlayerMute}>
+          <Button size="sm" type="button" variant="ghost" onClick={handleMute}>
             {row.permissions.mute ? 'Unmute' : 'Mute'}
           </Button>
         </TableCell>
@@ -193,52 +209,80 @@ function OnlinePlayerRow(props: { ruid: string; row: Player }) {
         <TableRow>
           <TableCell colSpan={6} className="p-0 bg-muted/30">
             <div className="p-4 flex flex-col gap-4">
-              <form onSubmit={handleWhisper} className="flex gap-2 items-end">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="whisper">Whisper</Label>
-                  <Input
-                    required
-                    value={whisperMessage}
-                    onChange={onChangeWhisperMessage}
-                    id="whisper"
+              <Form {...whisperForm}>
+                <form onSubmit={whisperForm.handleSubmit(onWhisper)} className="flex gap-2">
+                  <FormField
+                    control={whisperForm.control}
                     name="whisper"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-2">
+                        <FormLabel>Whisper</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <Button type="submit" variant="default">
-                  Send
-                </Button>
-              </form>
-              <div className="flex gap-4">
-                <form onSubmit={handleKick} className="flex gap-2 items-end">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="kickReason">Kick Reason</Label>
-                    <Input value={kickReason} onChange={onChangeKickReason} id="kickReason" name="kickReason" />
-                  </div>
-                  <Button type="submit" variant="destructive">
-                    Kick
+                  <Button type="submit" variant="default" className="mt-5.5">
+                    Send
                   </Button>
                 </form>
-                <form onSubmit={handleBan} className="flex gap-2 items-end">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="banReason">Ban Reason</Label>
-                    <Input value={newBan.reason} onChange={onChangeNewBan} id="banReason" name="reason" />
-                  </div>
-                  <div className="flex flex-col gap-2 w-32">
-                    <Label htmlFor="banSeconds">Ban Time (secs)</Label>
-                    <Input
-                      required
-                      value={newBan.seconds}
-                      onChange={onChangeNewBan}
-                      type="number"
-                      id="banSeconds"
-                      name="seconds"
-                      min={0}
+              </Form>
+              <div className="flex gap-4 flex-col md:flex-row">
+                <Form {...kickForm}>
+                  <form onSubmit={kickForm.handleSubmit(onKick)} className="flex gap-2">
+                    <FormField
+                      control={kickForm.control}
+                      name="kickReason"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2">
+                          <FormLabel>Kick Reason</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  <Button type="submit" variant="destructive">
-                    Ban
-                  </Button>
-                </form>
+                    <Button type="submit" variant="destructive" className="mt-5.5">
+                      Kick
+                    </Button>
+                  </form>
+                </Form>
+                <Form {...banForm}>
+                  <form onSubmit={banForm.handleSubmit(onBan)} className="flex gap-2">
+                    <FormField
+                      control={banForm.control}
+                      name="banReason"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2">
+                          <FormLabel>Ban Reason</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={banForm.control}
+                      name="duration"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2 w-40">
+                          <FormLabel>Ban Duration (mins)</FormLabel>
+                          <FormControl>
+                            <Input type="number" min={1} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" variant="destructive" className="mt-5.5">
+                      Ban
+                    </Button>
+                  </form>
+                </Form>
               </div>
               <div className="font-semibold mb-2">Information</div>
               <Table>
