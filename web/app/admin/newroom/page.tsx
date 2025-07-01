@@ -1,94 +1,132 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 
 import { useRouter } from 'next/navigation';
 
-import { ExternalLink, HelpCircle, Hourglass } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ExternalLink, Hourglass } from 'lucide-react';
+import { z } from 'zod';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-import { BrowserHostRoomSettings, ReactHostRoomInfo } from '@/../core/lib/browser.hostconfig';
+import { BrowserHostRoomSettings } from '@/../core/lib/browser.hostconfig';
 import DefaultConfigSet from '@/lib/defaultroomconfig.json';
-import { isNumber } from '@/lib/numcheck';
 import { mutations } from '@/lib/queries/room';
 
 const stringifySettings = (settings: BrowserHostRoomSettings) => {
   return JSON.stringify(settings, null, 4);
 };
 
+const roomFormSchema = z.object({
+  ruid: z.string().min(1, { message: 'RUID is required' }),
+  token: z.string().min(1, { message: 'Headless Token is required' }),
+  roomName: z.string().min(1, { message: 'Room Title is required' }),
+  password: z.string().optional(),
+  maxPlayers: z.coerce.number().min(1).max(30),
+  public: z.boolean(),
+  timeLimit: z.coerce.number().min(0).max(14),
+  scoreLimit: z.coerce.number().min(0).max(14),
+  defaultMapName: z.string().min(1, { message: 'Default Map Name is required' }),
+  teamLock: z.boolean(),
+  autoAdmin: z.boolean(),
+  whitelistEnabled: z.boolean(),
+  settings: z.string().refine(
+    (val) => {
+      try {
+        JSON.parse(val);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    { message: 'Settings must be valid JSON' },
+  ),
+});
+
+type RoomFormValues = z.infer<typeof roomFormSchema>;
+
 export default function RoomCreate() {
   const router = useRouter();
 
-  const [roomUIDFormField, setRoomUIDFormField] = useState(DefaultConfigSet.ruid);
-  const [configFormField, setConfigFormField] = useState(DefaultConfigSet._config); // Room Configuration Form
-  const [rulesFormField, setRulesFormField] = useState(DefaultConfigSet.rules); // Game Rules Configuration Form
-  const [settingsFormField, setSettingsFormField] = useState(DefaultConfigSet.settings); // Bot Settings Configuration Form
-  const [settingsFormStringifiedField, setSettingsFormStringifiedField] = useState(
-    stringifySettings(DefaultConfigSet.settings),
-  );
-
-  const roomPublic = configFormField.public;
-  const teamLock = rulesFormField.requisite.teamLock;
-  const rulesSwitches = {
-    autoAdmin: rulesFormField.autoAdmin,
-    whitelistEnabled: rulesFormField.whitelistEnabled,
-  };
-
-  const [roomConfigComplex, setRoomConfigComplex] = useState({} as ReactHostRoomInfo); // Total complex of Room Config (will be sent with API request body)
+  const form = useForm<RoomFormValues>({
+    resolver: zodResolver(roomFormSchema),
+    defaultValues: {
+      ruid: DefaultConfigSet.ruid,
+      token: DefaultConfigSet._config.token,
+      roomName: DefaultConfigSet._config.roomName,
+      password: DefaultConfigSet._config.password,
+      maxPlayers: DefaultConfigSet._config.maxPlayers,
+      public: DefaultConfigSet._config.public,
+      timeLimit: DefaultConfigSet.rules.timeLimit,
+      scoreLimit: DefaultConfigSet.rules.scoreLimit,
+      defaultMapName: DefaultConfigSet.rules.defaultMapName,
+      teamLock: DefaultConfigSet.rules.teamLock,
+      autoAdmin: DefaultConfigSet.rules.autoAdmin,
+      whitelistEnabled: DefaultConfigSet.rules.whitelistEnabled,
+      settings: stringifySettings(DefaultConfigSet.settings),
+    },
+  });
 
   useEffect(() => {
     try {
       const savedConfig = localStorage.getItem('_savedRoomInfo');
       if (savedConfig) {
         const config = JSON.parse(savedConfig);
-        setRoomUIDFormField(config.ruid);
-        setConfigFormField(config._config);
-        setRulesFormField(config.rules);
-        setSettingsFormField(config.settings);
-        setSettingsFormStringifiedField(stringifySettings(config.settings));
+        form.reset({
+          ruid: config.ruid,
+          token: config._config.token,
+          roomName: config._config.roomName,
+          password: config._config.password,
+          maxPlayers: config._config.maxPlayers,
+          public: config._config.public,
+          timeLimit: config.rules.timeLimit,
+          scoreLimit: config.rules.scoreLimit,
+          defaultMapName: config.rules.defaultMapName,
+          teamLock: config.rules.teamLock,
+          autoAdmin: config.rules.autoAdmin,
+          whitelistEnabled: config.rules.whitelistEnabled,
+          settings: stringifySettings(config.settings),
+        });
       }
     } catch (error) {
       console.error(`Error loading room config from localStorage:`, error);
     }
-  }, []);
-
-  useEffect(() => {
-    // SAVE ONTO CONFIG COMPLEX WHEN EACH STATES ARE CHANGED
-    setRoomConfigComplex({
-      ruid: roomUIDFormField,
-      _config: configFormField,
-      settings: settingsFormField,
-      rules: {
-        ...rulesFormField,
-        requisite: rulesFormField.requisite,
-        autoAdmin: rulesSwitches.autoAdmin,
-        whitelistEnabled: rulesSwitches.whitelistEnabled,
-      },
-    });
-  }, [
-    roomUIDFormField,
-    configFormField,
-    rulesFormField,
-    settingsFormField,
-    roomPublic,
-    teamLock,
-    rulesSwitches.autoAdmin,
-    rulesSwitches.whitelistEnabled,
-  ]);
+  }, [form]);
 
   const createRoomMutation = mutations.createRoom();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = (values: RoomFormValues) => {
+    const roomConfigComplex = {
+      ruid: values.ruid,
+      _config: {
+        roomName: values.roomName,
+        password: values.password,
+        maxPlayers: values.maxPlayers,
+        public: values.public,
+        token: values.token,
+        noPlayer: DefaultConfigSet._config.noPlayer,
+        playerName: DefaultConfigSet._config.playerName,
+      },
+      rules: {
+        timeLimit: values.timeLimit,
+        scoreLimit: values.scoreLimit,
+        teamLock: values.teamLock,
+        autoAdmin: values.autoAdmin,
+        whitelistEnabled: values.whitelistEnabled,
+        defaultMapName: values.defaultMapName,
+      },
+      settings: JSON.parse(values.settings),
+    };
 
     createRoomMutation.mutate(roomConfigComplex, {
       onSuccess: () => {
@@ -106,104 +144,11 @@ export default function RoomCreate() {
     e.preventDefault();
 
     try {
-      setSettingsFormStringifiedField(stringifySettings(settingsFormField));
+      const settings = form.getValues('settings');
+      const beautifiedSettings = stringifySettings(JSON.parse(settings));
+      form.setValue('settings', beautifiedSettings);
     } catch (error) {
       console.error('Failed to stringify settings:', error);
-    }
-  };
-
-  const onChangeRUID = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRoomUIDFormField(e.target.value);
-  };
-
-  const onChangePublic = (checked: boolean) => {
-    setConfigFormField((prev) => ({ ...prev, public: checked }));
-  };
-
-  const onChangeTeamLock = (checked: boolean) => {
-    setRulesFormField((prev) => ({
-      ...prev,
-      requisite: {
-        ...prev.requisite,
-        teamLock: checked,
-      },
-    }));
-  };
-
-  const onChangeRoomConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name === 'maxPlayers' && isNumber(parseInt(value))) {
-      setConfigFormField({
-        ...configFormField,
-        maxPlayers: parseInt(value),
-      });
-    } else {
-      setConfigFormField({
-        ...configFormField,
-        [name]: value,
-      });
-    }
-  };
-
-  const onChangeRules = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setRulesFormField((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const onChangeAutoAdmin = (checked: boolean) => {
-    setRulesFormField((prev) => ({
-      ...prev,
-      autoAdmin: checked,
-    }));
-  };
-
-  const onChangeWhitelistEnabled = (checked: boolean) => {
-    setRulesFormField((prev) => ({
-      ...prev,
-      whitelistEnabled: checked,
-    }));
-  };
-
-  const onChangeRulesRequisite = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (['minimumPlayers', 'eachTeamPlayers', 'timeLimit', 'scoreLimit'].includes(name) && isNumber(parseInt(value))) {
-      setRulesFormField({
-        ...rulesFormField,
-        requisite: {
-          ...rulesFormField.requisite,
-          [name]: parseInt(value),
-        },
-      });
-    } else {
-      setRulesFormField({
-        ...rulesFormField,
-        requisite: {
-          ...rulesFormField.requisite,
-          [name]: value,
-        },
-      });
-    }
-  };
-
-  const onChangeStringifiedField = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    switch (name) {
-      case 'botSettings': {
-        setSettingsFormStringifiedField(value);
-        break;
-      }
-    }
-  };
-
-  const onBlurStringifiedField = () => {
-    try {
-      const parsedSettings: BrowserHostRoomSettings = JSON.parse(settingsFormStringifiedField);
-      setSettingsFormField(parsedSettings);
-    } catch (error) {
-      console.error('Failed to parse settings JSON:', error);
     }
   };
 
@@ -213,252 +158,259 @@ export default function RoomCreate() {
         <CardTitle>Create New Game Room</CardTitle>
       </CardHeader>
       <CardContent>
-        <form className="w-full flex flex-col gap-4 justify-center" onSubmit={handleSubmit} method="post">
-          <div className="flex gap-4">
-            <Button type="submit" className="flex-1" disabled={createRoomMutation.isPending}>
-              {createRoomMutation.isPending ? (
-                <>
-                  <Hourglass className="size-4" />
-                  The room is launching. Please, wait
-                </>
-              ) : (
-                'Create'
-              )}
-            </Button>
-          </div>
-          <Separator />
-
-          {/* Room Configuration */}
-          <div className="space-y-5">
-            <div>
-              <h2 className="text-lg font-semibold text-primary mb-2">Room Configuration</h2>
-              <p className="text-sm font-medium text-muted-foreground mb-4">
-                Do not reuse the same RUID and token if they are already in use.
-              </p>
+        <Form {...form}>
+          <form className="w-full flex flex-col gap-4 justify-center" onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="flex gap-4">
+              <Button type="submit" className="flex-1" disabled={createRoomMutation.isPending}>
+                {createRoomMutation.isPending ? (
+                  <>
+                    <Hourglass className="size-4" />
+                    The room is launching. Please, wait
+                  </>
+                ) : (
+                  'Create'
+                )}
+              </Button>
             </div>
+            <Separator />
 
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-3 flex flex-col gap-2">
-                <Label htmlFor="ruid">RUID</Label>
-                <Input id="ruid" name="ruid" required autoFocus value={roomUIDFormField} onChange={onChangeRUID} />
+            {/* Room Configuration */}
+            <div className="space-y-5">
+              <div>
+                <h2 className="text-lg font-semibold text-primary mb-2">Room Configuration</h2>
+                <p className="text-sm font-medium text-muted-foreground mb-4">
+                  Do not reuse the same RUID and token if they are already in use.
+                </p>
               </div>
-              <div className="col-span-4 flex flex-col gap-2">
-                <Label htmlFor="token">Headless Token</Label>
-                <Input id="token" name="token" required value={configFormField.token} onChange={onChangeRoomConfig} />
-              </div>
-              <div className="flex items-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => window.open('https://www.haxball.com/headlesstoken', '_blank')}
-                >
-                  <ExternalLink className="size-5" />
-                </Button>
-              </div>
-              <div className="col-span-2 mb-2.5 flex items-end gap-2">
-                <Switch checked={roomPublic} onCheckedChange={onChangePublic} className="cursor-pointer" />
-                <Label htmlFor="public">Public</Label>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-4 flex flex-col gap-2">
-                <Label htmlFor="roomName">Room Title</Label>
-                <Input
-                  id="roomName"
-                  name="roomName"
-                  required
-                  value={configFormField.roomName}
-                  onChange={onChangeRoomConfig}
+              <div className="flex flex-col md:flex-row gap-4">
+                <FormField
+                  control={form.control}
+                  name="ruid"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>RUID</FormLabel>
+                      <FormControl>
+                        <Input {...field} autoFocus />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="col-span-3 flex flex-col gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" value={configFormField.password} onChange={onChangeRoomConfig} />
-              </div>
-              <div className="col-span-2 flex flex-col gap-2">
-                <Label htmlFor="maxPlayers">Max Players</Label>
-                <Input
-                  id="maxPlayers"
-                  name="maxPlayers"
-                  type="number"
-                  required
-                  value={configFormField.maxPlayers}
-                  onChange={onChangeRoomConfig}
-                />
-              </div>
-            </div>
-          </div>
-          <Separator />
-
-          {/* Game Rules */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-primary">Game Rules</h2>
-
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-2 flex flex-col gap-2">
-                <Label htmlFor="ruleName">Rule Name</Label>
-                <Input
-                  id="ruleName"
-                  name="ruleName"
-                  required
-                  value={rulesFormField.ruleName}
-                  onChange={onChangeRules}
-                />
-              </div>
-              <div className="col-span-4 flex flex-col gap-2">
-                <Label htmlFor="ruleDescription">Rule Description</Label>
-                <Input
-                  id="ruleDescription"
-                  name="ruleDescription"
-                  required
-                  value={rulesFormField.ruleDescription}
-                  onChange={onChangeRules}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-2 flex flex-col gap-2">
-                <Label htmlFor="minimumPlayers">Minimum Players Need</Label>
-                <Input
-                  id="minimumPlayers"
-                  name="minimumPlayers"
-                  type="number"
-                  required
-                  value={rulesFormField?.requisite && rulesFormField.requisite.minimumPlayers}
-                  onChange={onChangeRulesRequisite}
-                />
-              </div>
-              <div className="col-span-2 flex flex-col gap-2">
-                <Label htmlFor="eachTeamPlayers">Number of Team Players</Label>
-                <Input
-                  id="eachTeamPlayers"
-                  name="eachTeamPlayers"
-                  type="number"
-                  required
-                  value={rulesFormField?.requisite && rulesFormField.requisite.eachTeamPlayers}
-                  onChange={onChangeRulesRequisite}
-                />
-              </div>
-              <div className="col-span-2 flex flex-col gap-2">
-                <Label htmlFor="timeLimit">Time Limit</Label>
-                <Input
-                  id="timeLimit"
-                  name="timeLimit"
-                  type="number"
-                  required
-                  value={rulesFormField?.requisite && rulesFormField.requisite.timeLimit}
-                  onChange={onChangeRulesRequisite}
-                />
-              </div>
-              <div className="col-span-2 flex flex-col gap-2">
-                <Label htmlFor="scoreLimit">Score Limit</Label>
-                <Input
-                  id="scoreLimit"
-                  name="scoreLimit"
-                  type="number"
-                  required
-                  value={rulesFormField?.requisite && rulesFormField.requisite.scoreLimit}
-                  onChange={onChangeRulesRequisite}
-                />
-              </div>
-              <div className="col-span-2 mb-2.5 flex items-end gap-2">
-                <Switch checked={teamLock} onCheckedChange={onChangeTeamLock} className="cursor-pointer" />
-                <Label htmlFor="teamLock">Team Lock</Label>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-2 mb-2.5 flex items-center gap-2">
-                <Switch
-                  checked={rulesSwitches.autoAdmin}
-                  onCheckedChange={onChangeAutoAdmin}
-                  className="cursor-pointer"
-                />
-                <Label htmlFor="autoAdmin">Auto Admin</Label>
-              </div>
-              <div className="col-span-2 mb-2.5 flex items-center gap-2">
-                <Switch
-                  checked={rulesSwitches.whitelistEnabled}
-                  onCheckedChange={onChangeWhitelistEnabled}
-                  className="cursor-pointer"
-                />
-                <Label htmlFor="whitelistEnabled">Whitelist</Label>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-2 flex flex-col gap-2">
-                <Label htmlFor="defaultMapName">Default Map Name</Label>
-                <Input
-                  id="defaultMapName"
-                  name="defaultMapName"
-                  required
-                  value={rulesFormField.defaultMapName}
-                  onChange={onChangeRules}
-                />
-              </div>
-              <div className="col-span-2 flex flex-col gap-2">
-                <Label htmlFor="readyMapName">Ready Map Name</Label>
-                <Input
-                  id="readyMapName"
-                  name="readyMapName"
-                  required
-                  value={rulesFormField.readyMapName}
-                  onChange={onChangeRules}
-                />
-              </div>
-              <div className="col-span-2 flex items-end">
-                <Tooltip>
-                  <TooltipTrigger>
+                <div className="flex grow-1 gap-2 md:max-w-100">
+                  <FormField
+                    control={form.control}
+                    name="token"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col flex-1 gap-2">
+                        <FormLabel>Headless Token</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex items-end">
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      onClick={(e) => {
-                        e.preventDefault();
-                      }}
+                      onClick={() => window.open('https://www.haxball.com/headlesstoken', '_blank')}
                     >
-                      <HelpCircle className="size-5" />
+                      <ExternalLink className="size-5" />
                     </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="text-sm">
-                    Available maps: big, bigeasy, classic, gbhotclassic, gbhotbig, realsoccer, futsal1v1, futsal4v4,
-                    bff4v4, icebear, 6man
-                  </TooltipContent>
-                </Tooltip>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <Separator />
 
-          {/* Bot Settings */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-primary">Bot Settings</h2>
-
-            <div className="space-y-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="botSettings">Configuration</Label>
-                <Textarea
-                  id="botSettings"
-                  name="botSettings"
-                  required
-                  value={settingsFormStringifiedField}
-                  onChange={onChangeStringifiedField}
-                  onBlur={onBlurStringifiedField}
-                  className="min-h-[200px]"
+              <div className="flex flex-col md:flex-row gap-4">
+                <FormField
+                  control={form.control}
+                  name="roomName"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>Room Title</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="maxPlayers"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>Max Players</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="number" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div>
-                <Button type="button" variant="outline" onClick={handleJSONBeautify}>
-                  Beautify JSON
-                </Button>
+
+              <div className="flex gap-14">
+                <FormField
+                  control={form.control}
+                  name="public"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-3">
+                      <FormLabel>Public</FormLabel>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} className="cursor-pointer" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="autoAdmin"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-3">
+                      <FormLabel>Auto Admin</FormLabel>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} className="cursor-pointer" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="whitelistEnabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-3">
+                      <FormLabel>Whitelist</FormLabel>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} className="cursor-pointer" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
-          </div>
-        </form>
+            <Separator />
+
+            {/* Game Rules */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-primary">Game Rules</h2>
+
+              <div className="flex flex-col md:flex-row gap-4">
+                <FormField
+                  control={form.control}
+                  name="timeLimit"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>Time Limit</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="number" required />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="scoreLimit"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>Score Limit</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="number" required />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="defaultMapName"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>Default Map</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a map" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="big">Big</SelectItem>
+                            <SelectItem value="bigeasy">Big Easy</SelectItem>
+                            <SelectItem value="classic">Classic</SelectItem>
+                            <SelectItem value="gbhotclassic">GB Hot Classic</SelectItem>
+                            <SelectItem value="gbhotbig">GB Hot Big</SelectItem>
+                            <SelectItem value="realsoccer">Real Soccer</SelectItem>
+                            <SelectItem value="futsal1v1">Futsal 1v1</SelectItem>
+                            <SelectItem value="futsal4v4">Futsal 4v4</SelectItem>
+                            <SelectItem value="bff4v4">BFF 4v4</SelectItem>
+                            <SelectItem value="icebear">Ice Bear</SelectItem>
+                            <SelectItem value="6man">6 Man</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="teamLock"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-4">
+                      <FormLabel>Team Lock</FormLabel>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} className="cursor-pointer" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Bot Settings */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-primary">Bot Settings</h2>
+
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="settings"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>Configuration</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} className="min-h-[200px]" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <div>
+                  <Button type="button" variant="outline" onClick={handleJSONBeautify}>
+                    Beautify JSON
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

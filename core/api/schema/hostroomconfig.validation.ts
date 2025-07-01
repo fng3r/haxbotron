@@ -16,19 +16,12 @@ const roomConfigSchema = Joi.object().keys({
 });
 
 const gameRuleSchema = Joi.object().keys({
-    ruleName: Joi.string().required()
-    ,ruleDescription: Joi.string().required()
-    ,requisite: Joi.object().keys({
-        minimumPlayers: Joi.number().required()
-        ,eachTeamPlayers: Joi.number().required()
-        ,timeLimit: Joi.number().required()
-        ,scoreLimit: Joi.number().required()
-        ,teamLock: Joi.boolean().required()
-    }).required()
+    timeLimit: Joi.number().required()
+    ,scoreLimit: Joi.number().required()
+    ,teamLock: Joi.boolean().required()
     ,autoAdmin: Joi.boolean().required()
     ,whitelistEnabled: Joi.boolean().required()
     ,defaultMapName: Joi.string().required()
-    ,readyMapName: Joi.string().required()
     ,customJSONOptions: Joi.string().optional().allow(null, '')
 });
 

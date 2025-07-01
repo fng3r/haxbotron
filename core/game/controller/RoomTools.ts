@@ -1,16 +1,15 @@
-import * as Tst from "./Translator";
-import * as LangRes from "../resource/strings";
 import { PlayerObject } from "../model/GameObject/PlayerObject";
-import { convertTeamID2Name, TeamID } from "../model/GameObject/TeamID";
+import * as LangRes from "../resource/strings";
+import * as Tst from "./Translator";
 
 export function setDefaultStadiums(): void {
     window.gameRoom._room.setCustomStadium(window.gameRoom.stadiumData.default); // if game mode is 'ready'
 }
 
 export function setDefaultRoomLimitation(): void {
-    window.gameRoom._room.setScoreLimit(window.gameRoom.config.rules.requisite.scoreLimit);
-    window.gameRoom._room.setTimeLimit(window.gameRoom.config.rules.requisite.timeLimit);
-    window.gameRoom._room.setTeamsLock(window.gameRoom.config.rules.requisite.teamLock);
+    window.gameRoom._room.setScoreLimit(window.gameRoom.config.rules.scoreLimit);
+    window.gameRoom._room.setTimeLimit(window.gameRoom.config.rules.timeLimit);
+    window.gameRoom._room.setTeamsLock(window.gameRoom.config.rules.teamLock);
 }
 
 export function updateAdmins(): void {

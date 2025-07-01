@@ -1,6 +1,6 @@
 import {
   BrowserHostRoomConfig,
-  BrowserHostRoomGameRule,
+  BrowserHostRoomGameRules,
   BrowserHostRoomSettings,
 } from '@/../core/lib/browser.hostconfig';
 
@@ -29,7 +29,7 @@ export type RoomInfo = {
   _link: string;
   _roomConfig: BrowserHostRoomConfig;
   _settings: BrowserHostRoomSettings;
-  _rules: BrowserHostRoomGameRule;
+  _rules: BrowserHostRoomGameRules;
 };
 
 export type DiscordWebhookConfig = {

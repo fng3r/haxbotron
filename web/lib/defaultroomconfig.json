@@ -1,40 +1,33 @@
 {
-	"ruid": "cis4",
-	"_config": {
-		"roomName": "🏆 cis-haxball.ru | Room #4",
-		"playerName": "🤖",
-		"password": "2552",
-		"maxPlayers": 15,
-		"public": true,
-		"token": "",
-		"noPlayer": true
-	},
-	"settings": {
-		"maliciousBehaviourBanCriterion": 20,
-		"chatFiltering": true,
-		"antiChatFlood": true,
-		"chatFloodCriterion": 5,
-		"chatFloodIntervalMillisecs": 10000,
-		"muteDefaultMillisecs": 180000,
-		"nicknameLengthLimit": 12,
-		"chatLengthLimit": 150,
-		"forbidDuplicatedNickname": true,
-		"nicknameTextFilter": true,
-		"chatTextFilter": true
-	},
-	"rules": {
-		"ruleName": "default-rule",
-		"ruleDescription": "this is default rule",
-		"requisite": {
-			"minimumPlayers": 8,
-			"eachTeamPlayers": 4,
-			"timeLimit": 5,
-			"scoreLimit": 5,
-			"teamLock": true
-		},
-		"autoAdmin": false,
-		"whitelistEnabled": true,
-		"defaultMapName": "futsal4v4",
-		"readyMapName": "futsal4v4"
-	}
+  "ruid": "cis4",
+  "_config": {
+    "roomName": "🏆 cis-haxball.ru | Room #4",
+    "password": "2552",
+    "maxPlayers": 15,
+    "public": true,
+    "token": "",
+    "noPlayer": true,
+    "playerName": "🤖"
+  },
+  "settings": {
+    "maliciousBehaviourBanCriterion": 20,
+    "chatFiltering": true,
+    "antiChatFlood": true,
+    "chatFloodCriterion": 5,
+    "chatFloodIntervalMillisecs": 10000,
+    "muteDefaultMillisecs": 180000,
+    "nicknameLengthLimit": 12,
+    "chatLengthLimit": 150,
+    "forbidDuplicatedNickname": true,
+    "nicknameTextFilter": true,
+    "chatTextFilter": true
+  },
+  "rules": {
+    "timeLimit": 5,
+    "scoreLimit": 5,
+    "teamLock": true,
+    "autoAdmin": false,
+    "whitelistEnabled": true,
+    "defaultMapName": "futsal4v4"
+  }
 }

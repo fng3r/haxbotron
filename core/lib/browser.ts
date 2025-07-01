@@ -163,12 +163,11 @@ export class HeadlessBrowser {
         });
 
         // convey configuration values via html5 localStorage
-        await page.evaluate((initConfig: string, defaultMap: string, readyMap: string, discordWebhookConfig: string) => {
+        await page.evaluate((initConfig: string, defaultMap: string, discordWebhookConfig: string) => {
             localStorage.setItem('_initConfig', initConfig);
             localStorage.setItem('_defaultMap', defaultMap);
-            localStorage.setItem('_readyMap', readyMap);
             localStorage.setItem('_discordWebhookConfig', discordWebhookConfig);
-        }, JSON.stringify(initConfig), loadStadiumData(initConfig.rules.defaultMapName), loadStadiumData(initConfig.rules.readyMapName), JSON.stringify(discordWebhookConfig));
+        }, JSON.stringify(initConfig), loadStadiumData(initConfig.rules.defaultMapName), JSON.stringify(discordWebhookConfig));
 
         // add event listeners ============================================================
         page.addListener('_SIO.Log', (event: any) => {
