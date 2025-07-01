@@ -1,26 +1,46 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { z } from 'zod';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-import { isNumber } from '@/lib/numcheck';
 import { mutations, queries } from '@/lib/queries/player';
-import { NewBanEntry } from '@/lib/types/player';
+
+const banFormSchema = z.object({
+  conn: z.string().min(1, { message: 'CONN is required' }),
+  auth: z.string().min(1, { message: 'AUTH is required' }),
+  reason: z.string().min(1, { message: 'Reason is required' }),
+  duration: z.coerce.number().min(1, { message: 'Ban Duration must be positive' }),
+});
+
+type BanFormValues = z.infer<typeof banFormSchema>;
 
 export default function RoomBanList({ ruid }: { ruid: string }) {
-  const [newBan, setNewBan] = useState({ conn: '', auth: '', reason: '', seconds: 0 } as NewBanEntry);
   const [page, setPage] = useState(1);
   const { data: bans } = queries.getPlayersBans(ruid, { page, pagingCount: 10 });
   const addPlayerBanMutation = mutations.addBan();
   const removePlayerBanMutation = mutations.removeBan();
+
+  const form = useForm<BanFormValues>({
+    resolver: zodResolver(banFormSchema),
+    defaultValues: {
+      conn: '',
+      auth: '',
+      reason: '',
+      duration: 5,
+    },
+  });
 
   const convertDate = (timestamp: number): string => {
     return new Date(timestamp).toLocaleString();
@@ -30,29 +50,17 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
     setPage((prev) => Math.max(prev + shift, 1));
   };
 
-  const onChangeNewBan = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name === 'seconds' && isNumber(parseInt(value))) {
-      setNewBan({
-        ...newBan,
-        seconds: parseInt(value),
-      });
-    } else {
-      setNewBan({
-        ...newBan,
-        [name]: value,
-      });
-    }
+  const onSubmit = (values: BanFormValues) => {
+    handleAdd(values);
+    form.reset();
   };
 
-  const handleAdd = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleAdd = async (values: BanFormValues) => {
     addPlayerBanMutation.mutate(
-      { ruid, banEntry: newBan },
+      { ruid, banEntry: { ...values, seconds: values.duration * 60 } },
       {
         onSuccess: () => {
-          SnackBarNotification.success(`Successfully banned by conn: ${newBan.conn}.`);
-          setNewBan({ conn: '', auth: '', reason: '', seconds: 0 });
+          SnackBarNotification.success(`Successfully banned by conn: ${values.conn}.`);
         },
         onError: (error) => {
           SnackBarNotification.error(error.message);
@@ -81,45 +89,65 @@ export default function RoomBanList({ ruid }: { ruid: string }) {
         <CardTitle>Bans List</CardTitle>
       </CardHeader>
       <CardContent>
-        <form className="flex flex-col lg:flex-row gap-2 mb-4 w-full" onSubmit={handleAdd} method="post">
-          <div className="flex flex-col gap-1 flex-1 min-w-0">
-            <label htmlFor="conn" className="text-xs font-medium">
-              CONN
-            </label>
-            <Input required value={newBan.conn} onChange={onChangeNewBan} id="conn" name="conn" size={10} />
-          </div>
-          <div className="flex flex-col gap-1 flex-1 min-w-0">
-            <label htmlFor="auth" className="text-xs font-medium">
-              AUTH
-            </label>
-            <Input required value={newBan.auth} onChange={onChangeNewBan} id="auth" name="auth" size={10} />
-          </div>
-          <div className="flex flex-col gap-1 flex-1 min-w-0">
-            <label htmlFor="reason" className="text-xs font-medium">
-              Reason
-            </label>
-            <Input required value={newBan.reason} onChange={onChangeNewBan} id="reason" name="reason" size={20} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="seconds" className="text-xs font-medium">
-              Ban Time (secs)
-            </label>
-            <Input
-              required
-              value={newBan.seconds}
-              onChange={onChangeNewBan}
-              type="number"
-              id="seconds"
-              name="seconds"
-              size={10}
-              min={0}
-              className="w-30"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col lg:flex-row gap-2 mb-4 w-full">
+            <FormField
+              control={form.control}
+              name="conn"
+              render={({ field }) => (
+                <FormItem className="flex flex-col gap-1 flex-1 min-w-0">
+                  <FormLabel className="text-xs font-medium">CONN</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter player conn" className="w-full lg:w-auto" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="flex items-end">
-            <Button type="submit">Ban</Button>
-          </div>
-        </form>
+            <FormField
+              control={form.control}
+              name="auth"
+              render={({ field }) => (
+                <FormItem className="flex flex-col gap-1 flex-1 min-w-0">
+                  <FormLabel className="text-xs font-medium">Public ID</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter player public ID" className="w-full lg:w-auto" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="reason"
+              render={({ field }) => (
+                <FormItem className="flex flex-col gap-1 flex-1 min-w-0">
+                  <FormLabel className="text-xs font-medium">Reason</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter ban reason" className="w-full lg:w-auto" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="duration"
+              render={({ field }) => (
+                <FormItem className="flex flex-col gap-1 w-30">
+                  <FormLabel className="text-xs font-medium">Ban Duration (mins)</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="mt-5">
+              Ban
+            </Button>
+          </form>
+        </Form>
 
         <Separator className="mb-4" />
 
