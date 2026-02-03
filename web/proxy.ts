@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 import { verifyToken } from './lib/auth/jwt';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const tokenCoockie = request.cookies.get('access_token');
   if (!tokenCoockie || !tokenCoockie.value) {
     return NextResponse.redirect(new URL('/login', request.url));
