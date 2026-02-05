@@ -11,10 +11,12 @@ import nodeStorage from "node-persist";
 import { createServer as HTTPcreateServer } from "http";
 import { Server as SIOserver, Socket as SIOsocket } from "socket.io";
 import { winstonLogger } from "./winstonLoggerSystem";
-import { indexAPIRouter } from "./api/router/api/v1";
-import { authenticationMiddleware } from "./api/lib/authenticationMiddleware";
-import { wsAuthenticationMiddleware } from "./api/lib/wsAuthenticationMiddleware";
+import { indexAPIRouter } from "./api/router/v1";
+import { authenticationMiddleware } from "./api/middleware/authenticationMiddleware";
+import { wsAuthenticationMiddleware } from "./api/middleware/wsAuthenticationMiddleware";
+import { errorHandler } from "./api/middleware/errorHandler";
 import { HeadlessBrowser } from "./lib/browser";
+import { getServerConfig, getApiKeys } from "./lib/config";
 
 const app = new Koa();
 const router = new Router();
@@ -23,11 +25,8 @@ const server = HTTPcreateServer(app.callback());
 const sio = new SIOserver(server, { path:'/ws', transports: ['websocket'] }); // socket.io server
 const browser = HeadlessBrowser.getInstance(); // puppeteer wrapper instance
 
-const coreServerSettings = {
-    port: (process.env.SERVER_PORT ? parseInt(JSON.parse(process.env.SERVER_PORT)) : 12001)
-    , level: (process.env.SERVER_LEVEL || 'common')
-}
-const allowedApiKeys = process.env.ALLOWED_API_KEYS?.split(",") || [];
+const coreServerSettings = getServerConfig();
+const allowedApiKeys = getApiKeys();
 
 nodeStorage.init();
 browser.attachSIOserver(sio);
@@ -37,6 +36,7 @@ router
     .use('/api/v1', indexAPIRouter.routes());
 
 app
+    .use(errorHandler)
     .use(logger())
     .use(bodyParser())
     .use(authenticationMiddleware(allowedApiKeys))

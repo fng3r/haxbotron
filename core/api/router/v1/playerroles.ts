@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import * as playerRolesController from '../../../controller/api/v1/playerrolelist';
+import * as playerRolesController from '../../controller/v1/playerrolelist';
 
 export const playerRolesRouter = new Router();
 

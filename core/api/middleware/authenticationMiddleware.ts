@@ -1,4 +1,5 @@
 import { Context, Next } from "koa";
+import { AuthenticationError } from "../../lib/errors";
 
 const API_KEY_HEADER = 'x-api-key';
 
@@ -9,10 +10,10 @@ export function authenticationMiddleware(apiKeys: string[]) {
     return async (ctx: Context, next: Next) => {
         const apiKey = ctx.get(API_KEY_HEADER);
         if (!apiKey) {
-            ctx.throw(401, 'Api key is not provided');
+            throw new AuthenticationError('API key is required');
         }
         if (!apiKeys.includes(apiKey)) {
-            ctx.throw(401, 'Invalid api key');
+            throw new AuthenticationError('Invalid API key');
         }
 
         return next();

@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import * as roomController from '../../../controller/api/v1/room';
+import * as roomController from '../../controller/v1/room';
 
 export const roomRouter = new Router();
 

@@ -4,20 +4,12 @@ import { PlayerStorage } from "../game/model/GameObject/PlayerObject";
 import { PlayerRole } from "../game/model/PlayerRole/PlayerRole";
 import { winstonLogger } from "../winstonLoggerSystem";
 import { BanList } from "../game/model/PlayerBan/BanList";
+import { getDbConnectionUrl } from "./config";
 
 
 // These functions will be injected into bot script on puppeteer
 
-const dbConnAddr: string = (
-    'http://'
-    + ((process.env.SERVER_CONN_DB_HOST) ? (process.env.SERVER_CONN_DB_HOST) : ('127.0.0.1'))
-    + ':'
-    + ((process.env.SERVER_CONN_DB_PORT) ? (process.env.SERVER_CONN_DB_PORT) : ('13001'))
-    + '/'
-    + 'api/'
-    + ((process.env.SERVER_CONN_DB_APIVER) ? (process.env.SERVER_CONN_DB_APIVER) : ('v1'))
-    + '/'
-);
+const dbConnAddr: string = getDbConnectionUrl();
 
 export async function createSuperadminDB(ruid: string, key: string, description: string): Promise<void> {
     try {
