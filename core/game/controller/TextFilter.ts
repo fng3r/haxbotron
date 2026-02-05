@@ -1,4 +1,5 @@
 import { AhoCorasick } from '../model/TextFilter/filter'
+import { ServiceContainer } from '../services/ServiceContainer';
 
 /**
  * Check if given string is already used in the game room (check duplicated nickname)
@@ -6,7 +7,10 @@ import { AhoCorasick } from '../model/TextFilter/filter'
  * @returns return `true` when already in use
  */
 export function isExistNickname(compare: string): boolean {
-    for (let eachPlayer of window.gameRoom.playerList.values()) {
+    const services = ServiceContainer.getInstance();
+    const playerList = services.player.getPlayerList();
+    
+    for (let eachPlayer of playerList.values()) {
         if(eachPlayer.name.trim() === compare.trim()) {
             return true;
         }

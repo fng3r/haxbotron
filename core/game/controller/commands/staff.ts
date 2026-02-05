@@ -1,16 +1,20 @@
 import {PlayerObject} from "../../model/GameObject/PlayerObject";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
+import { ServiceContainer } from "../../services/ServiceContainer";
 
 export function cmdStaff(byPlayer: PlayerObject): void {
-    const [...players] = window.gameRoom.playerList.values();
+    const services = ServiceContainer.getInstance();
+    const playerList = services.player.getPlayerList();
+    
+    const [...players] = playerList.values();
     let staffPlayersString = players
-        .filter(player => PlayerRoles.atLeast(window.gameRoom.playerRoles.get(player.id)!, PlayerRoles.S_ADM))
+        .filter(player => PlayerRoles.atLeast(services.playerRole.getRole(player.id)!, PlayerRoles.S_ADM))
         .map(player => {
-            const playerRole = window.gameRoom.playerRoles.get(player.id)!.role;
+            const playerRole = services.playerRole.getRole(player.id)!.role;
             return `${player.name}#${player.id} (${playerRole})`;
         })
         .join(', ');
     staffPlayersString = `👨🏻‍💼 Staff: ${staffPlayersString || 'No staff players'}`;
 
-    window.gameRoom._room.sendAnnouncement(staffPlayersString, null, 0x479947, "normal", 1);
+    services.room.sendAnnouncement(staffPlayersString, null, 0x479947, "normal", 1);
 }

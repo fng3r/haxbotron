@@ -17,6 +17,7 @@ import {cmdDeanon} from "./deanon";
 import {cmdMap} from "./map";
 import {buildHelpCommand} from "./help";
 import { cmdAdm } from "./adm";
+import { ServiceContainer } from "../../services/ServiceContainer";
 
 export class CommandExecutor {
     private readonly _commandHandlers: Map<GameCommands, Function>;
@@ -28,7 +29,8 @@ export class CommandExecutor {
     public executeCommand(byPlayer: PlayerObject, commandName: GameCommands, commandArgs: any[]): void {
         if (!this._commandHandlers.has(commandName))
         {
-            window.gameRoom._room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
+            const services = ServiceContainer.getInstance();
+            services.room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
             return;
         }
         const commandHandler = this._commandHandlers.get(commandName)!;

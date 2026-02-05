@@ -4,6 +4,7 @@ import {GameCommands} from "./GameCommands";
 import {commandExecutor} from "./CommandExecutor";
 import * as P from "parsimmon";
 import {Parser} from "parsimmon";
+import { ServiceContainer } from "../../services/ServiceContainer";
 
 const COMMANDS_PREFIX = '!';
 
@@ -132,11 +133,13 @@ const parserLanguage = P.createLanguage({
 });
 
 export function executeCommand(byPlayer: PlayerObject, command: string): void {
+    const services = ServiceContainer.getInstance();
+    
     command = command.trim();
     const parseCommandResult = parserLanguage.commandExpression.parse(command);
     if (!parseCommandResult.status)
     {
-        window.gameRoom._room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
+        services.room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
 
@@ -146,7 +149,7 @@ export function executeCommand(byPlayer: PlayerObject, command: string): void {
         commandExecutor.executeCommand(byPlayer, commandName, commandArgs);
     }
     catch (e) {
-        window.gameRoom.logger.e('executeCommand', `Failed to execute command '${commandName}'`);
+        services.logger.e('executeCommand', `Failed to execute command '${commandName}'`);
     }
 }
 

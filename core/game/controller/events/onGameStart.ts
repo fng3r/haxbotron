@@ -1,5 +1,6 @@
 import {PlayerObject} from "../../model/GameObject/PlayerObject";
 import {TeamID} from "../../model/GameObject/TeamID";
+import { ServiceContainer } from "../../services/ServiceContainer";
 
 const DEFAULT_KICKRATE = {
     min: 6,
@@ -10,12 +11,15 @@ const DEFAULT_KICKRATE = {
 export function onGameStartListener(byPlayer: PlayerObject | null): void {
     /* Event called when a game starts.
         byPlayer is the player which caused the event (can be null if the event wasn't caused by a player). */
+    const services = ServiceContainer.getInstance();
+    const room = services.room.getRoom();
+    
     let placeholderStart = {
         playerID: 0,
         playerName: ''
     };
 
-    window.gameRoom.isGamingNow = true; // turn on
+    services.match.setPlaying(true);
 
     let msg = `The game has been started.`;
     if (byPlayer !== null && byPlayer.id !== 0) {
@@ -24,21 +28,16 @@ export function onGameStartListener(byPlayer: PlayerObject | null): void {
         msg += `(by ${byPlayer.name}#${byPlayer.id})`;
     }
 
-    window.gameRoom._room.setKickRateLimit(DEFAULT_KICKRATE.min, DEFAULT_KICKRATE.rate, DEFAULT_KICKRATE.burst);
+    room.setKickRateLimit(DEFAULT_KICKRATE.min, DEFAULT_KICKRATE.rate, DEFAULT_KICKRATE.burst);
 
-    window.gameRoom.matchStats.startedAt = Date.now()
-    window.gameRoom.matchStats.scores = {
-        red: 0,
-        blue: 0,
-        time: 0
+    const startingLineup = {
+        red: room.getPlayerList().filter(p => p.team === TeamID.Red),
+        blue: room.getPlayerList().filter(p => p.team === TeamID.Blue)
     };
-    window.gameRoom.matchStats.startingLineup = {
-        red: window.gameRoom._room.getPlayerList().filter(p => p.team === TeamID.Red),
-        blue: window.gameRoom._room.getPlayerList().filter(p => p.team === TeamID.Blue)
-    }
+    services.match.startMatch(startingLineup);
 
     // replay record start
-    window.gameRoom._room.startRecording();
+    room.startRecording();
 
-    window.gameRoom.logger.i('onGameStart', msg);
+    services.logger.i('onGameStart', msg);
 }

@@ -89,7 +89,7 @@ export class HeadlessBrowser {
     */
     private async closePage(ruid: string) {
         await this._PageContainer.get(ruid)?.evaluate(() => {
-            window.gameRoom._room.stopRecording(); // suspend recording for prevent memory leak
+            window.services?.room.getRoom().stopRecording(); // suspend recording for prevent memory leak
         });
         await this._PageContainer.get(ruid)?.close(); // close page
         this._PageContainer.delete(ruid); // delete from container
@@ -288,7 +288,7 @@ export class HeadlessBrowser {
             path: './out/bot_bundle.js'
         });
 
-        await page.waitForFunction(() => window.gameRoom.link !== undefined && window.gameRoom.link.length > 0); // wait for 30secs(default) until room link is created
+        await page.waitForFunction(() => window.services?.room.getLink() !== undefined && window.services?.room.getLink().length > 0); // wait for 30secs(default) until room link is created
 
         this._PageContainer.set(ruid, page) // save container
         this._SIOserver?.sockets.emit('roomct', { ruid: ruid }); // emit websocket event for room create/terminate
@@ -299,10 +299,10 @@ export class HeadlessBrowser {
     * Get URI link of the room.
     */
     private async fetchRoomURILink(ruid: string): Promise<string> {
-        await this._PageContainer.get(ruid)!.waitForFunction(() => window.gameRoom.link !== undefined && window.gameRoom.link.length > 0); // wait for 30secs(default) until room link is created
+        await this._PageContainer.get(ruid)!.waitForFunction(() => window.services?.room.getLink() !== undefined && window.services?.room.getLink().length > 0); // wait for 30secs(default) until room link is created
 
         let link: string = await this._PageContainer.get(ruid)!.evaluate(() => {
-            return window.gameRoom.link;
+            return window.services!.room.getLink();
         });
 
         return link;
@@ -388,9 +388,10 @@ export class HeadlessBrowser {
     public async getRoomInfo(ruid: string) {
         if (this.isExistRoom(ruid)) {
             return await this._PageContainer.get(ruid)!.evaluate(() => {
+                const services = window.services!;
                 return {
-                    roomName: window.gameRoom.config._config.roomName,
-                    onlinePlayers: window.gameRoom.playerList.size()
+                    roomName: services.config.getConfig()._config.roomName,
+                    onlinePlayers: services.player.getPlayerCount()
                 }
             });
         } else {
@@ -405,14 +406,16 @@ export class HeadlessBrowser {
     public async getRoomDetailInfo(ruid: string) {
         if (this.isExistRoom(ruid)) {
             return await this._PageContainer.get(ruid)!.evaluate(() => {
+                const services = window.services!;
+                const config = services.config.getConfig();
                 return {
-                    roomName: window.gameRoom.config._config.roomName,
-                    onlinePlayers: window.gameRoom.playerList.size(),
-                    adminPassword: window.gameRoom.adminPassword,
-                    link: window.gameRoom.link,
-                    _roomConfig: window.gameRoom.config._config,
-                    botSettings: window.gameRoom.config.settings,
-                    rules: window.gameRoom.config.rules
+                    roomName: config._config.roomName,
+                    onlinePlayers: services.player.getPlayerCount(),
+                    adminPassword: services.config.getAdminPassword(),
+                    link: services.room.getLink(),
+                    _roomConfig: config._config,
+                    botSettings: config.settings,
+                    rules: config.rules
                 }
             });
         } else {
@@ -425,7 +428,7 @@ export class HeadlessBrowser {
      */
     public async getOnlinePlayersIDList(ruid: string): Promise<number[]> {
         return await this._PageContainer.get(ruid)!.evaluate(() => {
-            return Array.from(window.gameRoom.playerList.keys());
+            return Array.from(window.services!.player.getPlayerList().keys());
         });
     }
 
@@ -436,7 +439,7 @@ export class HeadlessBrowser {
      */
     public async checkOnlinePlayer(ruid: string, id: number): Promise<boolean> {
         return await this._PageContainer.get(ruid)!.evaluate((id: number) => {
-            return window.gameRoom.playerList.has(id);
+            return window.services!.player.getPlayerList().has(id);
         }, id);
     }
 
@@ -445,9 +448,9 @@ export class HeadlessBrowser {
      */
     public async getPlayerInfo(ruid: string, id: number): Promise<Player | undefined> {
         return await this._PageContainer.get(ruid)!.evaluate((id: number) => {
-            //let idNum: number = parseInt(id);
-            if (window.gameRoom.playerList.has(id)) {
-                return window.gameRoom.playerList.get(id);
+            const playerList = window.services!.player.getPlayerList();
+            if (playerList.has(id)) {
+                return playerList.get(id);
             } else {
                 return undefined;
             }
@@ -463,23 +466,29 @@ export class HeadlessBrowser {
      */
     public async banPlayerFixedTerm(ruid: string, id: number, ban: boolean, reason: string, seconds: number): Promise<void> {
         await this._PageContainer.get(ruid)?.evaluate(async (id: number, ban: boolean, reason: string, seconds: number) => {
-            if (window.gameRoom.playerList.has(id)) {
+            const services = window.services!;
+            const playerList = services.player.getPlayerList();
+            const room = services.room.getRoom();
+            const ruidValue = services.config.getRUID();
+            
+            if (playerList.has(id)) {
+                const player = playerList.get(id)!;
                 const banItem = {
-                    conn: window.gameRoom.playerList.get(id)!.conn,
-                    auth: window.gameRoom.playerList.get(id)!.auth,
+                    conn: player.conn,
+                    auth: player.auth,
                     reason: reason,
                     register: Math.floor(Date.now()),
                     expire: Math.floor(Date.now()) + (seconds * 1000)
                 }
-                if (await window._readBanlistDB(window.gameRoom.config._RUID, window.gameRoom.playerList.get(id)!.conn) !== undefined) {
+                if (await window._readBanlistDB(ruidValue, player.conn) !== undefined) {
                     //if already exist then update it
-                    await window._updateBanlistDB(window.gameRoom.config._RUID, banItem);
+                    await window._updateBanlistDB(ruidValue, banItem);
                 } else {
                     // or create new one
-                    await window._createBanlistDB(window.gameRoom.config._RUID, banItem);
+                    await window._createBanlistDB(ruidValue, banItem);
                 }
-                window.gameRoom._room.kickPlayer(id, reason, ban);
-                window.gameRoom.logger.i('system', `[Kick] #${id} has been ${ban ? 'banned' : 'kicked'} by operator. (duration: ${seconds}secs, reason: ${reason})`);
+                room.kickPlayer(id, reason, ban);
+                services.logger.i('system', `[Kick] #${id} has been ${ban ? 'banned' : 'kicked'} by operator. (duration: ${seconds}secs, reason: ${reason})`);
             }
         }, id, ban, reason, seconds);
     }
@@ -489,8 +498,9 @@ export class HeadlessBrowser {
      */
     public async broadcast(ruid: string, message: string): Promise<void> {
         await this._PageContainer.get(ruid)?.evaluate((message: string) => {
-            window.gameRoom._room.sendAnnouncement(message, null, 0xFFFF00, "bold", 2);
-            window.gameRoom.logger.i('system', `[Broadcast] ${message}`);
+            const services = window.services!;
+            services.room.sendAnnouncement(message, null, 0xFFFF00, "bold", 2);
+            services.logger.i('system', `[Broadcast] ${message}`);
         }, message);
     }
 
@@ -499,8 +509,10 @@ export class HeadlessBrowser {
      */
     public async whisper(ruid: string, id: number, message: string): Promise<void> {
         await this._PageContainer.get(ruid)?.evaluate((id: number, message: string) => {
-            window.gameRoom._room.sendAnnouncement(message, id, 0xFFFF00, "bold", 2);
-            window.gameRoom.logger.i('system', `[Whisper][to ${window.gameRoom.playerList.get(id)?.name}#${id}] ${message}`);
+            const services = window.services!;
+            const playerList = services.player.getPlayerList();
+            services.room.sendAnnouncement(message, id, 0xFFFF00, "bold", 2);
+            services.logger.i('system', `[Whisper][to ${playerList.get(id)?.name}#${id}] ${message}`);
         }, id, message);
     }
 
@@ -510,11 +522,8 @@ export class HeadlessBrowser {
      */
     public async getNotice(ruid: string): Promise<string | null> {
         return await this._PageContainer.get(ruid)!.evaluate(() => {
-            if (window.gameRoom.notice) {
-                return window.gameRoom.notice;
-            } else {
-                return null;
-            }
+            const notice = window.services!.notification.getNotice();
+            return notice || null;
         });
     }
 
@@ -525,7 +534,7 @@ export class HeadlessBrowser {
      */
     public async setNotice(ruid: string, message: string): Promise<void> {
         await this._PageContainer.get(ruid)!.evaluate((message: string) => {
-            window.gameRoom.notice = message;
+            window.services!.notification.setNotice(message);
         }, message);
     }
 
@@ -536,9 +545,11 @@ export class HeadlessBrowser {
      */
     public async setPassword(ruid: string, password: string) {
         await this._PageContainer.get(ruid)!.evaluate((password: string) => {
+            const services = window.services!;
+            const room = services.room.getRoom();
             const convertedPassword: string | null = (password == "") ? null : password;
-            window.gameRoom._room.setPassword(convertedPassword);
-            window.gameRoom.config._config.password = password;
+            room.setPassword(convertedPassword);
+            services.config.getConfig()._config.password = password;
         }, password);
     }
 
@@ -548,7 +559,7 @@ export class HeadlessBrowser {
      */
     public async getNicknameTextFilteringPool(ruid: string): Promise<string[]> {
         return await this._PageContainer.get(ruid)!.evaluate(() => {
-            return window.gameRoom.bannedWordsPool.nickname;
+            return window.services!.config.getBannedWords('nickname');
         });
     }
 
@@ -558,7 +569,7 @@ export class HeadlessBrowser {
      */
     public async getChatTextFilteringPool(ruid: string): Promise<string[]> {
         return await this._PageContainer.get(ruid)!.evaluate(() => {
-            return window.gameRoom.bannedWordsPool.chat;
+            return window.services!.config.getBannedWords('chat');
         });
     }
 
@@ -569,7 +580,7 @@ export class HeadlessBrowser {
      */
     public async setNicknameTextFilter(ruid: string, pool: string[]) {
         await this._PageContainer.get(ruid)!.evaluate((pool: string[]) => {
-            window.gameRoom.bannedWordsPool.nickname = pool;
+            window.services!.config.setBannedWords('nickname', pool);
         }, pool);
     }
 
@@ -580,7 +591,7 @@ export class HeadlessBrowser {
      */
     public async setChatTextFilter(ruid: string, pool: string[]) {
         await this._PageContainer.get(ruid)!.evaluate((pool: string[]) => {
-            window.gameRoom.bannedWordsPool.chat = pool;
+            window.services!.config.setBannedWords('chat', pool);
         }, pool);
     }
 
@@ -590,7 +601,7 @@ export class HeadlessBrowser {
      */
     public async clearNicknameTextFilter(ruid: string) {
         await this._PageContainer.get(ruid)!.evaluate(() => {
-            window.gameRoom.bannedWordsPool.nickname = [];
+            window.services!.config.setBannedWords('nickname', []);
         });
     }
 
@@ -600,7 +611,7 @@ export class HeadlessBrowser {
      */
     public async clearChatTextFilter(ruid: string) {
         await this._PageContainer.get(ruid)!.evaluate(() => {
-            window.gameRoom.bannedWordsPool.chat = [];
+            window.services!.config.setBannedWords('chat', []);
         });
     }
 
@@ -611,7 +622,7 @@ export class HeadlessBrowser {
      */
     public async getChatFreeze(ruid: string): Promise<boolean> {
         return await this._PageContainer.get(ruid)!.evaluate(() => {
-            return window.gameRoom.isMuteAll;
+            return window.services!.chat.isAllMuted();
         });
     }
 
@@ -622,8 +633,9 @@ export class HeadlessBrowser {
      */
     public async setChatFreeze(ruid: string, freeze: boolean) {
         await this._PageContainer.get(ruid)!.evaluate((freeze: boolean) => {
-            window.gameRoom.isMuteAll = freeze;
-            window.gameRoom.logger.i('system', `[Freeze] Whole chat is ${freeze ? 'muted' : 'unmuted'} by Operator.`);
+            const services = window.services!;
+            services.chat.setAllMuted(freeze);
+            services.logger.i('system', `[Freeze] Whole chat is ${freeze ? 'muted' : 'unmuted'} by Operator.`);
             window._emitSIOPlayerStatusChangeEvent(0);
         }, freeze);
     }
@@ -636,10 +648,13 @@ export class HeadlessBrowser {
      */
     public async setPlayerMute(ruid: string, id: number, muteExpireTime: number) {
         await this._PageContainer.get(ruid)!.evaluate((id: number, muteExpireTime: number) => {
-            window.gameRoom.playerList.get(id)!.permissions.mute = true;
-            window.gameRoom.playerList.get(id)!.permissions.muteExpire = muteExpireTime;
+            const services = window.services!;
+            const playerList = services.player.getPlayerList();
+            const player = playerList.get(id)!;
+            player.permissions.mute = true;
+            player.permissions.muteExpire = muteExpireTime;
 
-            window.gameRoom.logger.i('system', `[Mute] ${window.gameRoom.playerList.get(id)!.name}#${id} is muted by Operator.`);
+            services.logger.i('system', `[Mute] ${player.name}#${id} is muted by Operator.`);
             window._emitSIOPlayerStatusChangeEvent(id);
         }, id, muteExpireTime);
     }
@@ -651,9 +666,12 @@ export class HeadlessBrowser {
      */
     public async setPlayerUnmute(ruid: string, id: number) {
         await this._PageContainer.get(ruid)!.evaluate((id: number) => {
-            window.gameRoom.playerList.get(id)!.permissions.mute = false;
+            const services = window.services!;
+            const playerList = services.player.getPlayerList();
+            const player = playerList.get(id)!;
+            player.permissions.mute = false;
 
-            window.gameRoom.logger.i('system', `[Mute] ${window.gameRoom.playerList.get(id)!.name}#${id} is unmuted by Operator.`);
+            services.logger.i('system', `[Mute] ${player.name}#${id} is unmuted by Operator.`);
             window._emitSIOPlayerStatusChangeEvent(id);
         }, id);
     }
@@ -666,7 +684,8 @@ export class HeadlessBrowser {
      */
     public async getTeamColours(ruid: string, team: TeamID) {
         return await this._PageContainer.get(ruid)!.evaluate((team: number) => {
-            return window.gameRoom.teamColours[team === 1 ? 'red' : 'blue'];
+            const teamColours = window.services!.room.getTeamColours();
+            return teamColours[team === 1 ? 'red' : 'blue'];
         }, team);
     }
 
@@ -682,27 +701,25 @@ export class HeadlessBrowser {
      */
     public async setTeamColours(ruid: string, team: TeamID, angle: number, textColour: number, teamColour1: number, teamColour2: number, teamColour3: number) {
         await this._PageContainer.get(ruid)!.evaluate((team: number, angle: number, textColour: number, teamColour1: number, teamColour2: number, teamColour3: number) => {
-            window.gameRoom._room.setTeamColors(team, angle, textColour, [teamColour1, teamColour2, teamColour3]);
+            const services = window.services!;
+            const room = services.room.getRoom();
+            room.setTeamColors(team, angle, textColour, [teamColour1, teamColour2, teamColour3]);
+
+            const teamColourData = {
+                angle: angle,
+                textColour: textColour,
+                teamColour1: teamColour1,
+                teamColour2: teamColour2,
+                teamColour3: teamColour3,
+            };
 
             if (team === 2) {
-                window.gameRoom.teamColours.blue = {
-                    angle: angle,
-                    textColour: textColour,
-                    teamColour1: teamColour1,
-                    teamColour2: teamColour2,
-                    teamColour3: teamColour3,
-                }
+                services.room.setTeamColours('blue', teamColourData);
             } else {
-                window.gameRoom.teamColours.red = {
-                    angle: angle,
-                    textColour: textColour,
-                    teamColour1: teamColour1,
-                    teamColour2: teamColour2,
-                    teamColour3: teamColour3,
-                }
+                services.room.setTeamColours('red', teamColourData);
             }
 
-            window.gameRoom.logger.i('system', `[TeamColour] New team colour is set for Team ${team}.`);
+            services.logger.i('system', `[TeamColour] New team colour is set for Team ${team}.`);
         }, team, angle, textColour, teamColour1, teamColour2, teamColour3);
     }
 
@@ -713,7 +730,7 @@ export class HeadlessBrowser {
      */
     public async getDiscordWebhookConfig(ruid: string) {
         return await this._PageContainer.get(ruid)!.evaluate(() => {
-            return window.gameRoom.social.discordWebhook as DiscordWebhookConfig;
+            return window.services!.social.getDiscordWebhook() as DiscordWebhookConfig;
         });
     }
 
@@ -731,7 +748,7 @@ export class HeadlessBrowser {
         replaysWebhookToken: any
     }) {
         await this._PageContainer.get(ruid)!.evaluate((config: DiscordWebhookConfig) => {
-            window.gameRoom.social.discordWebhook = config;
+            window.services!.social.updateDiscordWebhook(config);
         }, config);
     }
 }

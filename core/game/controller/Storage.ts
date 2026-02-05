@@ -1,7 +1,8 @@
 import { Player } from "../model/GameObject/Player";
 import { PlayerStorage } from "../model/GameObject/PlayerObject";
-import { PlayerRole } from "../model/PlayerRole/PlayerRole";
 import { BanList } from "../model/PlayerBan/BanList";
+import { PlayerRole } from "../model/PlayerRole/PlayerRole";
+import { ServiceContainer } from "../services/ServiceContainer";
 
 // Utilities
 export function convertToPlayerStorage(player: Player): PlayerStorage {
@@ -22,19 +23,21 @@ export function convertToPlayerStorage(player: Player): PlayerStorage {
 // CRUDs with DB Server by injected functions from Node Main Application
 // register new player or update it
 export async function setPlayerDataToDB(playerStorage: PlayerStorage): Promise<void> {
-    const player: PlayerStorage | undefined = await window._readPlayerDB(window.gameRoom.config._RUID, playerStorage.auth);
+    const ruid = ServiceContainer.getInstance().config.getRUID();
+    const player: PlayerStorage | undefined = await window._readPlayerDB(ruid, playerStorage.auth);
     if(player !== undefined) {
         //if already exist then update it
-        await window._updatePlayerDB(window.gameRoom.config._RUID, playerStorage);
+        await window._updatePlayerDB(ruid, playerStorage);
     } else {
         // or create new one
-        await window._createPlayerDB(window.gameRoom.config._RUID, playerStorage);
+        await window._createPlayerDB(ruid, playerStorage);
     }
 }
 
 // get player data
 export async function getPlayerDataFromDB(playerAuth: string): Promise<PlayerStorage | undefined> {
-    const player: PlayerStorage | undefined = await window._readPlayerDB(window.gameRoom.config._RUID, playerAuth);
+    const ruid = ServiceContainer.getInstance().config.getRUID();
+    const player: PlayerStorage | undefined = await window._readPlayerDB(ruid, playerAuth);
     return player;
 }
 
@@ -58,29 +61,33 @@ export async function deletePlayerRoleFromDB(playerRole: PlayerRole): Promise<vo
 
 // register new ban or update it
 export async function setBanlistDataToDB(banList: BanList): Promise<void> {
-    const banplayer: BanList | undefined = await window._readBanlistDB(window.gameRoom.config._RUID, banList.conn);
+    const ruid = ServiceContainer.getInstance().config.getRUID();
+    const banplayer: BanList | undefined = await window._readBanlistDB(ruid, banList.conn);
     if(banplayer !== undefined) {
         //if already exist then update it
-        await window._updateBanlistDB(window.gameRoom.config._RUID, banList);
+        await window._updateBanlistDB(ruid, banList);
     } else {
         // or create new one
-        await window._createBanlistDB(window.gameRoom.config._RUID, banList);
+        await window._createBanlistDB(ruid, banList);
     }
 }
 
 // get exist ban
 export async function getBanlistDataFromDB(playerConn: string): Promise<BanList | undefined> {
-    const banplayer: BanList | undefined = await window._readBanlistDB(window.gameRoom.config._RUID, playerConn);
+    const ruid = ServiceContainer.getInstance().config.getRUID();
+    const banplayer: BanList | undefined = await window._readBanlistDB(ruid, playerConn);
     return banplayer;
 }
 
 // get exist ban
 export async function getAllBansFromDB(playerConn: string): Promise<BanList[] | undefined> {
-    const bannedPlayers: BanList[] | undefined = await window._getAllBansDB(window.gameRoom.config._RUID);
+    const ruid = ServiceContainer.getInstance().config.getRUID();
+    const bannedPlayers: BanList[] | undefined = await window._getAllBansDB(ruid);
     return bannedPlayers;
 }
 
 // remove exist ban
 export async function removeBanlistDataFromDB(playerConn: string): Promise<void> {
-    await window._deleteBanlistDB(window.gameRoom.config._RUID, playerConn);
+    const ruid = ServiceContainer.getInstance().config.getRUID();
+    await window._deleteBanlistDB(ruid, playerConn);
 }

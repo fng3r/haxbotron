@@ -1,20 +1,24 @@
 import {PlayerObject} from "../../model/GameObject/PlayerObject";
 import {TeamID} from "../../model/GameObject/TeamID";
 import * as LangRes from "../../resource/strings";
+import { ServiceContainer } from "../../services/ServiceContainer";
 
 export function cmdTeamChat(byPlayer: PlayerObject, message: string): void {
-    const player = window.gameRoom.playerList.get(byPlayer.id)!;
-    if (window.gameRoom.isMuteAll || player.permissions.mute) { // if this player is muted or whole chat is frozen
-        window.gameRoom._room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2); // notify that fact
+    const services = ServiceContainer.getInstance();
+    const playerList = services.player.getPlayerList();
+    
+    const player = playerList.get(byPlayer.id)!;
+    if (services.chat.isAllMuted() || player.permissions.mute) { // if this player is muted or whole chat is frozen
+        services.room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2); // notify that fact
         return; // and hide this chat
     }
 
     const messageColor = getMessageColor(byPlayer.team);
     const messagePrefix = getMessagePrefix(byPlayer.team);
     const resultMessage = `${messagePrefix} ${byPlayer.name}: ${message}`;
-    for (const player of window.gameRoom.playerList.values()) {
+    for (const player of playerList.values()) {
         if (player.team === byPlayer.team) {
-            window.gameRoom._room.sendAnnouncement(resultMessage, player.id, messageColor, "bold", 1);
+            services.room.sendAnnouncement(resultMessage, player.id, messageColor, "bold", 1);
         }
     }
 }

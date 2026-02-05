@@ -1,13 +1,16 @@
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as Translator from "../Translator";
 import * as LangRes from "../../resource/strings";
+import { ServiceContainer } from "../../services/ServiceContainer";
 
 export function onGameUnpauseListener(byPlayer: PlayerObject | null): void {
-    window.gameRoom.isGamingNow = true; // turn on
+    const services = ServiceContainer.getInstance();
+    
+    services.match.setPlaying(true);
     const announcementText = Translator.maketext(
         LangRes.onGameUnpause.unpausedByPlayer,
         {player: byPlayer?.name}
     );
 
-    window.gameRoom._room.sendAnnouncement(announcementText, null, 0xFFFFFF, "normal", 2);
+    services.room.sendAnnouncement(announcementText, null, 0xFFFFFF, "normal", 2);
 }

@@ -1,6 +1,11 @@
+import { ServiceContainer } from "../../services/ServiceContainer";
+
 export function onGameTickListener(): void {
-    const scores = window.gameRoom._room.getScores()!;
-    window.gameRoom.matchStats.scores.red = scores.red;
-    window.gameRoom.matchStats.scores.blue = scores.blue;
-    window.gameRoom.matchStats.scores.time = scores.time;
+    const services = ServiceContainer.getInstance();
+    const room = services.room.getRoom();
+    
+    const scores = room.getScores()!;
+    services.match.updateScore('red', scores.red);
+    services.match.updateScore('blue', scores.blue);
+    services.match.updateTime(scores.time);
 }
