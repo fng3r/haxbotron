@@ -3,33 +3,34 @@
 // https://github.com/dapucita/haxbotron
 // ========================================================
 import "dotenv/config";
+import { createServer as HTTPcreateServer } from "http";
 import Koa from "koa";
-import Router from "koa-router";
 import bodyParser from "koa-bodyparser";
 import logger from "koa-logger";
+import Router from "koa-router";
 import nodeStorage from "node-persist";
-import { createServer as HTTPcreateServer } from "http";
 import { Server as SIOserver, Socket as SIOsocket } from "socket.io";
-import { winstonLogger } from "./winstonLoggerSystem";
-import { indexAPIRouter } from "./api/router/v1";
 import { authenticationMiddleware } from "./api/middleware/authenticationMiddleware";
-import { wsAuthenticationMiddleware } from "./api/middleware/wsAuthenticationMiddleware";
 import { errorHandler } from "./api/middleware/errorHandler";
-import { HeadlessBrowser } from "./lib/browser";
-import { getServerConfig, getApiKeys } from "./lib/config";
+import { wsAuthenticationMiddleware } from "./api/middleware/wsAuthenticationMiddleware";
+import { indexAPIRouter } from "./api/router/v1";
+import { attachSocketIOServer, createBrowserServices } from "./lib/browser/";
+import { getApiKeys, getServerConfig } from "./lib/config";
+import { winstonLogger } from "./winstonLoggerSystem";
 
 const app = new Koa();
 const router = new Router();
 const server = HTTPcreateServer(app.callback());
 
-const sio = new SIOserver(server, { path:'/ws', transports: ['websocket'] }); // socket.io server
-const browser = HeadlessBrowser.getInstance(); // puppeteer wrapper instance
+const sio = new SIOserver(server, { path:'/ws', transports: ['websocket'] });
 
 const coreServerSettings = getServerConfig();
 const allowedApiKeys = getApiKeys();
 
 nodeStorage.init();
-browser.attachSIOserver(sio);
+
+// Initialize browser services
+export let roomOperations: Awaited<ReturnType<typeof createBrowserServices>>['roomOperations'];
 
 // ========================================================
 router
@@ -48,8 +49,16 @@ sio.on('connection', (socket: SIOsocket) => {
 })
 sio.use(wsAuthenticationMiddleware);
 
-server
-    .listen(coreServerSettings.port, async () => {
+// Start server after browser services are initialized
+(async () => {
+    // Initialize browser services first
+    const browserServices = await createBrowserServices();
+    roomOperations = browserServices.roomOperations;
+    attachSocketIOServer(browserServices.browserManager, sio);
+    winstonLogger.info('[core] Browser services initialized');
+
+    // Now start the server
+    server.listen(coreServerSettings.port, () => {
         console.log("_|    _|                      _|                    _|                                  "+"\n"+
                     "_|    _|    _|_|_|  _|    _|  _|_|_|      _|_|    _|_|_|_|  _|  _|_|    _|_|    _|_|_|  "+"\n"+
                     "_|_|_|_|  _|    _|    _|_|    _|    _|  _|    _|    _|      _|_|      _|    _|  _|    _|"+"\n"+
@@ -58,3 +67,4 @@ server
         console.log(`Haxbotron by dapucita (Visit our GitHub : https://github.com/dapucita/haxbotron)`);
         winstonLogger.info(`[core] Haxbotron core server is opened at ${coreServerSettings.port} port.`);
     });
+})();

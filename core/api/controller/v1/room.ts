@@ -1,15 +1,13 @@
 import { Context } from "koa";
 import { Player } from "../../../game/model/GameObject/Player";
 import { TeamID } from "../../../game/model/GameObject/TeamID";
-import { HeadlessBrowser } from "../../../lib/browser";
+import { roomOperations } from "../../../app";
 import { BrowserHostRoomInitConfig } from '../../../lib/browser.hostconfig';
 import { ConflictError, PlayerNotFoundError, RoomNotFoundError, ValidationError } from "../../../lib/errors";
 import { formatJoiError } from "../../middleware/errorHandler";
 import { discordWebhookConfigSchema } from "../../schema/discordwebhook.validation";
 import { nestedHostRoomConfigSchema } from "../../schema/hostroomconfig.validation";
 import { teamColourSchema } from "../../schema/teamcolour.validation";
-
-const browser = HeadlessBrowser.getInstance();
 
 /**
  * create new room
@@ -34,11 +32,11 @@ export async function createRoom(ctx: Context) {
         newRoomConfig._config.password = undefined;
     }
 
-    if (browser.checkExistRoom(newRoomConfig._RUID)) {
+    if (roomOperations.checkExistRoom(newRoomConfig._RUID)) {
         throw new ConflictError(`Room with RUID '${newRoomConfig._RUID}' already exists`);
     }
 
-    await browser.openNewRoom(newRoomConfig._RUID, newRoomConfig);
+    await roomOperations.openNewRoom(newRoomConfig._RUID, newRoomConfig);
     ctx.status = 201;
 }
 
@@ -47,10 +45,10 @@ export async function createRoom(ctx: Context) {
  */
 export async function terminateRoom(ctx: Context) {
     const { ruid } = ctx.params;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    await browser.closeRoom(ruid);
+    await roomOperations.closeRoom(ruid);
     ctx.status = 204;
 }
 
@@ -58,7 +56,7 @@ export async function terminateRoom(ctx: Context) {
  * get exist room list
  */
 export function getRoomList(ctx: Context) {
-    const list: string[] = browser.getExistRoomList();
+    const list: string[] = roomOperations.getExistRoomList();
     ctx.status = 200;
     ctx.body = list;
 }
@@ -68,11 +66,11 @@ export function getRoomList(ctx: Context) {
  */
 export async function getRoomInfo(ctx: Context) {
     const { ruid } = ctx.params;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
     ctx.status = 200;
-    ctx.body = await browser.getRoomInfo(ruid);
+    ctx.body = await roomOperations.getRoomInfo(ruid);
 }
 
 /**
@@ -80,11 +78,11 @@ export async function getRoomInfo(ctx: Context) {
  */
 export async function getRoomDetailInfo(ctx: Context) {
     const { ruid } = ctx.params;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
     ctx.status = 200;
-    ctx.body = await browser.getRoomDetailInfo(ruid);
+    ctx.body = await roomOperations.getRoomDetailInfo(ruid);
 }
 
 /**
@@ -92,10 +90,10 @@ export async function getRoomDetailInfo(ctx: Context) {
  */
 export async function getPlayersList(ctx: Context) {
     const { ruid } = ctx.params;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    const list: number[] = await browser.getOnlinePlayersIDList(ruid);
+    const list: number[] = await roomOperations.getOnlinePlayersIDList(ruid);
     ctx.status = 200;
     ctx.body = list;
 }
@@ -105,10 +103,10 @@ export async function getPlayersList(ctx: Context) {
  */
 export async function getPlayerInfo(ctx: Context) {
     const { ruid, id } = ctx.params;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    const player: Player | undefined = await browser.getPlayerInfo(ruid, parseInt(id));
+    const player: Player | undefined = await roomOperations.getPlayerInfo(ruid, parseInt(id));
     if (player === undefined) {
         throw new PlayerNotFoundError(id);
     }
@@ -126,13 +124,13 @@ export async function kickOnlinePlayer(ctx: Context) {
         throw new ValidationError('Missing required fields: ban and seconds');
     }
     const playerId = parseInt(id);
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    if (!(await browser.checkOnlinePlayer(ruid, playerId))) {
+    if (!(await roomOperations.checkOnlinePlayer(ruid, playerId))) {
         throw new PlayerNotFoundError(id);
     }
-    await browser.banPlayerFixedTerm(ruid, playerId, ban, reason, seconds);
+    await roomOperations.banPlayerFixedTerm(ruid, playerId, ban, reason, seconds);
     ctx.status = 204;
 }
 
@@ -142,13 +140,13 @@ export async function kickOnlinePlayer(ctx: Context) {
 export function broadcast(ctx: Context) {
     const { ruid } = ctx.params;
     const message: string | undefined = ctx.request.body.message;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
     if (!message) {
         throw new ValidationError('Message is required');
     }
-    browser.broadcast(ruid, message);
+    roomOperations.broadcast(ruid, message);
     ctx.status = 201;
 }
 
@@ -159,16 +157,16 @@ export async function whisper(ctx: Context) {
     const { ruid, id } = ctx.params;
     const message: string | undefined = ctx.request.body.message;
     const playerID: number = parseInt(id);
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    if (!(await browser.checkOnlinePlayer(ruid, playerID))) {
+    if (!(await roomOperations.checkOnlinePlayer(ruid, playerID))) {
         throw new PlayerNotFoundError(id);
     }
     if (!message) {
         throw new ValidationError('Message is required');
     }
-    browser.whisper(ruid, playerID, message);
+    roomOperations.whisper(ruid, playerID, message);
     ctx.status = 201;
 }
 
@@ -178,13 +176,13 @@ export async function whisper(ctx: Context) {
 export async function setNotice(ctx: Context) {
     const { ruid } = ctx.params;
     const message: string | undefined = ctx.request.body.message;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
     if (!message) {
         throw new ValidationError('Message is required');
     }
-    await browser.setNotice(ruid, message);
+    await roomOperations.setNotice(ruid, message);
     ctx.status = 201;
 }
 
@@ -193,10 +191,10 @@ export async function setNotice(ctx: Context) {
  */
 export async function getNotice(ctx: Context) {
     const { ruid } = ctx.params;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    const message: string | null = await browser.getNotice(ruid);
+    const message: string | null = await roomOperations.getNotice(ruid);
     ctx.body = { message };
     ctx.status = 200;
 }
@@ -206,10 +204,10 @@ export async function getNotice(ctx: Context) {
  */
 export async function deleteNotice(ctx: Context) {
     const { ruid } = ctx.params;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.setNotice(ruid, '');
+    roomOperations.setNotice(ruid, '');
     ctx.status = 204;
 }
 
@@ -224,10 +222,10 @@ export async function setPassword(ctx: Context) {
         throw new ValidationError('Password is required');
     }
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.setPassword(ruid, password);
+    roomOperations.setPassword(ruid, password);
     ctx.status = 201;
 }
 
@@ -237,10 +235,10 @@ export async function setPassword(ctx: Context) {
 export async function clearPassword(ctx: Context) {
     const { ruid } = ctx.params;
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.setPassword(ruid, '');
+    roomOperations.setPassword(ruid, '');
     ctx.status = 204;
 }
 
@@ -249,10 +247,10 @@ export async function clearPassword(ctx: Context) {
  */
 export async function getNicknameTextFilteringPool(ctx: Context) {
     const { ruid } = ctx.params;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    const pool: string[] = await browser.getNicknameTextFilteringPool(ruid);
+    const pool: string[] = await roomOperations.getNicknameTextFilteringPool(ruid);
     ctx.status = 200;
     ctx.body = { pool: pool.join('|,|') };
 }
@@ -262,10 +260,10 @@ export async function getNicknameTextFilteringPool(ctx: Context) {
  */
 export async function getChatTextFilteringPool(ctx: Context) {
     const { ruid } = ctx.params;
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    const pool: string[] = await browser.getChatTextFilteringPool(ruid);
+    const pool: string[] = await roomOperations.getChatTextFilteringPool(ruid);
     ctx.status = 200;
     ctx.body = { pool: pool.join('|,|') };
 }
@@ -281,10 +279,10 @@ export async function setNicknameTextFilter(ctx: Context) {
         throw new ValidationError('Pool is required');
     }
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.setNicknameTextFilter(ruid, pool.split('|,|'));
+    roomOperations.setNicknameTextFilter(ruid, pool.split('|,|'));
     ctx.status = 201;
 }
 
@@ -299,10 +297,10 @@ export async function setChatTextFilter(ctx: Context) {
         throw new ValidationError('Pool is required');
     }
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.setChatTextFilter(ruid, pool.split('|,|'));
+    roomOperations.setChatTextFilter(ruid, pool.split('|,|'));
     ctx.status = 201;
 }
 
@@ -312,10 +310,10 @@ export async function setChatTextFilter(ctx: Context) {
 export async function clearNicknameTextFilter(ctx: Context) {
     const { ruid } = ctx.params;
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.clearNicknameTextFilter(ruid);
+    roomOperations.clearNicknameTextFilter(ruid);
     ctx.status = 204;
 }
 
@@ -325,10 +323,10 @@ export async function clearNicknameTextFilter(ctx: Context) {
 export async function clearChatTextFilter(ctx: Context) {
     const { ruid } = ctx.params;
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.clearChatTextFilter(ruid);
+    roomOperations.clearChatTextFilter(ruid);
     ctx.status = 204;
 }
 
@@ -338,10 +336,10 @@ export async function clearChatTextFilter(ctx: Context) {
 export async function checkPlayerMuted(ctx: Context) {
     const { ruid, id } = ctx.params;
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    const player: Player | undefined = await browser.getPlayerInfo(ruid, parseInt(id));
+    const player: Player | undefined = await roomOperations.getPlayerInfo(ruid, parseInt(id));
     if (player === undefined) {
         throw new PlayerNotFoundError(id);
     }
@@ -363,10 +361,10 @@ export async function mutePlayer(ctx: Context) {
         throw new ValidationError('muteExpire is required');
     }
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.setPlayerMute(ruid, parseInt(id), muteExpire);
+    roomOperations.setPlayerMute(ruid, parseInt(id), muteExpire);
     ctx.status = 201;
 }
 
@@ -376,10 +374,10 @@ export async function mutePlayer(ctx: Context) {
 export async function unmutePlayer(ctx: Context) {
     const { ruid, id } = ctx.params;
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.setPlayerUnmute(ruid, parseInt(id));
+    roomOperations.setPlayerUnmute(ruid, parseInt(id));
     ctx.status = 204;
 }
 
@@ -389,12 +387,12 @@ export async function unmutePlayer(ctx: Context) {
 export async function checkChatFreezed(ctx: Context) {
     const { ruid } = ctx.params;
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
     ctx.status = 200;
     ctx.body = {
-        freezed: await browser.getChatFreeze(ruid)
+        freezed: await roomOperations.getChatFreeze(ruid)
     };
 }
 
@@ -404,10 +402,10 @@ export async function checkChatFreezed(ctx: Context) {
 export async function freezeChat(ctx: Context) {
     const { ruid } = ctx.params;
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.setChatFreeze(ruid, true);
+    roomOperations.setChatFreeze(ruid, true);
     ctx.status = 204;
 }
 
@@ -417,10 +415,10 @@ export async function freezeChat(ctx: Context) {
 export async function unfreezeChat(ctx: Context) {
     const { ruid } = ctx.params;
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.setChatFreeze(ruid, false);
+    roomOperations.setChatFreeze(ruid, false);
     ctx.status = 204;
 }
 
@@ -430,13 +428,13 @@ export async function unfreezeChat(ctx: Context) {
 export async function getTeamColours(ctx: Context) {
     const { ruid } = ctx.params;
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
     ctx.status = 200;
     ctx.body = {
-        red: await browser.getTeamColours(ruid, TeamID.Red),
-        blue: await browser.getTeamColours(ruid, TeamID.Blue)
+        red: await roomOperations.getTeamColours(ruid, TeamID.Red),
+        blue: await roomOperations.getTeamColours(ruid, TeamID.Blue)
     };
 }
 
@@ -458,10 +456,10 @@ export async function setTeamColours(ctx: Context) {
         throw new ValidationError('Team must be 1 (Red) or 2 (Blue)');
     }
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    browser.setTeamColours(ruid, team, angle, textColour, teamColour1, teamColour2, teamColour3);
+    roomOperations.setTeamColours(ruid, team, angle, textColour, teamColour1, teamColour2, teamColour3);
     ctx.status = 201;
 }
 
@@ -471,10 +469,10 @@ export async function setTeamColours(ctx: Context) {
 export async function getDiscordWebhookConfig(ctx: Context) {
     const { ruid } = ctx.params;
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    const config = await browser.getDiscordWebhookConfig(ruid);
+    const config = await roomOperations.getDiscordWebhookConfig(ruid);
     ctx.status = 200;
     ctx.body = {
         feed: config.feed,
@@ -500,9 +498,9 @@ export async function setDiscordWebhookConfig(ctx: Context) {
         throw new ValidationError(formatted.message, formatted.details);
     }
 
-    if (!browser.checkExistRoom(ruid)) {
+    if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
-    await browser.setDiscordWebhookConfig(ruid, { feed, replaysWebhookId, replaysWebhookToken, replayUpload, passwordWebhookId, passwordWebhookToken });
+    await roomOperations.setDiscordWebhookConfig(ruid, { feed, replaysWebhookId, replaysWebhookToken, replayUpload, passwordWebhookId, passwordWebhookToken });
     ctx.status = 201;
 }
