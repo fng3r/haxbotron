@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Context } from "koa";
-import { getDbConnectionUrl } from "../../../lib/config";
+import { dbClient } from "../../../lib/DBClient";
 import { ExternalServiceError, NotFoundError } from "../../../lib/errors";
 
 interface PlayerStorageList {
@@ -19,24 +19,19 @@ interface PlayerStorageList {
 
 type PlayerStorage = Omit<PlayerStorageList, "uid"|"ruid">;
 
-const dbConnAddr: string = getDbConnectionUrl();
-
-const client = axios.create();
-
-axios.defaults.withCredentials = true;
-
 export async function getAllList(ctx: Context) {
     const { ruid } = ctx.params;
     const { searchQuery, start, count } = ctx.request.query;
-    const apiPath: string = (start && count)
-        ? `${dbConnAddr}room/${ruid}/player/search?searchQuery=${encodeURIComponent(searchQuery as string || '')}&start=${start}&count=${count}`
-        : `${dbConnAddr}room/${ruid}/player/search?searchQuery=${encodeURIComponent(searchQuery as string || '')}`;
     
     try {
-        const response = await client.get(apiPath);
-        const getRes = response.data as PlayerStorageList[];
+        const players = await dbClient.searchPlayers(
+            ruid,
+            searchQuery as string | undefined,
+            start ? parseInt(start as string) : undefined,
+            count ? parseInt(count as string) : undefined
+        );
         
-        const playerList: PlayerStorage[] = getRes.map((item: PlayerStorageList) => {
+        const playerList: PlayerStorage[] = players.map((item: PlayerStorageList) => {
             const { uid, ruid, ...rest } = item;
             return rest;
         });
@@ -44,10 +39,10 @@ export async function getAllList(ctx: Context) {
         ctx.status = 200;
         ctx.body = playerList;
     } catch (error: any) {
-        if (error.response?.status === 404) {
-            throw new NotFoundError('Player list', ruid);
-        }
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
+            if (error.response.status === 404) {
+                throw new NotFoundError('Player list', ruid);
+            }
             throw new ExternalServiceError('Database', error.message, {
                 status: error.response.status
             });
@@ -60,18 +55,17 @@ export async function getPlayerInfo(ctx: Context) {
     const { ruid, auth } = ctx.params;
 
     try {
-        const response = await client.get(`${dbConnAddr}room/${ruid}/player/${auth}`);
-        const getRes = response.data as PlayerStorageList;
+        const player = await dbClient.getPlayerByAuth(ruid, auth);
         
-        const { uid, ruid: _, ...playerInfo } = getRes;
+        const { uid, ruid: _, ...playerInfo } = player;
 
         ctx.status = 200;
         ctx.body = playerInfo;
     } catch (error: any) {
-        if (error.response?.status === 404) {
-            throw new NotFoundError('Player', auth);
-        }
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
+            if (error.response.status === 404) {
+                throw new NotFoundError('Player', auth);
+            }
             throw new ExternalServiceError('Database', error.message, {
                 status: error.response.status
             });

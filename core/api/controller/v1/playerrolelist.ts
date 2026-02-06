@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Context } from "koa";
-import { getDbConnectionUrl } from "../../../lib/config";
+import { dbClient } from "../../../lib/DBClient";
 import { ConflictError, ExternalServiceError, NotFoundError, ValidationError } from "../../../lib/errors";
 
 interface PlayerRole {
@@ -23,26 +23,20 @@ interface PlayerRoleEvent {
     timestamp: number;
 }
 
-const dbConnAddr: string = getDbConnectionUrl();
-
-const client = axios.create();
-
-axios.defaults.withCredentials = true;
-
 export async function getAllList(ctx: Context) {
     const { searchQuery, start, count } = ctx.request.query;
-    const apiPath: string = (start && count)
-        ? `${dbConnAddr}player-roles/search?searchQuery=${encodeURIComponent(searchQuery as string || '')}&start=${start}&count=${count}`
-        : `${dbConnAddr}player-roles/search?searchQuery=${encodeURIComponent(searchQuery as string || '')}`;
-
+    
     try {
-        const response = await client.get(apiPath);
-        const getRes = response.data as PlayerRole[];
+        const roles = await dbClient.searchPlayerRoles(
+            searchQuery as string | undefined,
+            start ? parseInt(start as string) : undefined,
+            count ? parseInt(count as string) : undefined
+        );
         
         ctx.status = 200;
-        ctx.body = getRes;
+        ctx.body = roles;
     } catch (error: any) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             throw new ExternalServiceError('Database', error.message, {
                 status: error.response.status
             });
@@ -60,13 +54,13 @@ export async function addPlayerRole(ctx: Context) {
     }
 
     try {
-        await client.post(`${dbConnAddr}player-roles/${auth}`, { name, role });
+        await dbClient.createPlayerRole(auth, name, role);
         ctx.status = 204;
     } catch (error: any) {
-        if (error.response?.status === 409) {
-            throw new ConflictError(`Player with auth '${auth}' is already added`);
-        }
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
+            if (error.response.status === 409) {
+                throw new ConflictError(`Player with auth '${auth}' is already added`);
+            }
             throw new ExternalServiceError('Database', error.message, {
                 status: error.response.status
             });
@@ -84,13 +78,13 @@ export async function updatePlayerRole(ctx: Context) {
     }
 
     try {
-        await client.put(`${dbConnAddr}player-roles/${auth}`, { name, role });
+        await dbClient.updatePlayerRole(auth, name, role);
         ctx.status = 204;
     } catch (error: any) {
-        if (error.response?.status === 404) {
-            throw new NotFoundError('Player role', auth);
-        }
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
+            if (error.response.status === 404) {
+                throw new NotFoundError('Player role', auth);
+            }
             throw new ExternalServiceError('Database', error.message, {
                 status: error.response.status
             });
@@ -108,13 +102,13 @@ export async function deletePlayerRole(ctx: Context) {
     }
 
     try {
-        await client.delete(`${dbConnAddr}player-roles/${auth}?name=${encodeURIComponent(name as string)}`);
+        await dbClient.deletePlayerRole(auth, name as string);
         ctx.status = 204;
     } catch (error: any) {
-        if (error.response?.status === 404) {
-            throw new NotFoundError('Player role', auth);
-        }
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
+            if (error.response.status === 404) {
+                throw new NotFoundError('Player role', auth);
+            }
             throw new ExternalServiceError('Database', error.message, {
                 status: error.response.status
             });
@@ -125,18 +119,18 @@ export async function deletePlayerRole(ctx: Context) {
 
 export async function getEventsList(ctx: Context) {
     const { searchQuery, start, count } = ctx.request.query;
-    const apiPath: string = (start && count)
-        ? `${dbConnAddr}player-roles/events?searchQuery=${encodeURIComponent(searchQuery as string || '')}&start=${start}&count=${count}`
-        : `${dbConnAddr}player-roles/events?searchQuery=${encodeURIComponent(searchQuery as string || '')}`;
-
+    
     try {
-        const response = await client.get(apiPath);
-        const getRes = response.data as PlayerRoleEvent[];
+        const events = await dbClient.searchPlayerRoleEvents(
+            searchQuery as string | undefined,
+            start ? parseInt(start as string) : undefined,
+            count ? parseInt(count as string) : undefined
+        );
         
         ctx.status = 200;
-        ctx.body = getRes;
+        ctx.body = events;
     } catch (error: any) {
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
             throw new ExternalServiceError('Database', error.message, {
                 status: error.response.status
             });

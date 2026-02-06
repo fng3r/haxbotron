@@ -6,6 +6,48 @@ import * as roomController from '../../../api/controller/v1/room';
 import { authenticationMiddleware } from '../../../api/middleware/authenticationMiddleware';
 import { errorHandler } from '../../../api/middleware/errorHandler';
 
+// Mock room operations
+const mockRoomOperations = {
+  getAllRoomIds: jest.fn(() => []),
+  checkExistRoom: jest.fn(() => false),
+  openNewRoom: jest.fn(),
+  closeRoom: jest.fn(),
+  getExistRoomList: jest.fn(() => []),
+  getRoomInfo: jest.fn(),
+  getRoomDetailInfo: jest.fn(),
+  getOnlinePlayersIDList: jest.fn(() => []),
+  getPlayerInfo: jest.fn(),
+  checkOnlinePlayer: jest.fn(() => false),
+  banPlayerFixedTerm: jest.fn(),
+  broadcast: jest.fn(),
+  whisper: jest.fn(),
+  getNotice: jest.fn(),
+  setNotice: jest.fn(),
+  deleteNotice: jest.fn(),
+  setPassword: jest.fn(),
+  clearPassword: jest.fn(),
+  checkChatFreezed: jest.fn(() => false),
+  freezeChat: jest.fn(),
+  unfreezeChat: jest.fn(),
+  getNicknameTextFilteringPool: jest.fn(() => []),
+  getChatTextFilteringPool: jest.fn(() => []),
+  setNicknameTextFilter: jest.fn(),
+  setChatTextFilter: jest.fn(),
+  clearNicknameTextFilter: jest.fn(),
+  clearChatTextFilter: jest.fn(),
+  getTeamColours: jest.fn(),
+  setTeamColours: jest.fn(),
+  checkPlayerMuted: jest.fn(() => false),
+  mutePlayer: jest.fn(),
+  unmutePlayer: jest.fn(),
+  getDiscordWebhookConfig: jest.fn(),
+  setDiscordWebhookConfig: jest.fn(),
+};
+
+jest.mock('../../../lib/browser/', () => ({
+  getRoomOperations: jest.fn(() => mockRoomOperations),
+}));
+
 /**
  * API Contract Tests for Room Endpoints
  * These tests ensure backward compatibility with existing clients
@@ -15,6 +57,7 @@ describe('Room API Contract Tests', () => {
   let server: any;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     app = new Koa();
     app.use(errorHandler);
     app.use(bodyParser());

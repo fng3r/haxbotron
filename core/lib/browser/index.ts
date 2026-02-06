@@ -1,4 +1,3 @@
-import { Server as SIOserver } from "socket.io";
 import { BrowserManager } from "./BrowserManager";
 import { PageEvaluator } from "./PageEvaluator";
 import { RoomLifecycleService } from "./RoomLifecycleService";
@@ -10,6 +9,23 @@ export { RoomDetailInfo, RoomInfo, RoomLifecycleService } from "./RoomLifecycleS
 export { RoomOperationsAPI } from "./RoomOperationsAPI";
 
 /**
+ * Singleton instance of room operations
+ * Initialized by calling createBrowserServices()
+ */
+let roomOperationsInstance: RoomOperationsAPI | null = null;
+
+/**
+ * Get the singleton room operations instance
+ * Throws if not initialized
+ */
+export function getRoomOperations(): RoomOperationsAPI {
+    if (!roomOperationsInstance) {
+        throw new Error('Room operations not initialized. Call createBrowserServices() first.');
+    }
+    return roomOperationsInstance;
+}
+
+/**
  * Factory function to create and initialize the browser services
  */
 export async function createBrowserServices(): Promise<{
@@ -18,24 +34,21 @@ export async function createBrowserServices(): Promise<{
     roomLifecycle: RoomLifecycleService;
     roomOperations: RoomOperationsAPI;
 }> {
+    if (roomOperationsInstance) {
+        throw new Error('Room operations already initialized');
+    }
+
     const browserManager = BrowserManager.getInstance();
     await browserManager.initialize();
 
     const pageEvaluator = new PageEvaluator(browserManager);
     const roomLifecycle = new RoomLifecycleService(browserManager, pageEvaluator);
-    const roomOperations = new RoomOperationsAPI(roomLifecycle, pageEvaluator);
+    roomOperationsInstance = new RoomOperationsAPI(roomLifecycle, pageEvaluator);
 
     return {
         browserManager,
         pageEvaluator,
         roomLifecycle,
-        roomOperations
+        roomOperations: roomOperationsInstance
     };
-}
-
-/**
- * Attach Socket.IO server to browser services
- */
-export function attachSocketIOServer(browserManager: BrowserManager, server: SIOserver): void {
-    browserManager.attachSocketIOServer(server);
 }

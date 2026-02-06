@@ -1,7 +1,7 @@
 import { Context } from "koa";
 import { Player } from "../../../game/model/GameObject/Player";
 import { TeamID } from "../../../game/model/GameObject/TeamID";
-import { roomOperations } from "../../../app";
+import { getRoomOperations } from "../../../lib/browser";
 import { BrowserHostRoomInitConfig } from '../../../lib/browser.hostconfig';
 import { ConflictError, PlayerNotFoundError, RoomNotFoundError, ValidationError } from "../../../lib/errors";
 import { formatJoiError } from "../../middleware/errorHandler";
@@ -32,6 +32,7 @@ export async function createRoom(ctx: Context) {
         newRoomConfig._config.password = undefined;
     }
 
+    const roomOperations = getRoomOperations();
     if (roomOperations.checkExistRoom(newRoomConfig._RUID)) {
         throw new ConflictError(`Room with RUID '${newRoomConfig._RUID}' already exists`);
     }
@@ -45,6 +46,7 @@ export async function createRoom(ctx: Context) {
  */
 export async function terminateRoom(ctx: Context) {
     const { ruid } = ctx.params;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -56,6 +58,7 @@ export async function terminateRoom(ctx: Context) {
  * get exist room list
  */
 export function getRoomList(ctx: Context) {
+    const roomOperations = getRoomOperations();
     const list: string[] = roomOperations.getExistRoomList();
     ctx.status = 200;
     ctx.body = list;
@@ -66,6 +69,7 @@ export function getRoomList(ctx: Context) {
  */
 export async function getRoomInfo(ctx: Context) {
     const { ruid } = ctx.params;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -78,6 +82,7 @@ export async function getRoomInfo(ctx: Context) {
  */
 export async function getRoomDetailInfo(ctx: Context) {
     const { ruid } = ctx.params;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -90,6 +95,7 @@ export async function getRoomDetailInfo(ctx: Context) {
  */
 export async function getPlayersList(ctx: Context) {
     const { ruid } = ctx.params;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -103,6 +109,7 @@ export async function getPlayersList(ctx: Context) {
  */
 export async function getPlayerInfo(ctx: Context) {
     const { ruid, id } = ctx.params;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -124,6 +131,7 @@ export async function kickOnlinePlayer(ctx: Context) {
         throw new ValidationError('Missing required fields: ban and seconds');
     }
     const playerId = parseInt(id);
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -140,6 +148,7 @@ export async function kickOnlinePlayer(ctx: Context) {
 export function broadcast(ctx: Context) {
     const { ruid } = ctx.params;
     const message: string | undefined = ctx.request.body.message;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -157,6 +166,7 @@ export async function whisper(ctx: Context) {
     const { ruid, id } = ctx.params;
     const message: string | undefined = ctx.request.body.message;
     const playerID: number = parseInt(id);
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -176,6 +186,7 @@ export async function whisper(ctx: Context) {
 export async function setNotice(ctx: Context) {
     const { ruid } = ctx.params;
     const message: string | undefined = ctx.request.body.message;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -191,6 +202,7 @@ export async function setNotice(ctx: Context) {
  */
 export async function getNotice(ctx: Context) {
     const { ruid } = ctx.params;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -204,6 +216,7 @@ export async function getNotice(ctx: Context) {
  */
 export async function deleteNotice(ctx: Context) {
     const { ruid } = ctx.params;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -222,6 +235,7 @@ export async function setPassword(ctx: Context) {
         throw new ValidationError('Password is required');
     }
 
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -235,6 +249,7 @@ export async function setPassword(ctx: Context) {
 export async function clearPassword(ctx: Context) {
     const { ruid } = ctx.params;
 
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -247,6 +262,7 @@ export async function clearPassword(ctx: Context) {
  */
 export async function getNicknameTextFilteringPool(ctx: Context) {
     const { ruid } = ctx.params;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -260,6 +276,7 @@ export async function getNicknameTextFilteringPool(ctx: Context) {
  */
 export async function getChatTextFilteringPool(ctx: Context) {
     const { ruid } = ctx.params;
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -279,6 +296,7 @@ export async function setNicknameTextFilter(ctx: Context) {
         throw new ValidationError('Pool is required');
     }
 
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -297,6 +315,7 @@ export async function setChatTextFilter(ctx: Context) {
         throw new ValidationError('Pool is required');
     }
 
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -309,7 +328,7 @@ export async function setChatTextFilter(ctx: Context) {
  */
 export async function clearNicknameTextFilter(ctx: Context) {
     const { ruid } = ctx.params;
-
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -322,7 +341,7 @@ export async function clearNicknameTextFilter(ctx: Context) {
  */
 export async function clearChatTextFilter(ctx: Context) {
     const { ruid } = ctx.params;
-
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -335,7 +354,7 @@ export async function clearChatTextFilter(ctx: Context) {
  */
 export async function checkPlayerMuted(ctx: Context) {
     const { ruid, id } = ctx.params;
-
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -356,7 +375,7 @@ export async function checkPlayerMuted(ctx: Context) {
 export async function mutePlayer(ctx: Context) {
     const { ruid, id } = ctx.params;
     const { muteExpire } = ctx.request.body;
-
+    const roomOperations = getRoomOperations();
     if (!muteExpire) {
         throw new ValidationError('muteExpire is required');
     }
@@ -373,7 +392,7 @@ export async function mutePlayer(ctx: Context) {
  */
 export async function unmutePlayer(ctx: Context) {
     const { ruid, id } = ctx.params;
-
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -386,7 +405,7 @@ export async function unmutePlayer(ctx: Context) {
  */
 export async function checkChatFreezed(ctx: Context) {
     const { ruid } = ctx.params;
-
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -401,7 +420,7 @@ export async function checkChatFreezed(ctx: Context) {
  */
 export async function freezeChat(ctx: Context) {
     const { ruid } = ctx.params;
-
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -414,7 +433,7 @@ export async function freezeChat(ctx: Context) {
  */
 export async function unfreezeChat(ctx: Context) {
     const { ruid } = ctx.params;
-
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -427,7 +446,7 @@ export async function unfreezeChat(ctx: Context) {
  */
 export async function getTeamColours(ctx: Context) {
     const { ruid } = ctx.params;
-
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -444,7 +463,7 @@ export async function getTeamColours(ctx: Context) {
 export async function setTeamColours(ctx: Context) {
     const { ruid } = ctx.params;
     const { team, angle, textColour, teamColour1, teamColour2, teamColour3 } = ctx.request.body;
-
+    const roomOperations = getRoomOperations();
     const validationResult = teamColourSchema.validate(ctx.request.body);
 
     if (validationResult.error) {
@@ -468,7 +487,7 @@ export async function setTeamColours(ctx: Context) {
  */
 export async function getDiscordWebhookConfig(ctx: Context) {
     const { ruid } = ctx.params;
-
+    const roomOperations = getRoomOperations();
     if (!roomOperations.checkExistRoom(ruid)) {
         throw new RoomNotFoundError(ruid);
     }
@@ -490,7 +509,7 @@ export async function getDiscordWebhookConfig(ctx: Context) {
 export async function setDiscordWebhookConfig(ctx: Context) {
     const { ruid } = ctx.params;
     const { feed, replaysWebhookId, replaysWebhookToken, replayUpload, passwordWebhookId, passwordWebhookToken } = ctx.request.body;
-
+    const roomOperations = getRoomOperations();
     const validationResult = discordWebhookConfigSchema.validate(ctx.request.body);
 
     if (validationResult.error) {

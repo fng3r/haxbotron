@@ -14,7 +14,7 @@ import { authenticationMiddleware } from "./api/middleware/authenticationMiddlew
 import { errorHandler } from "./api/middleware/errorHandler";
 import { wsAuthenticationMiddleware } from "./api/middleware/wsAuthenticationMiddleware";
 import { indexAPIRouter } from "./api/router/v1";
-import { attachSocketIOServer, createBrowserServices } from "./lib/browser/";
+import { createBrowserServices } from "./lib/browser/";
 import { getApiKeys, getServerConfig } from "./lib/config";
 import { winstonLogger } from "./winstonLoggerSystem";
 
@@ -28,9 +28,6 @@ const coreServerSettings = getServerConfig();
 const allowedApiKeys = getApiKeys();
 
 nodeStorage.init();
-
-// Initialize browser services
-export let roomOperations: Awaited<ReturnType<typeof createBrowserServices>>['roomOperations'];
 
 // ========================================================
 router
@@ -52,9 +49,8 @@ sio.use(wsAuthenticationMiddleware);
 // Start server after browser services are initialized
 (async () => {
     // Initialize browser services first
-    const browserServices = await createBrowserServices();
-    roomOperations = browserServices.roomOperations;
-    attachSocketIOServer(browserServices.browserManager, sio);
+    const { browserManager } = await createBrowserServices();
+    browserManager.attachSocketIOServer(sio);
     winstonLogger.info('[core] Browser services initialized');
 
     // Now start the server

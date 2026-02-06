@@ -2,226 +2,173 @@ import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import Router from 'koa-router';
 import request from 'supertest';
-import { authenticationMiddleware } from '../../../api/middleware/authenticationMiddleware';
+import * as playerRolesController from '../../../api/controller/v1/playerrolelist';
 import { errorHandler } from '../../../api/middleware/errorHandler';
 
-/**
- * API Contract Tests for Player Roles Endpoints
- * These tests ensure backward compatibility with existing clients
- */
-describe('Player Roles API Contract Tests', () => {
-  let app: Koa;
-  let server: any;
+// Mock DBClient
+jest.mock('../../../lib/DBClient', () => ({
+    dbClient: {
+        searchPlayerRoles: jest.fn(),
+        createPlayerRole: jest.fn(),
+        updatePlayerRole: jest.fn(),
+        deletePlayerRole: jest.fn(),
+        searchPlayerRoleEvents: jest.fn(),
+    }
+}));
 
-  beforeEach(() => {
-    app = new Koa();
-    app.use(errorHandler);
-    app.use(bodyParser());
-    
-    const router = new Router();
-    
-    // GET /api/v1/roleslist - Get all roles
-    router.get('/api/v1/roleslist', (ctx) => {
-      const { search, offset, limit } = ctx.query;
-      
-      ctx.status = 200;
-      ctx.body = [];
-    });
-    
-    // POST /api/v1/roleslist/:auth - Add player role
-    router.post('/api/v1/roleslist/:auth', (ctx) => {
-      const { auth } = ctx.params;
-      const { name, role } = ctx.request.body;
-      
-      if (!name || !role) {
-        ctx.status = 400;
-        ctx.body = {
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Role is required',
-          },
-        };
-        return;
-      }
-      
-      // Simulate conflict when trying to add a role for 'duplicate-auth'
-      if (auth === 'duplicate-auth') {
-        ctx.status = 409;
-        ctx.body = {
-          error: {
-            code: 'CONFLICT',
-            message: `Player with auth '${auth}' is already added`,
-          },
-        };
-        return;
-      }
-      
-      ctx.status = 204;
-    });
-    
-    // PUT /api/v1/roleslist/:auth - Update player role
-    router.put('/api/v1/roleslist/:auth', (ctx) => {
-      const { auth } = ctx.params;
-      const { name, role } = ctx.request.body;
-      
-      if (!name || !role) {
-        ctx.status = 400;
-        ctx.body = {
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Role is required',
-          },
-        };
-        return;
-      }
-      
-      ctx.status = 204;
-    });
-    
-    // DELETE /api/v1/roleslist/:auth - Delete player role
-    router.delete('/api/v1/roleslist/:auth', (ctx) => {
-      ctx.status = 204;
-    });
-    
-    // GET /api/v1/roleslist/events - Get role events
-    router.get('/api/v1/roleslist/events', (ctx) => {
-      const { search, offset, limit } = ctx.query;
-      
-      ctx.status = 200;
-      ctx.body = [];
-    });
-    
-    app.use(authenticationMiddleware(['test-api-key']));
-    app.use(router.routes());
-    app.use(router.allowedMethods());
-    
-    server = app.listen();
-  });
+const { dbClient } = require('../../../lib/DBClient');
 
-  afterEach((done) => {
-    server.close(done);
-  });
+describe('Player Roles API Integration Tests', () => {
+    let app: Koa;
 
-  describe('GET /api/v1/roleslist - Get all roles', () => {
-    it('should return list of roles with 200 status', async () => {
-      const response = await request(server)
-        .get('/api/v1/roleslist')
-        .set('x-api-key', 'test-api-key');
-      
-      expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
+    beforeEach(() => {
+        jest.clearAllMocks();
+        
+        app = new Koa();
+        app.use(errorHandler);
+        app.use(bodyParser());
+        
+        const router = new Router();
+        router.get('/player-roles', playerRolesController.getAllList);
+        router.get('/player-roles/events', playerRolesController.getEventsList);
+        router.post('/player-roles/:auth', playerRolesController.addPlayerRole);
+        router.put('/player-roles/:auth', playerRolesController.updatePlayerRole);
+        router.delete('/player-roles/:auth', playerRolesController.deletePlayerRole);
+        
+        app.use(router.routes());
+        app.use(router.allowedMethods());
     });
 
-    it('should require authentication', async () => {
-      const response = await request(server)
-        .get('/api/v1/roleslist');
-      
-      expect(response.status).toBe(401);
-    });
-  });
+    describe('GET /player-roles - Search Player Roles', () => {
+        it('should return all player roles when no filters provided', async () => {
+            const mockRoles = [
+                { auth: 'auth1', name: 'Player 1', role: 'admin' },
+                { auth: 'auth2', name: 'Player 2', role: 'moderator' }
+            ];
 
-  describe('POST /api/v1/roleslist/:auth - Add player role', () => {
-    it('should return 400 when role is missing', async () => {
-      const response = await request(server)
-        .post('/api/v1/roleslist/test-auth')
-        .set('x-api-key', 'test-api-key')
-        .send({});
-      
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
-    });
+            (dbClient.searchPlayerRoles as jest.Mock).mockResolvedValue(mockRoles);
 
-    it('should return 204 when role is created successfully', async () => {
-      const response = await request(server)
-        .post('/api/v1/roleslist/test-auth')
-        .set('x-api-key', 'test-api-key')
-        .send({ name: 'TestPlayer', role: 'admin' });
-      
-      expect(response.status).toBe(204);
-    });
+            const response = await request(app.callback())
+                .get('/player-roles')
+                .expect(200);
 
-    it('should return 409 when player role already exists', async () => {
-      const response = await request(server)
-        .post('/api/v1/roleslist/duplicate-auth')
-        .set('x-api-key', 'test-api-key')
-        .send({ name: 'TestPlayer', role: 'admin' });
-      
-      expect(response.status).toBe(409);
-      expect(response.body.error.code).toBe('CONFLICT');
-      expect(response.body.error.message).toContain('duplicate-auth');
+            expect(response.body).toEqual(mockRoles);
+        });
+
+        it('should return filtered player roles when searchQuery provided', async () => {
+            const mockRoles = [
+                { auth: 'auth1', name: 'Admin User', role: 'admin' }
+            ];
+
+            (dbClient.searchPlayerRoles as jest.Mock).mockResolvedValue(mockRoles);
+
+            const response = await request(app.callback())
+                .get('/player-roles?searchQuery=admin&start=0&count=10')
+                .expect(200);
+
+            expect(response.body).toEqual(mockRoles);
+        });
     });
 
-    it('should require authentication', async () => {
-      const response = await request(server)
-        .post('/api/v1/roleslist/test-auth')
-        .send({ role: 'admin' });
-      
-      expect(response.status).toBe(401);
-    });
-  });
+    describe('POST /player-roles/:auth - Add Player Role', () => {
+        it('should create a new player role', async () => {
+            (dbClient.createPlayerRole as jest.Mock).mockResolvedValue(undefined);
 
-  describe('PUT /api/v1/roleslist/:auth - Update player role', () => {
-    it('should return 400 when role is missing', async () => {
-      const response = await request(server)
-        .put('/api/v1/roleslist/test-auth')
-        .set('x-api-key', 'test-api-key')
-        .send({});
-      
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
-    });
+            await request(app.callback())
+                .post('/player-roles/auth123')
+                .send({ name: 'Test Player', role: 'admin' })
+                .expect(204);
+        });
 
-    it('should return 204 when role is updated successfully', async () => {
-      const response = await request(server)
-        .put('/api/v1/roleslist/test-auth')
-        .set('x-api-key', 'test-api-key')
-        .send({ name: 'TestPlayer', role: 'moderator' });
-      
-      expect(response.status).toBe(204);
-    });
+        it('should return 400 when required fields are missing', async () => {
+            const response = await request(app.callback())
+                .post('/player-roles/auth123')
+                .send({ name: 'Test Player' })
+                .expect(400);
 
-    it('should require authentication', async () => {
-      const response = await request(server)
-        .put('/api/v1/roleslist/test-auth')
-        .send({ role: 'moderator' });
-      
-      expect(response.status).toBe(401);
-    });
-  });
+            expect(response.body.error.code).toBe('VALIDATION_ERROR');
+        });
 
-  describe('DELETE /api/v1/roleslist/:auth - Delete player role', () => {
-    it('should return 204 on successful deletion', async () => {
-      const response = await request(server)
-        .delete('/api/v1/roleslist/test-auth')
-        .set('x-api-key', 'test-api-key');
-      
-      expect(response.status).toBe(204);
-      expect(response.body).toEqual({});
+        it('should return 409 when player already exists', async () => {
+            const ConflictError = require('../../../lib/errors').ConflictError;
+            const mockError = new ConflictError(`Player with auth 'auth123' is already added`);
+            (dbClient.createPlayerRole as jest.Mock).mockRejectedValue(mockError);
+
+            const response = await request(app.callback())
+                .post('/player-roles/auth123')
+                .send({ name: 'Test Player', role: 'admin' })
+                .expect(409);
+
+            expect(response.body.error.code).toBe('CONFLICT');
+        });
     });
 
-    it('should require authentication', async () => {
-      const response = await request(server)
-        .delete('/api/v1/roleslist/test-auth');
-      
-      expect(response.status).toBe(401);
-    });
-  });
+    describe('PUT /player-roles/:auth - Update Player Role', () => {
+        it('should update an existing player role', async () => {
+            (dbClient.updatePlayerRole as jest.Mock).mockResolvedValue(undefined);
 
-  describe('GET /api/v1/roleslist/events - Get role events', () => {
-    it('should return list of events with 200 status', async () => {
-      const response = await request(server)
-        .get('/api/v1/roleslist/events')
-        .set('x-api-key', 'test-api-key');
-      
-      expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
+            await request(app.callback())
+                .put('/player-roles/auth123')
+                .send({ name: 'Updated Player', role: 'moderator' })
+                .expect(204);
+        });
+
+        it('should return 400 when required fields are missing', async () => {
+            const response = await request(app.callback())
+                .put('/player-roles/auth123')
+                .send({ role: 'admin' })
+                .expect(400);
+
+            expect(response.body.error.code).toBe('VALIDATION_ERROR');
+        });
     });
 
-    it('should require authentication', async () => {
-      const response = await request(server)
-        .get('/api/v1/roleslist/events');
-      
-      expect(response.status).toBe(401);
+    describe('DELETE /player-roles/:auth - Delete Player Role', () => {
+        it('should delete a player role', async () => {
+            (dbClient.deletePlayerRole as jest.Mock).mockResolvedValue(undefined);
+
+            await request(app.callback())
+                .delete('/player-roles/auth123?name=Test%20Player')
+                .expect(204);
+        });
+
+        it('should return 400 when name parameter is missing', async () => {
+            const response = await request(app.callback())
+                .delete('/player-roles/auth123')
+                .expect(400);
+
+            expect(response.body.error.code).toBe('VALIDATION_ERROR');
+        });
     });
-  });
+
+    describe('GET /player-roles/events - Get Player Role Events', () => {
+        it('should return all player role events', async () => {
+            const mockEvents = [
+                { type: 'addrole', auth: 'auth1', name: 'Player 1', role: 'admin', timestamp: 123456 },
+                { type: 'rmrole', auth: 'auth2', name: 'Player 2', role: 'moderator', timestamp: 123457 }
+            ];
+
+            (dbClient.searchPlayerRoleEvents as jest.Mock).mockResolvedValue(mockEvents);
+
+            const response = await request(app.callback())
+                .get('/player-roles/events')
+                .expect(200);
+
+            expect(response.body).toEqual(mockEvents);
+        });
+
+        it('should return filtered events when searchQuery provided', async () => {
+            const mockEvents = [
+                { type: 'addrole', auth: 'auth1', name: 'Admin User', role: 'admin', timestamp: 123456 }
+            ];
+
+            (dbClient.searchPlayerRoleEvents as jest.Mock).mockResolvedValue(mockEvents);
+
+            const response = await request(app.callback())
+                .get('/player-roles/events?searchQuery=admin&start=0&count=10')
+                .expect(200);
+
+            expect(response.body).toEqual(mockEvents);
+        });
+    });
 });

@@ -1,15 +1,15 @@
 import Koa from 'koa';
-import Router from 'koa-router';
 import request from 'supertest';
 import bodyParser from 'koa-bodyparser';
 import { authenticationMiddleware } from '../../../api/middleware/authenticationMiddleware';
 import { errorHandler } from '../../../api/middleware/errorHandler';
+import { systemRouter } from '../../../api/router/v1/system';
 
 /**
- * API Contract Tests for System Endpoints
- * These tests ensure backward compatibility with existing clients
+ * API Integration Tests for System Endpoints
+ * These tests verify the actual router logic
  */
-describe('System API Contract Tests', () => {
+describe('System API Integration Tests', () => {
   let app: Koa;
   let server: any;
 
@@ -18,21 +18,10 @@ describe('System API Contract Tests', () => {
     app.use(errorHandler);
     app.use(bodyParser());
     
-    const router = new Router();
-    
-    // GET /api/v1/system - Get system information
-    router.get('/api/v1/system', (ctx) => {
-      ctx.status = 200;
-      ctx.body = {
-        usedMemoryMB: Math.round(process.memoryUsage().rss / 1024 / 1024 * 100) / 100,
-        upTimeSecs: Math.round(process.uptime()),
-        serverVersion: process.env.npm_package_version || '0.0',
-      };
-    });
-    
+    // Use REAL system router
     app.use(authenticationMiddleware(['test-api-key']));
-    app.use(router.routes());
-    app.use(router.allowedMethods());
+    app.use(systemRouter.routes());
+    app.use(systemRouter.allowedMethods());
     
     server = app.listen();
   });
@@ -44,7 +33,7 @@ describe('System API Contract Tests', () => {
   describe('GET /api/v1/system - Get system information', () => {
     it('should return system info with 200 status', async () => {
       const response = await request(server)
-        .get('/api/v1/system')
+        .get('/')
         .set('x-api-key', 'test-api-key');
       
       expect(response.status).toBe(200);
@@ -55,7 +44,7 @@ describe('System API Contract Tests', () => {
 
     it('should return memory usage as number', async () => {
       const response = await request(server)
-        .get('/api/v1/system')
+        .get('/')
         .set('x-api-key', 'test-api-key');
       
       expect(typeof response.body.usedMemoryMB).toBe('number');
@@ -64,7 +53,7 @@ describe('System API Contract Tests', () => {
 
     it('should return uptime as number', async () => {
       const response = await request(server)
-        .get('/api/v1/system')
+        .get('/')
         .set('x-api-key', 'test-api-key');
       
       expect(typeof response.body.upTimeSecs).toBe('number');
@@ -73,7 +62,7 @@ describe('System API Contract Tests', () => {
 
     it('should return server version as string', async () => {
       const response = await request(server)
-        .get('/api/v1/system')
+        .get('/')
         .set('x-api-key', 'test-api-key');
       
       expect(typeof response.body.serverVersion).toBe('string');
@@ -81,7 +70,7 @@ describe('System API Contract Tests', () => {
 
     it('should require authentication', async () => {
       const response = await request(server)
-        .get('/api/v1/system');
+        .get('/');
       
       expect(response.status).toBe(401);
       expect(response.body.error.code).toBe('AUTHENTICATION_ERROR');
@@ -89,7 +78,7 @@ describe('System API Contract Tests', () => {
 
     it('should reject invalid API key', async () => {
       const response = await request(server)
-        .get('/api/v1/system')
+        .get('/')
         .set('x-api-key', 'invalid-key');
       
       expect(response.status).toBe(401);
@@ -99,7 +88,7 @@ describe('System API Contract Tests', () => {
   describe('Response Format', () => {
     it('should return plain object (not wrapped in data)', async () => {
       const response = await request(server)
-        .get('/api/v1/system')
+        .get('/')
         .set('x-api-key', 'test-api-key');
       
       // System endpoint returns direct object, not wrapped
@@ -109,7 +98,7 @@ describe('System API Contract Tests', () => {
 
     it('should return JSON content type', async () => {
       const response = await request(server)
-        .get('/api/v1/system')
+        .get('/')
         .set('x-api-key', 'test-api-key');
       
       expect(response.headers['content-type']).toMatch(/application\/json/);
@@ -121,7 +110,7 @@ describe('System API Contract Tests', () => {
       const start = Date.now();
       
       await request(server)
-        .get('/api/v1/system')
+        .get('/')
         .set('x-api-key', 'test-api-key');
       
       const duration = Date.now() - start;
