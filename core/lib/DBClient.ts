@@ -21,7 +21,7 @@ export class DBClient {
         count?: number
     ): Promise<any[]> {
         const params = new URLSearchParams();
-        if (searchQuery) params.append('searchQuery', searchQuery);
+        params.append('searchQuery', searchQuery || '');
         if (start !== undefined) params.append('start', start.toString());
         if (count !== undefined) params.append('count', count.toString());
         
@@ -50,12 +50,12 @@ export class DBClient {
         count?: number
     ): Promise<any[]> {
         const params = new URLSearchParams();
-        if (searchQuery) params.append('searchQuery', searchQuery);
+        params.append('searchQuery', searchQuery || '');
         if (start !== undefined) params.append('start', start.toString());
         if (count !== undefined) params.append('count', count.toString());
         
         const queryString = params.toString();
-        const url = `${this.baseUrl}player-roles/events/search${queryString ? '?' + queryString : ''}`;
+        const url = `${this.baseUrl}player-roles/events${queryString ? '?' + queryString : ''}`;
         
         const response = await this.client.get(url);
         return response.data;
@@ -72,7 +72,7 @@ export class DBClient {
         count?: number
     ): Promise<any[]> {
         const params = new URLSearchParams();
-        if (searchQuery) params.append('searchQuery', searchQuery);
+        params.append('searchQuery', searchQuery || '');
         if (start !== undefined) params.append('start', start.toString());
         if (count !== undefined) params.append('count', count.toString());
         
