@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Context } from "koa";
 import { getDbConnectionUrl } from "../../../lib/config";
-import { ExternalServiceError, NotFoundError, ValidationError } from "../../../lib/errors";
+import { ConflictError, ExternalServiceError, NotFoundError, ValidationError } from "../../../lib/errors";
 
 interface PlayerRole {
     auth: string;
@@ -64,9 +64,7 @@ export async function addPlayerRole(ctx: Context) {
         ctx.status = 204;
     } catch (error: any) {
         if (error.response?.status === 409) {
-            throw new ExternalServiceError('Database', 'Player role already exists', {
-                status: error.response.status
-            });
+            throw new ConflictError(`Player with auth '${auth}' is already added`);
         }
         if (error.response) {
             throw new ExternalServiceError('Database', error.message, {

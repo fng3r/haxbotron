@@ -1,7 +1,7 @@
 import Koa from 'koa';
+import bodyParser from 'koa-bodyparser';
 import Router from 'koa-router';
 import request from 'supertest';
-import bodyParser from 'koa-bodyparser';
 import { authenticationMiddleware } from '../../../api/middleware/authenticationMiddleware';
 import { errorHandler } from '../../../api/middleware/errorHandler';
 
@@ -39,6 +39,18 @@ describe('Player Roles API Contract Tests', () => {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Role is required',
+          },
+        };
+        return;
+      }
+      
+      // Simulate conflict when trying to add a role for 'duplicate-auth'
+      if (auth === 'duplicate-auth') {
+        ctx.status = 409;
+        ctx.body = {
+          error: {
+            code: 'CONFLICT',
+            message: `Player with auth '${auth}' is already added`,
           },
         };
         return;
@@ -126,6 +138,17 @@ describe('Player Roles API Contract Tests', () => {
         .send({ name: 'TestPlayer', role: 'admin' });
       
       expect(response.status).toBe(204);
+    });
+
+    it('should return 409 when player role already exists', async () => {
+      const response = await request(server)
+        .post('/api/v1/roleslist/duplicate-auth')
+        .set('x-api-key', 'test-api-key')
+        .send({ name: 'TestPlayer', role: 'admin' });
+      
+      expect(response.status).toBe(409);
+      expect(response.body.error.code).toBe('CONFLICT');
+      expect(response.body.error.message).toContain('duplicate-auth');
     });
 
     it('should require authentication', async () => {
