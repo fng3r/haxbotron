@@ -148,13 +148,6 @@ export const onChat = {
     ,includeSeparator: '🚫 Chat message includes banned word (|,|).'
 }
 
-export const onStop = {
-    feedSocialDiscordWebhook: {
-        replayMessage: '[{roomId}] {startedAt}',
-        adminPasswordMessage: '🔒 [{roomId}] Admin password was updated. Current admin password is \'{password}\''
-    }
-}
-
 export const onVictory = {
     victory: '🎉 {winnerTeam} team won. Score: 🔴{redScore}-{blueScore}🔵. Possession: 🔴{possTeamRed}%-{possTeamBlue}%🔵'
 }

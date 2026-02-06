@@ -1,14 +1,10 @@
-import { Logger } from "../game/controller/Logger";
-import ChatActivityMap from "../game/model/ChatActivityMap";
-import { GameRoomConfig } from "../game/model/Configuration/GameRoomConfig";
-import { KickStack } from "../game/model/GameObject/BallTrace";
-import { PlayerObject, PlayerStorage } from "../game/model/GameObject/PlayerObject";
-import { PlayersSet } from "../game/model/GameObject/PlayersSet";
+import { PlayerStorage } from "../game/model/GameObject/PlayerObject";
 import { BanList } from "../game/model/PlayerBan/BanList";
 import { PlayerRole } from "../game/model/PlayerRole/PlayerRole";
 import { RoomConfig } from '../game/model/RoomObject/RoomConfig';
 import { Room } from "../game/model/RoomObject/RoomObject";
 import { ServiceContainer } from "../game/services/ServiceContainer";
+import { DiscordWebhookContent } from "../lib/browser/DiscordWebhookService";
 
 declare global {
     interface Window {
@@ -23,7 +19,7 @@ declare global {
         _emitSIOLogEvent(origin: string, type: string, message: string): void
         _emitSIOPlayerInOutEvent(playerID: number): void
         _emitSIOPlayerStatusChangeEvent(playerID: number): void
-        _feedSocialDiscordWebhook(id: string, token: string, type: string, content: any): void
+        _feedSocialDiscordWebhook(id: string, token: string, content: DiscordWebhookContent): void
         // CRUD with DB Server via REST API
         async _createPlayerDB(ruid: string, player: PlayerStorage): Promise<void>
         async _readPlayerDB(ruid: string, playerAuth: string): Promise<PlayerStorage | undefined>

@@ -1,13 +1,12 @@
-import { AttachmentBuilder, EmbedBuilder, WebhookClient } from "discord.js";
-import moment from "moment";
+import { Page } from "puppeteer";
 import { v4 as uuid } from "uuid";
 import { getUnixTimestamp } from "../../game/controller/DateTimeUtils";
-import { PlayerObject } from "../../game/model/GameObject/PlayerObject";
 import { winstonLogger } from "../../winstonLoggerSystem";
 import { BrowserHostRoomInitConfig } from "../browser.hostconfig";
 import * as dbUtilityInject from "../db.injection";
 import { loadStadiumData } from "../stadiumLoader";
 import { BrowserManager } from "./BrowserManager";
+import { DiscordWebhookContent, DiscordWebhookService } from "./DiscordWebhookService";
 import { PageEvaluator } from "./PageEvaluator";
 
 export interface RoomInfo {
@@ -29,7 +28,8 @@ export interface RoomDetailInfo extends RoomInfo {
 export class RoomLifecycleService {
     constructor(
         private browserManager: BrowserManager,
-        private pageEvaluator: PageEvaluator
+        private pageEvaluator: PageEvaluator,
+        private discordWebhook: DiscordWebhookService
     ) {}
 
     /**
@@ -209,7 +209,7 @@ export class RoomLifecycleService {
     /**
      * Setup page event listeners
      */
-    private setupPageEventListeners(ruid: string, page: any): void {
+    private setupPageEventListeners(ruid: string, page: Page): void {
         // Console logging
         page.on('console', (msg: any) => {
             const text = msg.text();
@@ -278,7 +278,7 @@ export class RoomLifecycleService {
     /**
      * Expose functions to page context
      */
-    private async exposeFunctions(ruid: string, page: any): Promise<void> {
+    private async exposeFunctions(ruid: string, page: Page): Promise<void> {
         // Socket.IO functions
         await page.exposeFunction('_emitSIOLogEvent', (origin: string, type: string, message: string) => {
             page.emit('_SIO.Log', { origin, type, message, timestamp: getUnixTimestamp() });
@@ -292,8 +292,8 @@ export class RoomLifecycleService {
             page.emit('_SIO.StatusChange', { playerID });
         });
 
-        await page.exposeFunction('_feedSocialDiscordWebhook', (id: string, token: string, type: string, content: any) => {
-            page.emit('_SOCIAL.DiscordWebhook', { id, token, type, content });
+        await page.exposeFunction('_feedSocialDiscordWebhook', (id: string, token: string, content: DiscordWebhookContent) => {
+            page.emit('_SOCIAL.DiscordWebhook', { id, token, content });
         });
 
         // Database functions
@@ -317,84 +317,14 @@ export class RoomLifecycleService {
     /**
      * Handle Discord webhook events
      */
-    private async handleDiscordWebhook(ruid: string, event: any): Promise<void> {
-        let webhookClient;
-        try {
-            webhookClient = new WebhookClient({
-                id: event.id,
-                token: event.token
-            });
-        } catch (e) {
-            winstonLogger.error(`[RoomLifecycle] Failed to create Discord webhook client: ${e}`);
-            return;
-        }
-
-        switch (event.type as string) {
+    private async handleDiscordWebhook(ruid: string, event: { id: string; token: string; content: DiscordWebhookContent }): Promise<void> {
+        switch (event.content.type) {
             case "replay":
-                await this.handleDiscordReplayWebhook(webhookClient, event.content);
+                await this.discordWebhook.sendReplay(event.id, event.token, event.content);
                 break;
             case "password":
-                await this.handleDiscordPasswordWebhook(webhookClient, event.content);
+                await this.discordWebhook.sendPassword(event.id, event.token, event.content);
                 break;
-        }
-    }
-
-    /**
-     * Handle Discord replay webhook
-     */
-    private async handleDiscordReplayWebhook(webhookClient: WebhookClient, content: any): Promise<void> {
-        const { roomId, matchStats } = content;
-        const matchDuration = moment.duration(matchStats.scores.time, 'seconds');
-        const matchDurationString = `${matchDuration.minutes().toString().padStart(2, '0')}:${matchDuration.seconds().toString().padStart(2, '0')}`;
-        const matchScoreString = `🔴 Red Team ${matchStats.scores.red}:${matchStats.scores.blue} Blue Team 🔵\n​`;
-        const matchStartString = moment(matchStats.startedAt).format('DD.MM.YY HH:mm:ss');
-
-        const bufferData = Buffer.from(JSON.parse(content.data));
-        const replayDateString = moment(matchStats.startedAt).format('DD-MM-YYTHH-mm-ss');
-        const filename = `${roomId}_${replayDateString}.hbr2`;
-        const attachment = new AttachmentBuilder(bufferData, { name: filename });
-
-        const embed = new EmbedBuilder()
-            .setColor('White')
-            .setAuthor({ name: 'CIS-HAXBALL', iconURL: 'https://cis-haxball.ru/static/img/logo_try.png', url: 'https://cis-haxball.ru/' })
-            .setThumbnail('https://cis-haxball.ru/static/img/logo_try.png')
-            .setTitle(`${roomId} | ${matchStartString}`)
-            .setDescription(`[${matchDurationString}]  ${matchScoreString}\n`)
-            .addFields([
-                {
-                    name: '🔴\t\tRed Team\t\t\t\n-----------------------',
-                    value: matchStats.startingLineup.red.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
-                    inline: true
-                },
-                {
-                    name: '🔵\t\tBlue Team\t\t\t\n-----------------------',
-                    value: matchStats.startingLineup.blue.map((p: PlayerObject) => `> **${p.name}**`).join('\n') || ' ',
-                    inline: true
-                },
-                {
-                    name: ' ',
-                    value: '-------------------------------------------------'
-                }
-            ])
-            .setFooter({ text: `Replay: ${filename}` })
-            .setTimestamp();
-
-        try {
-            await webhookClient.send({ embeds: [embed] });
-            await webhookClient.send({ files: [attachment] });
-        } catch (error) {
-            winstonLogger.error(`[RoomLifecycle] Error sending replay to Discord webhook: ${error}`);
-        }
-    }
-
-    /**
-     * Handle Discord password webhook
-     */
-    private async handleDiscordPasswordWebhook(webhookClient: WebhookClient, content: any): Promise<void> {
-        try {
-            await webhookClient.send(content.message);
-        } catch (error) {
-            winstonLogger.error(`[RoomLifecycle] Error sending password to Discord webhook: ${error}`);
         }
     }
 }

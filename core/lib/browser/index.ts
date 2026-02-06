@@ -1,9 +1,11 @@
 import { BrowserManager } from "./BrowserManager";
+import { DiscordWebhookService } from "./DiscordWebhookService";
 import { PageEvaluator } from "./PageEvaluator";
 import { RoomLifecycleService } from "./RoomLifecycleService";
 import { RoomOperationsAPI } from "./RoomOperationsAPI";
 
 export { BrowserManager } from "./BrowserManager";
+export { DiscordWebhookService } from "./DiscordWebhookService";
 export { PageEvaluator } from "./PageEvaluator";
 export { RoomDetailInfo, RoomInfo, RoomLifecycleService } from "./RoomLifecycleService";
 export { RoomOperationsAPI } from "./RoomOperationsAPI";
@@ -31,6 +33,7 @@ export function getRoomOperations(): RoomOperationsAPI {
 export async function createBrowserServices(): Promise<{
     browserManager: BrowserManager;
     pageEvaluator: PageEvaluator;
+    discordWebhook: DiscordWebhookService;
     roomLifecycle: RoomLifecycleService;
     roomOperations: RoomOperationsAPI;
 }> {
@@ -42,12 +45,14 @@ export async function createBrowserServices(): Promise<{
     await browserManager.initialize();
 
     const pageEvaluator = new PageEvaluator(browserManager);
-    const roomLifecycle = new RoomLifecycleService(browserManager, pageEvaluator);
+    const discordWebhook = new DiscordWebhookService();
+    const roomLifecycle = new RoomLifecycleService(browserManager, pageEvaluator, discordWebhook);
     roomOperationsInstance = new RoomOperationsAPI(roomLifecycle, pageEvaluator);
 
     return {
         browserManager,
         pageEvaluator,
+        discordWebhook,
         roomLifecycle,
         roomOperations: roomOperationsInstance
     };

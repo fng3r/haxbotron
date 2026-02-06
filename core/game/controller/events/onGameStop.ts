@@ -1,9 +1,5 @@
-import * as Tst from "../Translator";
-import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { TeamID } from "../../model/GameObject/TeamID";
-import { setDefaultRoomLimitation, setDefaultStadiums } from "../RoomTools";
-import moment from "moment";
 import { ServiceContainer } from "../../services/ServiceContainer";
 
 
@@ -38,9 +34,6 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
         msg += `(by ${byPlayer.name}#${byPlayer.id})`;
     }
     services.logger.i('onGameStop', msg);
-    
-    // setDefaultStadiums(); // check number of players and auto-set stadium
-    // setDefaultRoomLimitation(); // score, time, teamlock set
 
     ballStack.initTouchInfo(); // clear touch info
     ballStack.clear(); // clear the stack.
@@ -53,10 +46,15 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     if(replay && webhook.feed && webhook.replayUpload && webhook.replaysWebhookId && webhook.replaysWebhookToken) {
         const roomId = services.config.getRUID();
 
-        window._feedSocialDiscordWebhook(webhook.replaysWebhookId, webhook.replaysWebhookToken, "replay", {
-            roomId: roomId
-            ,matchStats: stats
-            ,data: JSON.stringify(Array.from(replay))
-        });
+        window._feedSocialDiscordWebhook(
+            webhook.replaysWebhookId,
+            webhook.replaysWebhookToken,
+            {
+                type: "replay",
+                roomId: roomId,
+                matchStats: stats,
+                data: JSON.stringify(Array.from(replay))
+            }
+        );
     }
 }

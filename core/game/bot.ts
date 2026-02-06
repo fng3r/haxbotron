@@ -80,13 +80,15 @@ function setDefaultSettings(): void {
     services.room.setTeamsLock(config.rules.teamLock);
 
     const webhook = services.social.getDiscordWebhook();
-    window._feedSocialDiscordWebhook(webhook.passwordWebhookId, webhook.passwordWebhookToken, "password", {
-        message: Tst.maketext(
-            LangRes.onStop.feedSocialDiscordWebhook.adminPasswordMessage, {
-                roomId: services.config.getRUID()
-                ,password: services.config.getAdminPassword()
-            })
-    });
+    window._feedSocialDiscordWebhook(
+        webhook.passwordWebhookId,
+        webhook.passwordWebhookToken,
+        {
+            type: "password",
+            roomId: services.config.getRUID(),
+            password: services.config.getAdminPassword()
+        }
+    );
 
     services.logger.i('initialization', `Room default settings were set according to loaded config`);
 }
