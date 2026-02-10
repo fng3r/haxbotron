@@ -3,21 +3,15 @@ import * as LangRes from "../../resource/strings";
 import {PlayerObject} from "../../model/GameObject/PlayerObject";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 import {Player} from "../../model/GameObject/Player";
-import {
-    convertToPlayerStorage,
-    getBanlistDataFromDB,
-    getPlayerDataFromDB,
-    getPlayerRoleFromDB,
-    removeBanlistDataFromDB,
-    setPlayerDataToDB
-} from "../Storage";
 import {getUnixTimestamp} from "../DateTimeUtils";
 import {updateAdmins} from "../RoomTools";
 import {isExistNickname} from "../TextFilter";
+import { getInjectedDBRepository } from "../../repositories/InjectedDBRepository";
 import { ServiceContainer } from "../../services/ServiceContainer";
 
 export async function onPlayerJoinListener(player: PlayerObject): Promise<void> {
     const services = ServiceContainer.getInstance();
+    const repository = getInjectedDBRepository();
     const room = services.room.getRoom();
     const playerList = services.player.getPlayerList();
     const config = services.config.getConfig();
@@ -39,7 +33,7 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
     };
 
     // check ban list
-    let playerBanChecking = await getBanlistDataFromDB(player.conn);
+    let playerBanChecking = await repository.readBan(player.conn);
     if (playerBanChecking !== undefined) {// if banned (bListCheck would had returned string or boolean)
         placeholderJoin.banListReason = playerBanChecking.reason;
 
@@ -57,7 +51,7 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
         if (playerBanChecking.expire != -1 && playerBanChecking.expire <= joinTimeStamp) { // time-over from expiration date
             // ban clear for this player
             services.logger.i('onPlayerJoin', `${player.name}#${player.id} is deleted from the ban list because the date has expired. (conn:${player.conn},reason:${playerBanChecking.reason})`);
-            await removeBanlistDataFromDB(player.conn);
+            await repository.deleteBan(player.conn);
         }
     }
 
@@ -86,7 +80,7 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
     }
 
     // add the player who joined into playerList by creating class instance
-    let existPlayerData = await getPlayerDataFromDB(player.auth);
+    let existPlayerData = await repository.readPlayer(player.auth);
     if (existPlayerData !== undefined) {
         // if this player is existing player (not new player)
         playerList.set(player.id, new Player(
@@ -125,9 +119,9 @@ export async function onPlayerJoinListener(player: PlayerObject): Promise<void> 
         }));
     }
 
-    await setPlayerDataToDB(convertToPlayerStorage(playerList.get(player.id)!)); // register(or update) this player into DB
+    await repository.upsertPlayer(repository.toPlayerStorage(playerList.get(player.id)!)); // register(or update) this player into DB
 
-    let playerRole = await getPlayerRoleFromDB(player.auth);
+    let playerRole = await repository.readPlayerRole(player.auth);
 
     // kick player without role or with wrong nickname when whitelist enabled
     if (playerRole === undefined || playerRole.name !== player.name) {

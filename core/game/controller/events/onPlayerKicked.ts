@@ -1,13 +1,14 @@
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { getUnixTimestamp } from "../DateTimeUtils";
-import { getBanlistDataFromDB, setBanlistDataToDB } from "../Storage";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
+import { getInjectedDBRepository } from "../../repositories/InjectedDBRepository";
 import { ServiceContainer } from "../../services/ServiceContainer";
 
 export async function onPlayerKickedListener(kickedPlayer: PlayerObject, reason: string, ban: boolean, byPlayer: PlayerObject): Promise<void> {
     /* Event called when a player has been kicked from the room. This is always called after the onPlayerLeave event.
         byPlayer is the player which caused the event (can be null if the event wasn't caused by a player). */
     const services = ServiceContainer.getInstance();
+    const repository = getInjectedDBRepository();
     const room = services.room.getRoom();
     const playerList = services.player.getPlayerList();
     const config = services.config.getConfig();
@@ -35,9 +36,9 @@ export async function onPlayerKickedListener(kickedPlayer: PlayerObject, reason:
             services.logger.i('onPlayerKicked', `${kickedPlayer.name}#${kickedPlayer.id} has been banned by ${byPlayer.name}#${byPlayer.id} (reason:${placeholderKick.reason}), but it is negated.`);
         } else { // if by super admin player
             if (ban) { // ban
-                const existingBan = await getBanlistDataFromDB(existingKickedPlayer!.conn);
+                const existingBan = await repository.readBan(existingKickedPlayer!.conn);
                 if (!existingBan) {
-                    setBanlistDataToDB({ conn: existingKickedPlayer!.conn, auth: existingKickedPlayer!.auth, reason: reason, register: kickedTime, expire: -1 }); // register into ban list
+                    await repository.upsertBan({ conn: existingKickedPlayer!.conn, auth: existingKickedPlayer!.auth, reason: reason, register: kickedTime, expire: -1 }); // register into ban list
                 }
                 services.logger.i('onPlayerKicked', `${kickedPlayer.name}#${kickedPlayer.id} has been banned by ${byPlayer.name}#${byPlayer.id}. (reason:${placeholderKick.reason}).`);
             } else { // kick
@@ -46,9 +47,9 @@ export async function onPlayerKickedListener(kickedPlayer: PlayerObject, reason:
         }
     } else {
         if (ban) { // ban
-            const existingBan = await getBanlistDataFromDB(existingKickedPlayer!.conn);
+            const existingBan = await repository.readBan(existingKickedPlayer!.conn);
             if (!existingBan) {
-                setBanlistDataToDB({ conn: existingKickedPlayer!.conn, auth: existingKickedPlayer!.auth, reason: reason, register: kickedTime, expire: -1 }); // register into ban list
+                await repository.upsertBan({ conn: existingKickedPlayer!.conn, auth: existingKickedPlayer!.auth, reason: reason, register: kickedTime, expire: -1 }); // register into ban list
             }
         }
         services.logger.i('onPlayerKicked', `${kickedPlayer.name}#${kickedPlayer.id} has been kicked. (ban:${ban},reason:${placeholderKick.reason})`);

@@ -5,14 +5,14 @@ import request from 'supertest';
 import * as ruidlistController from '../../../api/controller/v1/ruidlist';
 import { errorHandler } from '../../../api/middleware/errorHandler';
 
-// Mock DBClient
-jest.mock('../../../lib/DBClient', () => ({
-    dbClient: {
+// Mock API DB adapter
+jest.mock('../../../lib/db/adapters/ApiDbAdapter', () => ({
+    apiDbAdapter: {
         getRuidList: jest.fn(),
     }
 }));
 
-const { dbClient } = require('../../../lib/DBClient');
+const { apiDbAdapter: dbClient } = require('../../../lib/db/adapters/ApiDbAdapter');
 
 describe('RUID List API Integration Tests', () => {
     let app: Koa;

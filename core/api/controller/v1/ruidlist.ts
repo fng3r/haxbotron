@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Context } from "koa";
-import { dbClient } from "../../../lib/DBClient";
+import { apiDbAdapter as dbClient } from "../../../lib/db/adapters/ApiDbAdapter";
 import { ExternalServiceError } from "../../../lib/errors";
 
 export async function getAllList(ctx: Context) {

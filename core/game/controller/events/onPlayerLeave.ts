@@ -4,12 +4,13 @@ import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { updateAdmins } from "../RoomTools";
 import { getUnixTimestamp } from "../DateTimeUtils";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
-import { convertToPlayerStorage, getBanlistDataFromDB, setBanlistDataToDB, setPlayerDataToDB } from "../Storage";
+import { getInjectedDBRepository } from "../../repositories/InjectedDBRepository";
 import { ServiceContainer } from "../../services/ServiceContainer";
 
 export async function onPlayerLeaveListener(player: PlayerObject): Promise<void> {
     // Event called when a player leaves the room.
     const services = ServiceContainer.getInstance();
+    const repository = getInjectedDBRepository();
     const room = services.room.getRoom();
     const playerList = services.player.getPlayerList();
     const config = services.config.getConfig();
@@ -35,7 +36,7 @@ export async function onPlayerLeaveListener(player: PlayerObject): Promise<void>
     services.room.sendAnnouncement(Tst.maketext(LangRes.onLeft.playerLeft, placeholderLeft), null, 0xFFFFFF, "small", 0);
 
     playerList.get(player.id)!.entrytime.leftDate = leftTimeStamp; // save left time
-    await setPlayerDataToDB(convertToPlayerStorage(playerList.get(player.id)!)); // save
+    await repository.upsertPlayer(repository.toPlayerStorage(playerList.get(player.id)!)); // save
     services.player.removePlayer(player.id); // delete from player list
     services.playerRole.removeRole(player.id); // delete from roles list
 

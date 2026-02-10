@@ -3,7 +3,7 @@ import { v4 as uuid } from "uuid";
 import { getUnixTimestamp } from "../../game/controller/DateTimeUtils";
 import { winstonLogger } from "../../winstonLoggerSystem";
 import { BrowserHostRoomInitConfig } from "../browser.hostconfig";
-import * as dbUtilityInject from "../db.injection";
+import { injectedDbAdapter } from "../db/adapters/InjectedDbAdapter";
 import { loadStadiumData } from "../stadiumLoader";
 import { BrowserManager } from "./BrowserManager";
 import { DiscordWebhookContent, DiscordWebhookService } from "./DiscordWebhookService";
@@ -297,21 +297,21 @@ export class RoomLifecycleService {
         });
 
         // Database functions
-        await page.exposeFunction('_createPlayerDB', dbUtilityInject.createPlayerDB);
-        await page.exposeFunction('_readPlayerDB', dbUtilityInject.readPlayerDB);
-        await page.exposeFunction('_updatePlayerDB', dbUtilityInject.updatePlayerDB);
-        await page.exposeFunction('_deletePlayerDB', dbUtilityInject.deletePlayerDB);
+        await page.exposeFunction('_createPlayerDB', (dbRuid: string, player: any) => injectedDbAdapter.createPlayer(dbRuid, player));
+        await page.exposeFunction('_readPlayerDB', (dbRuid: string, playerAuth: string) => injectedDbAdapter.readPlayer(dbRuid, playerAuth));
+        await page.exposeFunction('_updatePlayerDB', (dbRuid: string, player: any) => injectedDbAdapter.updatePlayer(dbRuid, player));
+        await page.exposeFunction('_deletePlayerDB', (dbRuid: string, playerAuth: string) => injectedDbAdapter.deletePlayer(dbRuid, playerAuth));
 
-        await page.exposeFunction('_getPlayerRoleDB', dbUtilityInject.getPlayerRoleDB);
-        await page.exposeFunction('_createPlayerRoleDB', dbUtilityInject.createPlayerRoleDB);
-        await page.exposeFunction('_setPlayerRoleDB', dbUtilityInject.setPlayerRoleDB);
-        await page.exposeFunction('_deletePlayerRoleDB', dbUtilityInject.deletePlayerRoleDB);
+        await page.exposeFunction('_getPlayerRoleDB', (auth: string) => injectedDbAdapter.getPlayerRole(auth));
+        await page.exposeFunction('_createPlayerRoleDB', (playerRole: any) => injectedDbAdapter.createPlayerRole(playerRole));
+        await page.exposeFunction('_setPlayerRoleDB', (playerRole: any) => injectedDbAdapter.setPlayerRole(playerRole));
+        await page.exposeFunction('_deletePlayerRoleDB', (playerRole: any) => injectedDbAdapter.deletePlayerRole(playerRole));
 
-        await page.exposeFunction('_createBanlistDB', dbUtilityInject.createBanlistDB);
-        await page.exposeFunction('_getAllBansDB', dbUtilityInject.getAllBansDB);
-        await page.exposeFunction('_readBanlistDB', dbUtilityInject.readBanlistDB);
-        await page.exposeFunction('_updateBanlistDB', dbUtilityInject.updateBanlistDB);
-        await page.exposeFunction('_deleteBanlistDB', dbUtilityInject.deleteBanlistDB);
+        await page.exposeFunction('_createBanlistDB', (dbRuid: string, banList: any) => injectedDbAdapter.createBan(dbRuid, banList));
+        await page.exposeFunction('_getAllBansDB', (dbRuid: string) => injectedDbAdapter.getAllBans(dbRuid));
+        await page.exposeFunction('_readBanlistDB', (dbRuid: string, playerConn: string) => injectedDbAdapter.readBan(dbRuid, playerConn));
+        await page.exposeFunction('_updateBanlistDB', (dbRuid: string, banList: any) => injectedDbAdapter.updateBan(dbRuid, banList));
+        await page.exposeFunction('_deleteBanlistDB', (dbRuid: string, playerConn: string) => injectedDbAdapter.deleteBan(dbRuid, playerConn));
     }
 
     /**

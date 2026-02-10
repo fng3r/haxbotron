@@ -5,9 +5,9 @@ import request from 'supertest';
 import * as playerRolesController from '../../../api/controller/v1/playerrolelist';
 import { errorHandler } from '../../../api/middleware/errorHandler';
 
-// Mock DBClient
-jest.mock('../../../lib/DBClient', () => ({
-    dbClient: {
+// Mock API DB adapter
+jest.mock('../../../lib/db/adapters/ApiDbAdapter', () => ({
+    apiDbAdapter: {
         searchPlayerRoles: jest.fn(),
         createPlayerRole: jest.fn(),
         updatePlayerRole: jest.fn(),
@@ -16,7 +16,7 @@ jest.mock('../../../lib/DBClient', () => ({
     }
 }));
 
-const { dbClient } = require('../../../lib/DBClient');
+const { apiDbAdapter: dbClient } = require('../../../lib/db/adapters/ApiDbAdapter');
 
 describe('Player Roles API Integration Tests', () => {
     let app: Koa;

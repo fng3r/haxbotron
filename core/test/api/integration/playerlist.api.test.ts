@@ -5,15 +5,15 @@ import request from 'supertest';
 import * as playerlistController from '../../../api/controller/v1/playerlist';
 import { errorHandler } from '../../../api/middleware/errorHandler';
 
-// Mock DBClient
-jest.mock('../../../lib/DBClient', () => ({
-    dbClient: {
+// Mock API DB adapter
+jest.mock('../../../lib/db/adapters/ApiDbAdapter', () => ({
+    apiDbAdapter: {
         searchPlayers: jest.fn(),
         getPlayerByAuth: jest.fn(),
     }
 }));
 
-const { dbClient } = require('../../../lib/DBClient');
+const { apiDbAdapter: dbClient } = require('../../../lib/db/adapters/ApiDbAdapter');
 
 describe('Playerlist API Integration Tests', () => {
     let app: Koa;

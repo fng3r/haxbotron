@@ -3,12 +3,13 @@ import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
 import * as Tst from "../Translator";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
-import {getAllBansFromDB, getPlayerDataFromDB, setBanlistDataToDB} from "../Storage";
 import {extractPlayerIdentifier, isPlayerId, PlayerId} from "../../model/PlayerIdentifier/PlayerIdentifier";
+import { getInjectedDBRepository } from "../../repositories/InjectedDBRepository";
 import { ServiceContainer } from "../../services/ServiceContainer";
 
 export async function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, banDuration?: number): Promise<void> {
     const services = ServiceContainer.getInstance();
+    const repository = getInjectedDBRepository();
     const room = services.room.getRoom();
     const playerList = services.player.getPlayerList();
     
@@ -35,12 +36,12 @@ export async function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, b
             const currentTimestamp: number = getUnixTimestamp();
 
             if (banInMinutes === -1) {
-                await setBanlistDataToDB({conn: player.conn, auth: player.auth, reason: '', register: currentTimestamp, expire: -1});
+                await repository.upsertBan({conn: player.conn, auth: player.auth, reason: '', register: currentTimestamp, expire: -1});
                 room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.permanentBan, placeholder), false);
                 services.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successPermaBan, placeholder), null, 0x479947, "normal", 1);
             } else {
                 const expirationTimestamp = currentTimestamp + banInMinutes * 60 * 1000;
-                await setBanlistDataToDB({
+                await repository.upsertBan({
                     conn: player.conn,
                     auth: player.auth,
                     reason: '',
@@ -60,8 +61,9 @@ export async function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, b
 
 export async function cmdBans(byPlayer: PlayerObject): Promise<void> {
     const services = ServiceContainer.getInstance();
+    const repository = getInjectedDBRepository();
     
-    const bans = await getAllBansFromDB(services.config.getRUID())
+    const bans = await repository.readAllBans();
     if (bans === undefined) {
         services.room.sendAnnouncement(LangRes.command.bans._ErrorFailedToGet, null, 0xFF7777, "normal", 2);
         return;
@@ -72,7 +74,7 @@ export async function cmdBans(byPlayer: PlayerObject): Promise<void> {
     } else {
         const bannedPlayersStrings = [];
         for (const ban of bans) {
-            let player = await getPlayerDataFromDB(ban.auth);
+            let player = await repository.readPlayer(ban.auth);
             bannedPlayersStrings.push(Tst.maketext(LangRes.command.bans.singleBan, {
                 playerName: player!.name,
                 banInMinutes: getRemainingTimeString(ban.expire)

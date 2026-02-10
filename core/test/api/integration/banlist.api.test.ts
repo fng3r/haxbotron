@@ -5,9 +5,9 @@ import request from 'supertest';
 import * as banlistController from '../../../api/controller/v1/banlist';
 import { errorHandler } from '../../../api/middleware/errorHandler';
 
-// Mock DBClient
-jest.mock('../../../lib/DBClient', () => ({
-    dbClient: {
+// Mock API DB adapter
+jest.mock('../../../lib/db/adapters/ApiDbAdapter', () => ({
+    apiDbAdapter: {
         getBanList: jest.fn(),
         getBanByConn: jest.fn(),
         createBan: jest.fn(),
@@ -15,7 +15,7 @@ jest.mock('../../../lib/DBClient', () => ({
     }
 }));
 
-const { dbClient } = require('../../../lib/DBClient');
+const { apiDbAdapter: dbClient } = require('../../../lib/db/adapters/ApiDbAdapter');
 
 describe('Banlist API Integration Tests', () => {
     let app: Koa;
