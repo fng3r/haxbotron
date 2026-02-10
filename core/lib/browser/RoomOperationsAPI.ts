@@ -86,7 +86,7 @@ export class RoomOperationsAPI {
         );
     }
 
-    public async banPlayerFixedTerm(
+    public async banPlayerTemporarily(
         ruid: string,
         id: number,
         ban: boolean,
@@ -99,22 +99,17 @@ export class RoomOperationsAPI {
                 const services = window.services!;
                 const playerList = services.player.getPlayerList();
                 const room = services.room.getRoom();
-                const ruidValue = services.config.getRUID();
 
                 if (playerList.has(id)) {
                     const player = playerList.get(id)!;
-                    const banItem = {
-                        conn: player.conn,
-                        auth: player.auth,
-                        reason: reason,
-                        register: Math.floor(Date.now()),
-                        expire: Math.floor(Date.now()) + (seconds * 1000)
-                    };
-                    if (await window._readBanlistDB(ruidValue, player.conn) !== undefined) {
-                        await window._updateBanlistDB(ruidValue, banItem);
-                    } else {
-                        await window._createBanlistDB(ruidValue, banItem);
-                    }
+                    const banItem = services.ban.createTemporaryBan(
+                        player.conn,
+                        player.auth,
+                        reason,
+                        Math.floor(Date.now()),
+                        seconds * 1000
+                    );
+                    await services.ban.upsertBan(banItem);
                     room.kickPlayer(id, reason, ban);
                     services.logger.i('system', `[Kick] #${id} has been ${ban ? 'banned' : 'kicked'} by operator. (duration: ${seconds}secs, reason: ${reason})`);
                 }

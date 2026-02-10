@@ -1,10 +1,12 @@
 import { Logger } from "../controller/Logger";
 import { GameRoomConfig } from "../model/Configuration/GameRoomConfig";
 import { Room } from "../model/RoomObject/RoomObject";
+import { BanService } from "./BanService";
 import { ChatService } from "./ChatService";
 import { ConfigService } from "./ConfigService";
 import { MatchService } from "./MatchService";
 import { NotificationService } from "./NotificationService";
+import { PlayerOnboardingService } from "./PlayerOnboardingService";
 import { PlayerRoleService } from "./PlayerRoleService";
 import { PlayerService } from "./PlayerService";
 import { RoomService } from "./RoomService";
@@ -27,7 +29,9 @@ export class ServiceContainer {
     public readonly room: RoomService;
     public readonly player: PlayerService;
     public readonly playerRole: PlayerRoleService;
+    public readonly playerOnboarding: PlayerOnboardingService;
     public readonly match: MatchService;
+    public readonly ban: BanService;
     public readonly chat: ChatService;
     public readonly social: SocialService;
     public readonly notification: NotificationService;
@@ -45,7 +49,9 @@ export class ServiceContainer {
         this.room = new RoomService(room);
         this.player = new PlayerService();
         this.playerRole = new PlayerRoleService();
+        this.playerOnboarding = new PlayerOnboardingService();
         this.match = new MatchService();
+        this.ban = new BanService();
         this.chat = new ChatService(config.settings.chatFloodCriterion);
         this.social = new SocialService(discordWebhook);
         this.notification = new NotificationService();

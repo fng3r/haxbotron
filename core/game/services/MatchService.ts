@@ -1,5 +1,5 @@
-import { PlayerObject } from "../model/GameObject/PlayerObject";
 import { KickStack } from "../model/GameObject/BallTrace";
+import { PlayerObject } from "../model/GameObject/PlayerObject";
 
 /**
  * Service for managing match state and statistics
@@ -85,5 +85,13 @@ export class MatchService {
     // Ball tracking (kick stack, possession, last touch)
     public getBallStack(): KickStack {
         return this.ballStack;
+    }
+
+    public consumeGoalTouches(): { scorer?: number; assistant?: number } {
+        const scorer = this.ballStack.pop();
+        const assistant = this.ballStack.pop();
+        this.ballStack.clear();
+        this.ballStack.initTouchInfo();
+        return { scorer, assistant };
     }
 }

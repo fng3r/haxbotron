@@ -78,7 +78,7 @@ export class InjectedDBRepository {
         return await window._readBanlistDB(ruid, conn);
     }
 
-    public async readAllBans(): Promise<BanList[]> {
+    public async readAllBans(): Promise<BanList[] | undefined> {
         const ruid = this.getRuid();
         return await window._getAllBansDB(ruid);
     }

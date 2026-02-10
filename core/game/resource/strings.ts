@@ -168,7 +168,7 @@ export const onStadium = {
 
 export const onGoal = {
     goal: '⚽️ {scorerName} | {score} | {time}'
-    ,goalWithAssist: '⚽️ {scorerName} (👟 {assistName}) | {score} | {time} '
+    ,goalWithAssist: '⚽️ {scorerName} (👟 {assistantName}) | {score} | {time} '
     ,og: '🥅 {ogName} | {score} | {time}'
 }
 

@@ -138,7 +138,7 @@ export async function kickOnlinePlayer(ctx: Context) {
     if (!(await roomOperations.checkOnlinePlayer(ruid, playerId))) {
         throw new PlayerNotFoundError(id);
     }
-    await roomOperations.banPlayerFixedTerm(ruid, playerId, ban, reason, seconds);
+    await roomOperations.banPlayerTemporarily(ruid, playerId, ban, reason, seconds);
     ctx.status = 204;
 }
 

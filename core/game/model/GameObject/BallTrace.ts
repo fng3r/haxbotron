@@ -34,13 +34,14 @@ export class KickStack {
     }
     clear(): void {
         this._store = []; // clear
-    }
-    
-    initTouchInfo(): void {
         this.lastTouched = {
             id: 0,
             team: 0
         };
+    }
+    
+    initTouchInfo(): void {
+
     }
     getLastTouchPlayerID(): number {
         return this.lastTouched.id; // playerID

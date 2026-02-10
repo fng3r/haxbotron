@@ -18,7 +18,7 @@ const mockRoomOperations = {
   getOnlinePlayersIDList: jest.fn(() => []),
   getPlayerInfo: jest.fn(),
   checkOnlinePlayer: jest.fn(() => false),
-  banPlayerFixedTerm: jest.fn(),
+  banPlayerTemporarily: jest.fn(),
   broadcast: jest.fn(),
   whisper: jest.fn(),
   getNotice: jest.fn(),

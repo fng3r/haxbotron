@@ -103,6 +103,15 @@ export class RoomService {
         this._room.setTeamsLock(locked);
     }
 
+    // Slot reservation policy helpers
+    public shouldEnableReservedSlotPassword(playersCount: number, maxPlayers: number): boolean {
+        return playersCount === maxPlayers - 1;
+    }
+
+    public isReservedSlotViolation(playersCount: number, maxPlayers: number, isHighPrivilege: boolean): boolean {
+        return playersCount === maxPlayers && !isHighPrivilege;
+    }
+
     // Team colors management
     public getTeamColours() {
         return this.teamColours;
