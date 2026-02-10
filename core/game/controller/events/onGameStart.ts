@@ -1,5 +1,5 @@
-import {PlayerObject} from "../../model/GameObject/PlayerObject";
-import {TeamID} from "../../model/GameObject/TeamID";
+import { PlayerObject } from "../../model/GameObject/PlayerObject";
+import { TeamID } from "../../model/GameObject/TeamID";
 import { ServiceContainer } from "../../services/ServiceContainer";
 
 const DEFAULT_KICKRATE = {
@@ -13,21 +13,8 @@ export function onGameStartListener(byPlayer: PlayerObject | null): void {
         byPlayer is the player which caused the event (can be null if the event wasn't caused by a player). */
     const services = ServiceContainer.getInstance();
     const room = services.room.getRoom();
-    
-    let placeholderStart = {
-        playerID: 0,
-        playerName: ''
-    };
 
-    services.match.setPlaying(true);
-
-    let msg = `The game has been started.`;
-    if (byPlayer !== null && byPlayer.id !== 0) {
-        placeholderStart.playerID = byPlayer.id;
-        placeholderStart.playerName = byPlayer.name;
-        msg += `(by ${byPlayer.name}#${byPlayer.id})`;
-    }
-
+    room.startRecording();
     room.setKickRateLimit(DEFAULT_KICKRATE.min, DEFAULT_KICKRATE.rate, DEFAULT_KICKRATE.burst);
 
     const startingLineup = {
@@ -36,8 +23,9 @@ export function onGameStartListener(byPlayer: PlayerObject | null): void {
     };
     services.match.startMatch(startingLineup);
 
-    // replay record start
-    room.startRecording();
-
+    let msg = `The game has been started.`;
+    if (byPlayer !== null && byPlayer.id !== 0) {
+        msg += `(by ${byPlayer.name}#${byPlayer.id})`;
+    }
     services.logger.i('onGameStart', msg);
 }

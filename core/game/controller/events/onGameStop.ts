@@ -1,5 +1,4 @@
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { TeamID } from "../../model/GameObject/TeamID";
 import { ServiceContainer } from "../../services/ServiceContainer";
 
 
@@ -11,18 +10,6 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     */
     const services = ServiceContainer.getInstance();
     const room = services.room.getRoom();
-    const ballStack = services.match.getBallStack();
-    
-    var placeholderStop = {
-        playerID: 0,
-        playerName: '',
-        possTeamRed: ballStack.possCalculate(TeamID.Red),
-        possTeamBlue: ballStack.possCalculate(TeamID.Blue)
-    };
-    if(byPlayer !== null) {
-        placeholderStop.playerID = byPlayer.id;
-        placeholderStop.playerName = byPlayer.name;
-    }
 
     const stats = services.match.getMatchStats();
     services.logger.i('onGameStop', JSON.stringify(stats));
@@ -35,26 +22,7 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     }
     services.logger.i('onGameStop', msg);
 
-    ballStack.initTouchInfo(); // clear touch info
-    ballStack.clear(); // clear the stack.
-    ballStack.possClear(); // clear possession count
-
     // stop replay record and send it
     const replay = room.stopRecording();
-    
-    const webhook = services.social.getDiscordWebhook();
-    if(replay && webhook.feed && webhook.replayUpload && webhook.replaysWebhookId && webhook.replaysWebhookToken) {
-        const roomId = services.config.getRUID();
-
-        window._feedSocialDiscordWebhook(
-            webhook.replaysWebhookId,
-            webhook.replaysWebhookToken,
-            {
-                type: "replay",
-                roomId: roomId,
-                matchStats: stats,
-                data: JSON.stringify(Array.from(replay))
-            }
-        );
-    }
+    services.social.emitReplayWebhook(services.config.getRUID(), stats, replay);
 }

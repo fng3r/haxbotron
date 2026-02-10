@@ -39,10 +39,6 @@ export class KickStack {
             team: 0
         };
     }
-    
-    initTouchInfo(): void {
-
-    }
     getLastTouchPlayerID(): number {
         return this.lastTouched.id; // playerID
     }

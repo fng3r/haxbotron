@@ -30,4 +30,22 @@ export class SocialService {
     public updateDiscordWebhook(webhook: Partial<typeof this.social.discordWebhook>): void {
         this.social.discordWebhook = { ...this.social.discordWebhook, ...webhook };
     }
+
+    public emitReplayWebhook(roomId: string, matchStats: any, replay: Uint8Array | null): void {
+        const webhook = this.social.discordWebhook;
+        if (!replay || !webhook.feed || !webhook.replayUpload || !webhook.replaysWebhookId || !webhook.replaysWebhookToken) {
+            return;
+        }
+
+        window._feedSocialDiscordWebhook(
+            webhook.replaysWebhookId,
+            webhook.replaysWebhookToken,
+            {
+                type: "replay",
+                roomId: roomId,
+                matchStats: matchStats,
+                data: JSON.stringify(Array.from(replay))
+            }
+        );
+    }
 }
