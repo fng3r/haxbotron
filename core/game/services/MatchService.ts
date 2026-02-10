@@ -1,6 +1,20 @@
 import { KickStack } from "../model/GameObject/BallTrace";
 import { PlayerObject } from "../model/GameObject/PlayerObject";
+import { PlayersSet } from "../model/GameObject/PlayersSet";
 import { TeamID } from "../model/GameObject/TeamID";
+
+export interface MatchStats {
+    startedAt: number;
+    startingLineup: {
+        red: PlayerObject[];
+        blue: PlayerObject[];
+    };
+    scores: {
+        red: number;
+        blue: number;
+        time: number;
+    };
+}
 
 export interface PossessionSummary {
     possTeamRed: number;
@@ -13,18 +27,7 @@ export interface PossessionSummary {
 export class MatchService {
     private isGamingNow: boolean = false;
     private ballStack: KickStack;
-    private matchStats: {
-        startedAt: number;
-        startingLineup: {
-            red: PlayerObject[];
-            blue: PlayerObject[];
-        };
-        scores: {
-            red: number;
-            blue: number;
-            time: number;
-        };
-    };
+    private matchStats: MatchStats;
 
     constructor() {
         this.ballStack = KickStack.getInstance();
@@ -60,12 +63,8 @@ export class MatchService {
         this.matchStats.startingLineup = startingLineup;
     }
 
-    public updateScore(team: 'red' | 'blue', score: number): void {
-        this.matchStats.scores[team] = score;
-    }
-
-    public updateTime(time: number): void {
-        this.matchStats.scores.time = time;
+    public updateScores(redScore: number, blueScore: number, time: number): void {
+        this.matchStats.scores = { red: redScore, blue: blueScore, time: time };
     }
 
     public resetStats(): void {
@@ -83,9 +82,26 @@ export class MatchService {
         };
     }
 
-    // Ball tracking (kick stack, possession, last touch)
     public getBallStack(): KickStack {
         return this.ballStack;
+    }
+
+    public recordBallKick(player: PlayerObject, playerList: PlayersSet): void {
+        const trackedPlayer = playerList.get(player.id);
+        if (!trackedPlayer) {
+            return;
+        }
+
+        trackedPlayer.matchRecord.balltouch++;
+
+        if (this.ballStack.passJudgment(player.team)) {
+            const previousPlayer = playerList.get(this.ballStack.getLastTouchPlayerID());
+            if (previousPlayer) {
+                previousPlayer.matchRecord.passed++;
+            }
+        }
+
+        this.ballStack.submitTouch(trackedPlayer);
     }
 
     public consumeGoalTouches(): { scorer?: number; assistant?: number } {

@@ -1,5 +1,5 @@
-import {PlayerObject} from "../../model/GameObject/PlayerObject";
-import {TeamID} from "../../model/GameObject/TeamID";
+import { PlayerObject } from "../../model/GameObject/PlayerObject";
+import { TeamID } from "../../model/GameObject/TeamID";
 import * as LangRes from "../../resource/strings";
 import { ServiceContainer } from "../../services/ServiceContainer";
 
@@ -8,9 +8,9 @@ export function cmdTeamChat(byPlayer: PlayerObject, message: string): void {
     const playerList = services.player.getPlayerList();
     
     const player = playerList.get(byPlayer.id)!;
-    if (services.chat.isAllMuted() || player.permissions.mute) { // if this player is muted or whole chat is frozen
-        services.room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2); // notify that fact
-        return; // and hide this chat
+    if (services.chat.isMessageBlockedByMute(player)) {
+        services.room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2);
+        return;
     }
 
     const messageColor = getMessageColor(byPlayer.team);

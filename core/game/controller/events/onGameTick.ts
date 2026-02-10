@@ -5,7 +5,5 @@ export function onGameTickListener(): void {
     const room = services.room.getRoom();
     
     const scores = room.getScores()!;
-    services.match.updateScore('red', scores.red);
-    services.match.updateScore('blue', scores.blue);
-    services.match.updateTime(scores.time);
+    services.match.updateScores(scores.red, scores.blue, scores.time);
 }

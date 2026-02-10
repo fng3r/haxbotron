@@ -1,5 +1,4 @@
-import {PlayerObject} from "../../model/GameObject/PlayerObject";
-import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
+import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { ServiceContainer } from "../../services/ServiceContainer";
 
 export function onPlayerAdminChangeListener(changedPlayer: PlayerObject, byPlayer: PlayerObject): void {
@@ -10,13 +9,11 @@ export function onPlayerAdminChangeListener(changedPlayer: PlayerObject, byPlaye
     
     if (byPlayer) {
         services.logger.i('onPlayerAdminChange', `${changedPlayer.name}#${changedPlayer.id} admin rights were taken away by ${byPlayer.name}#${byPlayer.id}`);
-        const byPlayerRole = services.playerRole.getRole(byPlayer.id)!;
-        const changedPlayerRole = services.playerRole.getRole(changedPlayer.id)!;
-        if (PlayerRoles.less(byPlayerRole, changedPlayerRole)) { // if admin rights were taken away from lesser role, give it back
+        if (services.playerRole.shouldRestoreAdminAfterRemoval(changedPlayer.id, byPlayer.id)) {
             room.setPlayerAdmin(changedPlayer.id, true);
         }
 
-        if (changedPlayerRole.role === PlayerRoles.BAD && changedPlayer.admin) { // BAD players cannot be admins
+        if (services.playerRole.shouldForceRemoveAdmin(changedPlayer.id) && changedPlayer.admin) {
             room.setPlayerAdmin(changedPlayer.id, false);
         }
     }

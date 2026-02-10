@@ -22,7 +22,6 @@ export function onGameStopListener(byPlayer: PlayerObject): void {
     }
     services.logger.i('onGameStop', msg);
 
-    // stop replay record and send it
     const replay = room.stopRecording();
     services.social.emitReplayWebhook(services.config.getRUID(), stats, replay);
 }

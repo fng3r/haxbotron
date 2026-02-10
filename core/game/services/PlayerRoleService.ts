@@ -1,4 +1,5 @@
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";
+import { PlayerRoles } from "../model/PlayerRole/PlayerRoles";
 
 /**
  * Service for managing player roles (admin, staff, etc.)
@@ -37,5 +38,24 @@ export class PlayerRoleService {
 
     public getAllRoles(): PlayerRole[] {
         return Array.from(this.playerRoles.values());
+    }
+
+    public shouldRestoreAdminAfterRemoval(changedPlayerId: number, byPlayerId: number): boolean {
+        const byPlayerRole = this.getRole(byPlayerId);
+        const changedPlayerRole = this.getRole(changedPlayerId);
+        if (!byPlayerRole || !changedPlayerRole) {
+            return false;
+        }
+
+        return PlayerRoles.less(byPlayerRole, changedPlayerRole);
+    }
+
+    public shouldForceRemoveAdmin(changedPlayerId: number): boolean {
+        const changedPlayerRole = this.getRole(changedPlayerId);
+        if (!changedPlayerRole) {
+            return false;
+        }
+
+        return changedPlayerRole.role === PlayerRoles.BAD;
     }
 }

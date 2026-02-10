@@ -1,3 +1,4 @@
+import { Player } from "./Player";
 import { TeamID } from "./TeamID";
 
 export class KickStack {
@@ -33,20 +34,22 @@ export class KickStack {
         return this._store.pop();
     }
     clear(): void {
-        this._store = []; // clear
+        this._store = [];
         this.lastTouched = {
             id: 0,
             team: 0
         };
     }
     getLastTouchPlayerID(): number {
-        return this.lastTouched.id; // playerID
+        return this.lastTouched.id;
     }
-    touchPlayerSubmit(id: number) { // playerID
-        this.lastTouched.id = id;
-    }
-    touchTeamSubmit(team: TeamID) { // 1: red team, 2: blue team
-        this.lastTouched.team = team;
+    submitTouch(player: Player) {
+        this.lastTouched = {
+            id: player.id,
+            team: player.team
+        };
+        this.push(player.id);
+        this.possCount(player.team);
     }
     passJudgment(team: TeamID): boolean { // 1: red team, 2: blue team
         return this.lastTouched.team == team;

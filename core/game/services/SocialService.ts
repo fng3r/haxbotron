@@ -1,3 +1,6 @@
+import { DiscordWebhookConfig } from "../../lib/browser.interface";
+import { MatchStats } from "./MatchService";
+
 /**
  * Service for managing social integrations (Discord webhooks, etc.)
  */
@@ -13,7 +16,7 @@ export class SocialService {
         };
     };
 
-    constructor(discordWebhook: any) {
+    constructor(discordWebhook: DiscordWebhookConfig) {
         this.social = {
             discordWebhook: discordWebhook
         };
@@ -31,7 +34,7 @@ export class SocialService {
         this.social.discordWebhook = { ...this.social.discordWebhook, ...webhook };
     }
 
-    public emitReplayWebhook(roomId: string, matchStats: any, replay: Uint8Array | null): void {
+    public emitReplayWebhook(roomId: string, matchStats: MatchStats, replay: Uint8Array | null): void {
         const webhook = this.social.discordWebhook;
         if (!replay || !webhook.feed || !webhook.replayUpload || !webhook.replaysWebhookId || !webhook.replaysWebhookToken) {
             return;
