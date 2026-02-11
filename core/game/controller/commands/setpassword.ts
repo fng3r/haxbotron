@@ -6,8 +6,6 @@ import { ServiceContainer } from "../../services/ServiceContainer";
 
 export function cmdSetPassword(byPlayer: PlayerObject, password?: string): void {
     const services = ServiceContainer.getInstance();
-    const room = services.room.getRoom();
-    const config = services.config.getConfig();
     
     const playerRole = services.playerRole.getRole(byPlayer.id)!;
     if (!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
@@ -21,13 +19,13 @@ export function cmdSetPassword(byPlayer: PlayerObject, password?: string): void 
     };
 
     if (!password) {
-        room.setPassword(null);
-        config._config.password = null!;
+        services.room.setPassword(null);
+        services.config.setRoomPassword();
         services.room.sendAnnouncement(Tst.maketext(LangRes.command.setpassword.onPasswordReset, placeholder), null, 0x479947, "normal", 1);
     }
     else {
-        room.setPassword(password);
-        config._config.password = password;
+        services.room.setPassword(password);
+        services.config.setRoomPassword(password);
         services.room.sendAnnouncement(Tst.maketext(LangRes.command.setpassword.onPasswordSet, placeholder), null, 0x479947, "normal", 1);
     }
 }

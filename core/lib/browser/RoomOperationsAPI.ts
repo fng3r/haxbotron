@@ -177,10 +177,9 @@ export class RoomOperationsAPI {
             ruid,
             (password: string) => {
                 const services = window.services!;
-                const room = services.room.getRoom();
                 const convertedPassword: string | null = (password == "") ? null : password;
-                room.setPassword(convertedPassword);
-                services.config.getConfig()._config.password = password;
+                services.room.setPassword(convertedPassword);
+                services.config.setRoomPassword(password || undefined);
             },
             password
         );

@@ -99,6 +99,10 @@ export class RoomService {
         this._room.setTimeLimit(limit);
     }
 
+    public setPassword(password: string | null): void {
+        this._room.setPassword(password);
+    }
+
     public setTeamsLock(locked: boolean): void {
         this._room.setTeamsLock(locked);
     }

@@ -36,6 +36,10 @@ export class ConfigService {
         this._adminPassword = password;
     }
 
+    public setRoomPassword(password?: string): void {
+        this.config._config.password = password;
+    }
+
     public getBannedWords(type: 'nickname' | 'chat'): string[] {
         return this.bannedWordsPool[type];
     }
