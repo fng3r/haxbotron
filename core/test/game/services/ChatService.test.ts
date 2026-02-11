@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 
+import { describe, expect, it } from "@jest/globals";
 import { PlayerRoles } from "../../../game/model/PlayerRole/PlayerRoles";
 import { ChatService } from "../../../game/services/ChatService";
 
@@ -52,5 +53,27 @@ describe("ChatService", () => {
 
         expect(service.canBypassChatRestrictions({ auth: "a", name: "n", role: PlayerRoles.S_ADM })).toBe(true);
         expect(service.canBypassChatRestrictions({ auth: "a", name: "n", role: PlayerRoles.PLAYER })).toBe(false);
+    });
+
+    it("applies manual mute transitions", () => {
+        const service = new ChatService(3);
+        const roomPlayer: any = {
+            id: 11,
+            permissions: { mute: false, muteExpire: 0 }
+        };
+
+        const permanentAction = service.toggleMute(roomPlayer, -1, 1000);
+        expect(permanentAction).toBe("muted_permanent");
+        expect(roomPlayer.permissions.mute).toBe(true);
+        expect(roomPlayer.permissions.muteExpire).toBe(-1);
+
+        const unmuteAction = service.toggleMute(roomPlayer, 3, 2000);
+        expect(unmuteAction).toBe("unmuted");
+        expect(roomPlayer.permissions.mute).toBe(false);
+
+        const temporaryAction = service.toggleMute(roomPlayer, 2, 3000);
+        expect(temporaryAction).toBe("muted_temporary");
+        expect(roomPlayer.permissions.mute).toBe(true);
+        expect(roomPlayer.permissions.muteExpire).toBe(123000);
     });
 });

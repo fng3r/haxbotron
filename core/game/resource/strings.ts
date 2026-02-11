@@ -74,10 +74,10 @@ export const command = {
     }
     ,mute: {
         _ErrorNoPermission: '❌ You are not admin. You can\'t do this command.'
-        ,_ErrorNoPlayer: '❌ Wrong player ID. You can only target numeric ID.(eg: !mute #12 5)\n📑 You can check IDs by command !list red,blue,spec,mute'
-        ,successTempMute: '🔇 {targetName}#{ticketTarget} player is muted for {muteInMinutes} minute(s). You can command it against for release.'
-        ,successPermaMute: '🔇 {targetName}#{ticketTarget} player is muted permanently by {byPlayerName}#{byPlayerId}. You can command it against for release.'
-        ,successUnmute: '🔊 Player {targetName}#{ticketTarget} is unmuted.'
+        ,_ErrorNoPlayer: '❌ Wrong player ID. You can only target numeric ID.(eg: !mute #12 5)\n📑 You can check IDs by using command !list'
+        ,successTempMute: '🔇 Player {targetName}#{targetId} is muted for {muteInMinutes} minute(s). You can use this command again to unmute.'
+        ,successPermaMute: '🔇 Player {targetName}#{targetId} is muted permanently by {byPlayerName}#{byPlayerId}. You can use this command again to unmute.'
+        ,successUnmute: '🔊 Player {targetName}#{targetId} is unmuted.'
     }
     ,ban: {
         _ErrorNoPermission: '❌ You are not admin. You can\'t do this command.'

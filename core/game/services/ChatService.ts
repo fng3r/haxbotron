@@ -1,14 +1,15 @@
 import ChatActivityMap from "../model/ChatActivityMap";
-import { AhoCorasick } from "../model/TextFilter/filter";
 import { Player } from "../model/GameObject/Player";
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";
 import { PlayerRoles } from "../model/PlayerRole/PlayerRoles";
+import { AhoCorasick } from "../model/TextFilter/filter";
 
 export type ChatMessageValidationReason = "too_long" | "separator" | "banned_words";
 export interface ChatMessageValidationResult {
     isValid: boolean;
     reason?: ChatMessageValidationReason;
 }
+export type MuteActionResult = "unmuted" | "muted_permanently" | "muted_temporarily";
 
 /**
  * Service for managing chat, muting, and anti-flood
@@ -65,6 +66,23 @@ export class ChatService {
         player.permissions.mute = true;
         player.permissions.muteExpire = currentTimestamp + muteDefaultMillisecs;
         return player.permissions.muteExpire;
+    }
+
+    public toggleMute(player: Player, muteInMinutes: number, currentTimestamp: number): MuteActionResult {
+        if (player.permissions.mute) {
+            player.permissions.mute = false;
+            this.clearChatActivity(player.id);
+            return "unmuted";
+        }
+
+        player.permissions.mute = true;
+        if (muteInMinutes === -1) {
+            player.permissions.muteExpire = -1;
+            return "muted_permanently";
+        }
+
+        player.permissions.muteExpire = currentTimestamp + muteInMinutes * 60 * 1000;
+        return "muted_temporarily";
     }
 
     public validateMessageContent(

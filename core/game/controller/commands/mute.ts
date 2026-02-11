@@ -1,10 +1,10 @@
-import {getRemainingTimeString, getUnixTimestamp} from "../DateTimeUtils";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import * as LangRes from "../../resource/strings";
-import * as Tst from "../Translator";
+import { extractPlayerIdentifier, isPlayerId, PlayerId } from "../../model/PlayerIdentifier/PlayerIdentifier";
 import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
-import {extractPlayerIdentifier, isPlayerId, PlayerId} from "../../model/PlayerIdentifier/PlayerIdentifier";
+import * as LangRes from "../../resource/strings";
 import { ServiceContainer } from "../../services/ServiceContainer";
+import { getRemainingTimeString, getUnixTimestamp } from "../DateTimeUtils";
+import * as Tst from "../Translator";
 
 export function cmdMute(byPlayer: PlayerObject, playerIdentifier: string, muteDuration?: number): void {
     const services = ServiceContainer.getInstance();
@@ -24,29 +24,18 @@ export function cmdMute(byPlayer: PlayerObject, playerIdentifier: string, muteDu
             const player = playerList.get(playerId)!;
             const placeholder = {
                 targetName: player.name
-                ,ticketTarget: playerId
+                ,targetId: playerId
                 ,byPlayerName: byPlayer.name
                 ,byPlayerId: byPlayer.id
                 ,muteInMinutes: muteInMinutes
             };
-            if(player.permissions.mute) {
-                player.permissions.mute = false; // unmute
-                services.chat.clearChatActivity(player.id); // clear previous chat activity on unmute
+            const action = services.chat.toggleMute(player, muteInMinutes, getUnixTimestamp());
+            if (action === "unmuted") {
                 services.room.sendAnnouncement(Tst.maketext(LangRes.command.mute.successUnmute, placeholder), null, 0x479947, "normal", 1);
-            } else {
-                if (muteInMinutes === -1)
-                {
-                    player.permissions.mute = true;
-                    player.permissions.muteExpire = -1;
-                    services.room.sendAnnouncement(Tst.maketext(LangRes.command.mute.successPermaMute, placeholder), null, 0x479947, "normal", 1);
-                } else {
-                    const currentTimestamp: number = getUnixTimestamp();
-                    const expirationTimestamp = currentTimestamp + muteInMinutes * 60 * 1000;
-                    player.permissions.mute = true;
-                    player.permissions.muteExpire = expirationTimestamp;
-                    services.room.sendAnnouncement(Tst.maketext(LangRes.command.mute.successTempMute, placeholder), null, 0x479947, "normal", 1);
-                }
-
+            } else if (action === "muted_permanently") {
+                services.room.sendAnnouncement(Tst.maketext(LangRes.command.mute.successPermaMute, placeholder), null, 0x479947, "normal", 1);
+            } else if (action === "muted_temporarily") {
+                services.room.sendAnnouncement(Tst.maketext(LangRes.command.mute.successTempMute, placeholder), null, 0x479947, "normal", 1);
             }
 
             window._emitSIOPlayerStatusChangeEvent(byPlayer.id);
