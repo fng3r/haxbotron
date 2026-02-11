@@ -97,8 +97,7 @@ export const command = {
         ,whoisList: '📜 {whoisResult}'
     }
     ,listroles: {
-        singleRole: '{playerName} ({playerRole})'
-        ,rolesList: '📜 {rolesList}'
+        rolesList: '📜 {rolesList}'
     }
     ,freeze: {
         _ErrorNoPermission : '❌ You are not admin. You can\'t do this command.'
