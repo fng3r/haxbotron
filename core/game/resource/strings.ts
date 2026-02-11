@@ -45,10 +45,10 @@ export const command = {
             '📑 big, bigeasy, classic, gbhotclassic, gbhotbig, realsoccer\n' +
             '📑 futsal1v1, futsal4v4, bff4v4, icebear, 6man'
         ,mute: '📑 !mute #ID time(in minutes) - prohibits the player whose id is ID to chat for specified time (permanently if not specified). Or unmute if the player is already muted. (eg: !mute #12 5)\n' +
-            '📑 You can check IDs by command !list'
+            '📑 You can check IDs by using command !list'
         ,mutes: '📑 !mutes - shows muted players'
         ,ban: '📑 !ban #ID time(in minutes) - bans the player for specified time (permanently if not specified). (eg: !ban #12 5). Or unban if the player is already banned.\n' +
-            '📑 You can check IDs by command !list'
+            '📑 You can check IDs by using command !list'
         ,bans: '📑 !bans - shows banned players'
         ,setpassword: '📑 !setpassword - sets or resets room password. (eg: !setpassword 2552 | !setpassword - to reset)'
         ,staff: '📑 !staff - shows staff player in the room.'
@@ -60,11 +60,11 @@ export const command = {
         _ErrorNoPermission : '❌ You must have \'adm+\' role to use this command.'
     }
     ,auth: {
-        _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by command !list red,blue,spec,mute'
+        _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by using command !list'
         ,playerAuth: `📄 {playerName}#{playerID} public id: {playerAuth}`
     }
     ,deanon: {
-        _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by command !list red,blue,spec,mute'
+        _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by using command !list'
         ,playerNicknames: `📄 {playerName}#{playerID} nicknames: {nicknamesList}`
     }
     ,map: {
@@ -81,7 +81,7 @@ export const command = {
     }
     ,ban: {
         _ErrorNoPermission: '❌ You are not admin. You can\'t do this command.'
-        ,_ErrorNoPlayer: '❌ Wrong player ID. You can only target numeric ID.(eg: !ban #12 5)\n📑 You can check IDs by command !list red,blue,spec,mute'
+        ,_ErrorNoPlayer: '❌ Wrong player ID. You can only target numeric ID.(eg: !ban #12 5)\n📑 You can check IDs by using command !list'
         ,successTempBan: '🚫 {targetName}#{ticketTarget} player is banned for {banInMinutes} minute(s) by {byPlayerName}#{byPlayerId}. You can command it against for release.'
         ,successPermaBan: '🚫 {targetName}#{ticketTarget} player is banned permanently by {byPlayerName}#{byPlayerId}. You can command it against for release.'
         ,successUnban: '🟢 Player {targetName}#{ticketTarget} was unbanned by {byPlayerName}#{byPlayerId}.'
