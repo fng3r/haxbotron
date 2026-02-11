@@ -34,6 +34,11 @@ export class ChatService {
         this.isMuteAll = mute;
     }
 
+    public toggleFreeze(): boolean {
+        this.isMuteAll = !this.isMuteAll;
+        return this.isMuteAll;
+    }
+
     public recordChatActivity(playerId: number, timestamp: number): void {
         this.antiTrollingChatFloodMap.add(playerId, timestamp);
     }

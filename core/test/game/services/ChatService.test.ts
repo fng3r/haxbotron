@@ -55,6 +55,16 @@ describe("ChatService", () => {
         expect(service.canBypassChatRestrictions({ auth: "a", name: "n", role: PlayerRoles.PLAYER })).toBe(false);
     });
 
+    it("toggles freeze state and returns new status", () => {
+        const service = new ChatService(3);
+
+        expect(service.isAllMuted()).toBe(false);
+        expect(service.toggleFreeze()).toBe(true);
+        expect(service.isAllMuted()).toBe(true);
+        expect(service.toggleFreeze()).toBe(false);
+        expect(service.isAllMuted()).toBe(false);
+    });
+
     it("applies manual mute transitions", () => {
         const service = new ChatService(3);
         const roomPlayer: any = {
@@ -63,7 +73,7 @@ describe("ChatService", () => {
         };
 
         const permanentAction = service.toggleMute(roomPlayer, -1, 1000);
-        expect(permanentAction).toBe("muted_permanent");
+        expect(permanentAction).toBe("muted_permanently");
         expect(roomPlayer.permissions.mute).toBe(true);
         expect(roomPlayer.permissions.muteExpire).toBe(-1);
 
@@ -72,7 +82,7 @@ describe("ChatService", () => {
         expect(roomPlayer.permissions.mute).toBe(false);
 
         const temporaryAction = service.toggleMute(roomPlayer, 2, 3000);
-        expect(temporaryAction).toBe("muted_temporary");
+        expect(temporaryAction).toBe("muted_temporarily");
         expect(roomPlayer.permissions.mute).toBe(true);
         expect(roomPlayer.permissions.muteExpire).toBe(123000);
     });

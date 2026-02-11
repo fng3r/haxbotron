@@ -8,12 +8,11 @@ export function cmdFreeze(byPlayer: PlayerObject): void {
     
     const playerRole = services.playerRole.getRole(byPlayer.id)!;
     if(PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
-        if(services.chat.isAllMuted()) {
-            services.chat.setAllMuted(false);
-            services.room.sendAnnouncement(LangRes.command.freeze.offFreeze, null, 0x479947, "normal", 1);
-        } else {
-            services.chat.setAllMuted(true);
+        const isFrozen = services.chat.toggleFreeze();
+        if (isFrozen) {
             services.room.sendAnnouncement(LangRes.command.freeze.onFreeze, null, 0x479947, "normal", 1);
+        } else {
+            services.room.sendAnnouncement(LangRes.command.freeze.offFreeze, null, 0x479947, "normal", 1);
         }
 
         window._emitSIOPlayerStatusChangeEvent(byPlayer.id);
