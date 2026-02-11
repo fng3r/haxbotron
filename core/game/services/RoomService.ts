@@ -1,3 +1,4 @@
+import { loadStadiumData } from "../../lib/stadiumLoader";
 import { Room } from "../model/RoomObject/RoomObject";
 
 /**
@@ -74,11 +75,21 @@ export class RoomService {
         this._room.sendChat(message, targetId);
     }
 
+    // Stadium management
     public setCustomStadium(stadium: string): void {
         this._room.setCustomStadium(stadium);
     }
 
-    // Stadium management
+    public setStadiumByName(mapName: string): boolean {
+        const loadedStadium = loadStadiumData(mapName);
+        if (!loadedStadium) {
+            return false;
+        }
+
+        this._room.setCustomStadium(loadedStadium);
+        return true;
+    }
+
     public getDefaultStadium(): string {
         return this.defaultStadium;
     }
