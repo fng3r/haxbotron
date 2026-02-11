@@ -8,6 +8,11 @@ export interface JoinBanCheckResult {
     ban?: BanList;
 }
 
+export interface BanDisplayEntry {
+    playerName: string;
+    expire: number;
+}
+
 /**
  * Centralizes ban-related domain behavior for in-page runtime.
  */
@@ -50,6 +55,23 @@ export class BanService {
 
     public async getAllBans(): Promise<BanList[] | undefined> {
         return await this.repository.readAllBans();
+    }
+
+    public async getBanDisplayEntries(): Promise<BanDisplayEntry[] | undefined> {
+        const bans = await this.getAllBans();
+        if (!bans) {
+            return undefined;
+        }
+
+        const entries: BanDisplayEntry[] = [];
+        for (const ban of bans) {
+            const player = await this.repository.readPlayer(ban.auth);
+            entries.push({
+                playerName: player?.name || ban.auth,
+                expire: ban.expire
+            });
+        }
+        return entries;
     }
 
     public async removeBan(conn: string): Promise<void> {

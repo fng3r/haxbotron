@@ -89,8 +89,7 @@ export const command = {
     ,bans: {
         _ErrorFailedToGet: '❌ Failed to get ban list.'
         ,noBans: '🚫 No banned players'
-        ,allBans: '🚫 {bannedPlayers}'
-        ,singleBan: '{playerName} ({banInMinutes})'
+        ,allBans: '🚫 Banned players: {bannedPlayers}'
     }
     ,list: {
         _ErrorNoTeam: '❌ You can only request red,blue,spec players list.'

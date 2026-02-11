@@ -1,7 +1,6 @@
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { extractPlayerIdentifier, isPlayerId, PlayerId } from "../../model/PlayerIdentifier/PlayerIdentifier";
 import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
-import { getInjectedDBRepository } from "../../repositories/InjectedDBRepository";
 import * as LangRes from "../../resource/strings";
 import { ServiceContainer } from "../../services/ServiceContainer";
 import { getRemainingTimeString, getUnixTimestamp } from "../DateTimeUtils";
@@ -57,26 +56,17 @@ export async function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, b
 
 export async function cmdBans(byPlayer: PlayerObject): Promise<void> {
     const services = ServiceContainer.getInstance();
-    const repository = getInjectedDBRepository();
-    
-    const bans = await services.ban.getAllBans();
-    if (bans === undefined) {
+
+    const banEntries = await services.ban.getBanDisplayEntries();
+    if (banEntries === undefined) {
         services.room.sendAnnouncement(LangRes.command.bans._ErrorFailedToGet, null, 0xFF7777, "normal", 2);
         return;
     }
 
-    if (bans!.length === 0) {
+    if (banEntries.length === 0) {
         services.room.sendAnnouncement(LangRes.command.bans.noBans, null, 0x479947, "normal", 1);
     } else {
-        const bannedPlayersStrings = [];
-        for (const ban of bans) {
-            let player = await repository.readPlayer(ban.auth);
-            bannedPlayersStrings.push(Tst.maketext(LangRes.command.bans.singleBan, {
-                playerName: player!.name,
-                banInMinutes: getRemainingTimeString(ban.expire)
-            }));
-        }
-
-        services.room.sendAnnouncement(Tst.maketext(LangRes.command.bans.allBans, {bannedPlayers: bannedPlayersStrings.join(', ')}), null, 0x479947, "normal", 1);
+        const bannedPlayersString = banEntries.map(banEntry => `${banEntry.playerName} (${getRemainingTimeString(banEntry.expire)})`).join(', ');
+        services.room.sendAnnouncement(Tst.maketext(LangRes.command.bans.allBans, {bannedPlayers: bannedPlayersString}), null, 0x479947, "normal", 1);
     }
 }

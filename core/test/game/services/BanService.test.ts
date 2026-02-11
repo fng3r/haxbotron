@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 
+import { describe, expect, it, jest } from "@jest/globals";
 import { BanService } from "../../../game/services/BanService";
 
 describe("BanService", () => {
@@ -16,7 +17,8 @@ describe("BanService", () => {
             readBan: jest.fn(),
             deleteBan: jest.fn(),
             upsertBan: jest.fn(),
-            readAllBans: jest.fn()
+            readAllBans: jest.fn(),
+            readPlayer: jest.fn()
         };
 
         return {
@@ -78,5 +80,29 @@ describe("BanService", () => {
             register: 1000,
             expire: 6000
         });
+    });
+
+    it("builds display entries with player names", async () => {
+        const { service, repository } = createService();
+        repository.readAllBans.mockResolvedValue([
+            { ...sampleBan, auth: "auth-1", expire: 1000 }
+        ]);
+        repository.readPlayer.mockResolvedValue({ name: "John" });
+
+        const entries = await service.getBanDisplayEntries();
+
+        expect(entries).toEqual([{ playerName: "John", expire: 1000 }]);
+    });
+
+    it("falls back to auth when player record missing", async () => {
+        const { service, repository } = createService();
+        repository.readAllBans.mockResolvedValue([
+            { ...sampleBan, auth: "auth-missing", expire: -1 }
+        ]);
+        repository.readPlayer.mockResolvedValue(undefined);
+
+        const entries = await service.getBanDisplayEntries();
+
+        expect(entries).toEqual([{ playerName: "auth-missing", expire: -1 }]);
     });
 });
