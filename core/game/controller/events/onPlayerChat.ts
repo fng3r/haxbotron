@@ -1,7 +1,8 @@
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
 import { ServiceContainer } from "../../services/ServiceContainer";
-import { executeCommand, isCommandString, isTeamChatCommand } from "../commands/CommandParser";
+import { commandExecutor } from "../commands/CommandExecutor";
+import { isCommandString, isTeamChatCommand, parseCommand } from "../commands/CommandParser";
 import { getUnixTimestamp } from "../DateTimeUtils";
 import * as Tst from "../Translator";
 
@@ -73,4 +74,18 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
     }
 
     return true;
+}
+
+function executeCommand(byPlayer: PlayerObject, command: string): void {
+    const services = ServiceContainer.getInstance();
+
+    const parsedCommand = parseCommand(command);
+    if (!parsedCommand) {
+        services.room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
+        return;
+    }
+
+    Promise.resolve(commandExecutor.executeCommand(parsedCommand.commandName, byPlayer, parsedCommand.commandArgs)).catch(() => {
+        services.logger.e('executeCommand', `Failed to execute command '${parsedCommand.commandName}'`);
+    });
 }

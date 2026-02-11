@@ -27,9 +27,10 @@ export const command = {
     _ErrorWrongCommand : '❌ You did wrong command. 📑 !help or !help COMMAND for details.'
     ,_ErrorNoPermission: '❌ You are not admin. You can\'t use this command.'
     ,_ErrorDisabled: '❌ This command is disabled. You can\'t use this command.'
-    ,help: '📑 !about, !adm, !auth, !bb, !deanon, !list, !listroles, !map, !staff\n' +
-           '📑 !freeze, !mute, !mutes, !ban, !bans !setpassword, !switch\n' +
-           '📑 !help COMMAND for detail. (eg. !help stats).'
+    ,help: '📑 List of available commands:\n' +
+           '📑 !about, !adm, !auth, !bb, !deanon, !list, !listroles, !map, !staff\n' +
+           '📑 !freeze, !mute, !mutes, !ban, !bans, !setpassword, !switch\n' +
+           '📑 !help COMMAND - shows command help message. (eg. !help deanon).'
     ,helpman: { // detailed description for a command
         _ErrorWrongCommand : '❌ This command is unknown or disabled.'
         ,help: '📑 !help COMMAND - shows you how to use COMMAND command.'

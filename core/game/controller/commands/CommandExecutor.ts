@@ -1,46 +1,45 @@
-import {PlayerObject} from "../../model/GameObject/PlayerObject";
+import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
-import {GameCommands} from "./GameCommands";
-import {cmdAbout} from "./about";
-import {cmdAuth} from "./auth";
-import {cmdBb} from "./bb";
-import {cmdList} from "./list";
-import {cmdListRoles} from "./listroles";
-import {cmdFreeze} from "./freeze";
-import {cmdMute, cmdMutes} from "./mute";
-import {cmdBan, cmdBans} from "./ban";
-import {cmdSetPassword} from "./setpassword";
-import {cmdStaff} from "./staff";
-import {cmdSwitch} from "./switch";
-import {cmdTeamChat} from "./teamchat";
-import {cmdDeanon} from "./deanon";
-import {cmdMap} from "./map";
-import {buildHelpCommand} from "./help";
+import { GameCommandKey } from "./GameCommands";
+import { cmdAbout } from "./about";
 import { cmdAdm } from "./adm";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { cmdAuth } from "./auth";
+import { cmdBan, cmdBans } from "./ban";
+import { cmdBb } from "./bb";
+import { cmdDeanon } from "./deanon";
+import { cmdFreeze } from "./freeze";
+import { buildHelpCommand } from "./help";
+import { cmdList } from "./list";
+import { cmdListRoles } from "./listroles";
+import { cmdMap } from "./map";
+import { cmdMute, cmdMutes } from "./mute";
+import { cmdSetPassword } from "./setpassword";
+import { cmdStaff } from "./staff";
+import { cmdSwitch } from "./switch";
+import { cmdTeamChat } from "./teamchat";
+
+export type CommandHandler = (byPlayer: PlayerObject, commandArgs: any[]) => void | Promise<void>;
 
 export class CommandExecutor {
-    private readonly _commandHandlers: Map<GameCommands, Function>;
+    private readonly _commandHandlers: Map<GameCommandKey, CommandHandler>;
 
-    constructor(commandHandlers: Map<GameCommands, Function>) {
+    constructor(commandHandlers: Map<GameCommandKey, CommandHandler>) {
         this._commandHandlers = commandHandlers;
     }
 
-    public executeCommand(byPlayer: PlayerObject, commandName: GameCommands, commandArgs: any[]): void {
+    public async executeCommand(commandName: GameCommandKey, byPlayer: PlayerObject, commandArgs: any[]): Promise<void> {
         if (!this._commandHandlers.has(commandName))
         {
-            const services = ServiceContainer.getInstance();
-            services.room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
-            return;
+            throw new Error(`Command '${commandName}' is not registered`);
         }
         const commandHandler = this._commandHandlers.get(commandName)!;
-        commandHandler(byPlayer, commandArgs);
+        await commandHandler(byPlayer, commandArgs);
     }
 }
 
 export class CommandExecutorBuilder {
-    private readonly _commandHandlers: Map<GameCommands, Function>;
-    private readonly _commandHelpMessages: Map<GameCommands, string>;
+    private readonly _commandHandlers: Map<GameCommandKey, CommandHandler>;
+    private readonly _commandHelpMessages: Map<GameCommandKey, string>;
 
     public static new() {
         return new CommandExecutorBuilder();
@@ -51,19 +50,9 @@ export class CommandExecutorBuilder {
         this._commandHelpMessages = new Map();
     }
 
-    public addCommand(commandName: GameCommands, commandHelp: string | null, commandHandler: (byPlayer: PlayerObject, commandArgs: any[]) => void): CommandExecutorBuilder {
+    public addCommand(commandName: GameCommandKey, commandHandler: CommandHandler, commandHelp?: string): CommandExecutorBuilder {
         this._commandHandlers.set(commandName, commandHandler);
-        if (commandHelp !== null) {
-            this._commandHelpMessages.set(commandName, commandHelp);
-        }
-
-        return this;
-    }
-
-    public addCommands(commandName: GameCommands, commandAltName: GameCommands, commandHelp: string | null, commandHandler: (byPlayer: PlayerObject, commandArgs: any[]) => void): CommandExecutorBuilder {
-        this._commandHandlers.set(commandName, commandHandler);
-        this._commandHandlers.set(commandAltName, commandHandler);
-        if (commandHelp !== null) {
+        if (commandHelp !== undefined) {
             this._commandHelpMessages.set(commandName, commandHelp);
         }
 
@@ -75,54 +64,54 @@ export class CommandExecutorBuilder {
         return new CommandExecutor(this._commandHandlers);
     }
 
-    private addHelpCommand(helpMessages: Map<string, string>): void {
+    private addHelpCommand(helpMessages: Map<GameCommandKey, string>): void {
         const cmdHelp = buildHelpCommand(helpMessages);
-        this.addCommand(GameCommands.help, LangRes.command.helpman.help, (byPlayer, commandArgs) => {
+        this.addCommand("help", (byPlayer, commandArgs) => {
             const [command] = commandArgs;
             cmdHelp(byPlayer, command);
-        })
+        }, LangRes.command.helpman.help)
     }
 }
 
 export const commandExecutor = CommandExecutorBuilder.new()
-    .addCommand(GameCommands.about, LangRes.command.helpman.about, (byPlayer) => cmdAbout(byPlayer))
-    .addCommand(GameCommands.adm, LangRes.command.helpman.adm, (byPlayer) => cmdAdm(byPlayer))
-    .addCommand(GameCommands.auth, LangRes.command.helpman.auth, (byPlayer, commandArgs) => {
+    .addCommand("about", (byPlayer) => cmdAbout(byPlayer), LangRes.command.helpman.about)
+    .addCommand("adm", (byPlayer) => cmdAdm(byPlayer), LangRes.command.helpman.adm)
+    .addCommand("auth", (byPlayer, commandArgs) => {
         const [playerId] = commandArgs;
         cmdAuth(byPlayer, playerId);
-    })
-    .addCommands(GameCommands.bb, GameCommands.bbAlt, LangRes.command.helpman.bb, (byPlayer) => cmdBb(byPlayer))
-    .addCommand(GameCommands.deanon, LangRes.command.helpman.deanon, (byPlayer, commandArgs) => {
+    }, LangRes.command.helpman.auth)
+    .addCommand("bb", (byPlayer) => cmdBb(byPlayer), LangRes.command.helpman.bb)
+    .addCommand("deanon", (byPlayer, commandArgs) => {
         const [playerId] = commandArgs;
         cmdDeanon(byPlayer, playerId);
-    })
-    .addCommand(GameCommands.list, LangRes.command.helpman.list, (byPlayer, commandArgs) => {
+    }, LangRes.command.helpman.deanon)
+    .addCommand("list", (byPlayer, commandArgs) => {
         const [playerGroup] = commandArgs;
         cmdList(byPlayer, playerGroup)
-    })
-    .addCommand(GameCommands.listroles, LangRes.command.helpman.listroles, (byPlayer) => cmdListRoles(byPlayer))
-    .addCommand(GameCommands.map, LangRes.command.helpman.map, (byPlayer, commandArgs) => {
+    }, LangRes.command.helpman.list)
+    .addCommand("listroles", (byPlayer) => cmdListRoles(byPlayer), LangRes.command.helpman.listroles)
+    .addCommand("map", (byPlayer, commandArgs) => {
         const [mapName] = commandArgs;
         cmdMap(byPlayer, mapName);
-    })
-    .addCommand(GameCommands.freeze, LangRes.command.helpman.freeze, (byPlayer) => cmdFreeze(byPlayer))
-    .addCommand(GameCommands.mute, LangRes.command.helpman.mute, (byPlayer, commandArgs) => {
+    }, LangRes.command.helpman.map)
+    .addCommand("freeze", (byPlayer) => cmdFreeze(byPlayer), LangRes.command.helpman.freeze)
+    .addCommand("mute", (byPlayer, commandArgs) => {
         const [playerIdentifier, muteDuration] = commandArgs;
         cmdMute(byPlayer, playerIdentifier, muteDuration);
-    })
-    .addCommand(GameCommands.mutes, LangRes.command.helpman.mutes, (byPlayer) => cmdMutes(byPlayer))
-    .addCommand(GameCommands.ban, LangRes.command.helpman.ban, (byPlayer, commandArgs) => {
+    }, LangRes.command.helpman.mute)
+    .addCommand("mutes", (byPlayer) => cmdMutes(byPlayer), LangRes.command.helpman.mutes)
+    .addCommand("ban", (byPlayer, commandArgs) => {
         const [playerIdentifier, banDuration] = commandArgs;
         cmdBan(byPlayer, playerIdentifier, banDuration);
-    })
-    .addCommand(GameCommands.bans, LangRes.command.helpman.bans, (byPlayer) => cmdBans(byPlayer))
-    .addCommand(GameCommands.setpassword, LangRes.command.helpman.setpassword, (byPlayer, commandArgs) => {
+    }, LangRes.command.helpman.ban)
+    .addCommand("bans", (byPlayer) => cmdBans(byPlayer), LangRes.command.helpman.bans)
+    .addCommand("setpassword", (byPlayer, commandArgs) => {
         const [password] = commandArgs;
         cmdSetPassword(byPlayer, password);
-    })
-    .addCommand(GameCommands.staff, LangRes.command.helpman.staff, (byPlayer) => cmdStaff(byPlayer))
-    .addCommand(GameCommands.switch, LangRes.command.helpman.switch, (byPlayer) => cmdSwitch(byPlayer))
-    .addCommands(GameCommands.teamChat, GameCommands.teamChatAlt, null, (byPlayer, commandArgs) => {
+    }, LangRes.command.helpman.setpassword)
+    .addCommand("staff", (byPlayer) => cmdStaff(byPlayer), LangRes.command.helpman.staff)
+    .addCommand("switch", (byPlayer) => cmdSwitch(byPlayer), LangRes.command.helpman.switch)
+    .addCommand("teamChat", (byPlayer, commandArgs) => {
         const [message] = commandArgs
         cmdTeamChat(byPlayer, message);
     })

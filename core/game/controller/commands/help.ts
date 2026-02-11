@@ -1,6 +1,5 @@
 import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import {GameCommands} from "./GameCommands";
 import { ServiceContainer } from "../../services/ServiceContainer";
 
 export function buildHelpCommand(helpMessages: Map<string, string>) {

@@ -1,18 +1,20 @@
-import * as LangRes from "../../resource/strings";
-import {PlayerObject} from "../../model/GameObject/PlayerObject";
-import {GameCommands} from "./GameCommands";
-import {commandExecutor} from "./CommandExecutor";
 import * as P from "parsimmon";
-import {Parser} from "parsimmon";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { Parser } from "parsimmon";
+import { GameCommandKey, GameCommands } from "./GameCommands";
 
 const COMMANDS_PREFIX = '!';
 
-const customParsers = {
-    command(commandName: GameCommands) : Parser<GameCommands> {
-        return P.string(COMMANDS_PREFIX).then(P.string(commandName)).map(_ => commandName);
-    }
-}
+const command = (commandKey: GameCommandKey): Parser<GameCommandKey> => {
+    const commandDef = GameCommands[commandKey];
+    const names = [commandDef.primaryName, ...commandDef.altNames];
+    const nameParsers = names.map((name) => P.string(name));
+    return P.string(COMMANDS_PREFIX)
+        .then(P.alt(...nameParsers))
+        .skip(P.lookahead(P.alt(P.whitespace, P.eof)))
+        .map(() => commandKey);
+};
+
+const optional = <T>(parser: Parser<T>): Parser<T | undefined> => parser.or(P.of(undefined));
 
 const parserLanguage = P.createLanguage({
     commandExpression: lang => P
@@ -36,80 +38,70 @@ const parserLanguage = P.createLanguage({
             lang.teamChatCommand,
             lang.switchCommand
         )
-        .trim(P.optWhitespace)
-        .skip(P.all),
+        .trim(P.optWhitespace),
 
-    aboutCommand: _ => customParsers.command(GameCommands.about),
+    aboutCommand: _ => command("about"),
 
-    admCommand: _ => customParsers.command(GameCommands.adm),
+    admCommand: _ => command("adm"),
 
     authCommand: lang => P.seq(
-        customParsers.command(GameCommands.auth),
-        P.whitespace.then(lang.playerIdNumber).or(P.eof)
+        command("auth"),
+        optional(P.whitespace.then(lang.playerIdNumber))
     ),
 
-    bbCommand: _ => customParsers.command(GameCommands.bb).or(customParsers.command(GameCommands.bbAlt)),
+    bbCommand: _ => command("bb"),
 
     deanonCommand: lang => P.seq(
-        customParsers.command(GameCommands.deanon),
+        command("deanon"),
         P.whitespace.then(lang.playerIdNumber)
     ),
 
     helpCommand: _ => P.seq(
-        customParsers.command(GameCommands.help),
-        P.whitespace.then(P.letter.atLeast(1).tie()).or(P.eof)
+        command("help"),
+        optional(P.whitespace.then(P.letter.atLeast(1).tie()))
     ),
 
-    freezeCommand: _ => customParsers.command(GameCommands.freeze),
+    freezeCommand: _ => command("freeze"),
 
     listCommand: _ => P.seq(
-        customParsers.command(GameCommands.list),
-        P.whitespace.then(P.letter.atLeast(1).tie()).or(P.eof)
+        command("list"),
+        optional(P.whitespace.then(P.letter.atLeast(1).tie()))
     ),
 
-    listRolesCommand: _ => customParsers.command(GameCommands.listroles),
+    listRolesCommand: _ => command("listroles"),
 
     mapCommand: _ => P.seq(
-        customParsers.command(GameCommands.map),
+        command("map"),
         P.whitespace.then(P.regex(/\S+/))
     ),
 
     banCommand: lang => P.seq(
-        customParsers.command(GameCommands.ban),
+        command("ban"),
         P.whitespace.then(P.alt(lang.playerId, lang.playerAuth)),
-        P.alt(
-            P.whitespace.then(P.digits.map(Number)),
-            P.eof
-        )
+        optional(P.whitespace.then(P.digits.map(Number)))
     ),
 
-    bansCommand: _ => customParsers.command(GameCommands.bans),
+    bansCommand: _ => command("bans"),
 
     muteCommand: lang => P.seq(
-        customParsers.command(GameCommands.mute),
+        command("mute"),
         P.whitespace.then(P.alt(lang.playerId, lang.playerAuth)),
-        P.alt(
-            P.whitespace.then(P.digits.map(Number)),
-            P.eof
-        )
+        optional(P.whitespace.then(P.digits.map(Number)))
     ),
 
-    mutesCommand: _ => customParsers.command(GameCommands.mutes),
+    mutesCommand: _ => command("mutes"),
 
     setPasswordCommand: _ => P.seq(
-        customParsers.command(GameCommands.setpassword),
-        P.alt(
-            P.whitespace.then(P.regex(/\S+/)),
-            P.eof
-        )
+        command("setpassword"),
+        optional(P.whitespace.then(P.regex(/\S+/)))
     ),
 
-    staffCommand: _ => customParsers.command(GameCommands.staff),
+    staffCommand: _ => command("staff"),
 
-    switchCommand: _ => customParsers.command(GameCommands.switch),
+    switchCommand: _ => command("switch"),
 
     teamChatCommand: _ => P.seq(
-        customParsers.command(GameCommands.teamChat).or(customParsers.command(GameCommands.teamChatAlt)),
+        command("teamChat"),
         P.whitespace.then(P.all)
     ),
 
@@ -132,31 +124,33 @@ const parserLanguage = P.createLanguage({
         .tie(),
 });
 
-export function executeCommand(byPlayer: PlayerObject, command: string): void {
-    const services = ServiceContainer.getInstance();
-    
-    command = command.trim();
-    const parseCommandResult = parserLanguage.commandExpression.parse(command);
-    if (!parseCommandResult.status)
-    {
-        services.room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
-        return;
+export interface ParsedCommand {
+    commandName: GameCommandKey;
+    commandArgs: any[];
+}
+
+export function parseCommand(command: string): ParsedCommand | null {
+    const parseCommandResult = parserLanguage.commandExpression.parse(command.trim());
+    if (!parseCommandResult.status) {
+        return null;
     }
 
-    const [commandName, ...commandArgs] = Array.isArray(parseCommandResult.value) ? parseCommandResult.value : [parseCommandResult.value];
+    const [commandName, ...commandArgs] = Array.isArray(parseCommandResult.value)
+        ? parseCommandResult.value
+        : [parseCommandResult.value];
 
-    try {
-        commandExecutor.executeCommand(byPlayer, commandName, commandArgs);
-    }
-    catch (e) {
-        services.logger.e('executeCommand', `Failed to execute command '${commandName}'`);
-    }
+    return {
+        commandName,
+        commandArgs
+    };
 }
 
 export function isCommandString(message: string): boolean {
-    return message.charAt(0) == COMMANDS_PREFIX;
+    return message.startsWith(COMMANDS_PREFIX);
 }
 
 export function isTeamChatCommand(message: string): boolean {
-    return message.startsWith(`${COMMANDS_PREFIX}${GameCommands.teamChat}`) || message.startsWith(`${COMMANDS_PREFIX}${GameCommands.teamChatAlt}`);
+    const { primaryName, altNames } = GameCommands.teamChat;
+    const prefixedNames = [primaryName, ...(altNames || [])].map((name) => `${COMMANDS_PREFIX}${name}`);
+    return prefixedNames.some((name) => message.startsWith(name));
 }
