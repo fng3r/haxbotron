@@ -94,7 +94,7 @@ export const command = {
     }
     ,list: {
         _ErrorNoTeam: '❌ You can only request red,blue,spec players list.'
-        ,_ErrorNoOne: '❌ There\'s no one.'
+        ,_ErrorNoOne: '❌ There are no players.'
         ,whoisList: '📜 {whoisResult}'
     }
     ,listroles: {

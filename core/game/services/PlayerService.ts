@@ -1,5 +1,6 @@
 import { Player } from "../model/GameObject/Player";
 import { PlayersSet } from "../model/GameObject/PlayersSet";
+import { TeamID } from "../model/GameObject/TeamID";
 
 /**
  * Service for managing the player list and player operations
@@ -33,6 +34,16 @@ export class PlayerService {
 
     public getAllPlayers(): Player[] {
         return Array.from(this.playerList.values());
+    }
+
+    public getPlayersForTeam(team: TeamID): Player[] {
+        return this.getAllPlayers().filter((player) => {
+            if (player.id === 0) {
+                return false;
+            }
+
+            return player.team === team;
+        });
     }
 
     public getPlayerCount(): number {
