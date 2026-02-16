@@ -185,50 +185,6 @@ export class RoomOperationsAPI {
         );
     }
 
-    public async getNicknameTextFilteringPool(ruid: string): Promise<string[]> {
-        return await this.pageEvaluator.evaluate(ruid, () => {
-            return window.services!.config.getBannedWords('nickname');
-        });
-    }
-
-    public async getChatTextFilteringPool(ruid: string): Promise<string[]> {
-        return await this.pageEvaluator.evaluate(ruid, () => {
-            return window.services!.config.getBannedWords('chat');
-        });
-    }
-
-    public async setNicknameTextFilter(ruid: string, pool: string[]): Promise<void> {
-        await this.pageEvaluator.evaluateWithArgs(
-            ruid,
-            (pool: string[]) => {
-                window.services!.config.setBannedWords('nickname', pool);
-            },
-            pool
-        );
-    }
-
-    public async setChatTextFilter(ruid: string, pool: string[]): Promise<void> {
-        await this.pageEvaluator.evaluateWithArgs(
-            ruid,
-            (pool: string[]) => {
-                window.services!.config.setBannedWords('chat', pool);
-            },
-            pool
-        );
-    }
-
-    public async clearNicknameTextFilter(ruid: string): Promise<void> {
-        await this.pageEvaluator.evaluate(ruid, () => {
-            window.services!.config.setBannedWords('nickname', []);
-        });
-    }
-
-    public async clearChatTextFilter(ruid: string): Promise<void> {
-        await this.pageEvaluator.evaluate(ruid, () => {
-            window.services!.config.setBannedWords('chat', []);
-        });
-    }
-
     public async getChatFreeze(ruid: string): Promise<boolean> {
         return await this.pageEvaluator.evaluate(ruid, () => {
             return window.services!.chat.isAllMuted();

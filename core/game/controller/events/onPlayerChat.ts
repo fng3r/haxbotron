@@ -64,22 +64,5 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
         }
     }
 
-    const messageValidation = services.chat.validateMessageContent(
-        message,
-        config.settings.chatLengthLimit,
-        config.settings.chatTextFilter,
-        services.config.getBannedWords('chat')
-    );
-    if (!messageValidation.isValid) {
-        if (messageValidation.reason === "too_long") {
-            services.room.sendAnnouncement(LangRes.onChat.tooLongChat, player.id, 0xFF0000, "bold", 2);
-        } else if (messageValidation.reason === "separator") {
-            services.room.sendAnnouncement(LangRes.onChat.includeSeparator, player.id, 0xFF0000, "bold", 2);
-        } else if (messageValidation.reason === "banned_words") {
-            services.room.sendAnnouncement(LangRes.onChat.bannedWords, player.id, 0xFF0000, "bold", 2);
-        }
-        return false;
-    }
-
     return true;
 }

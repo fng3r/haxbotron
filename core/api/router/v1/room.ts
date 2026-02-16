@@ -37,12 +37,5 @@ roomRouter.delete('/:ruid/social/notice', roomController.deleteNotice); // delet
 roomRouter.get('/:ruid/social/discord/webhook', roomController.getDiscordWebhookConfig); // get discord webhook configuration
 roomRouter.post('/:ruid/social/discord/webhook', roomController.setDiscordWebhookConfig); // set discord webhook configuration
 
-roomRouter.get('/:ruid/filter/nickname', roomController.getNicknameTextFilteringPool); // get banned words pool for chat filter
-roomRouter.get('/:ruid/filter/chat', roomController.getChatTextFilteringPool); // get banned words pool for nickname filter
-roomRouter.post('/:ruid/filter/nickname', roomController.setNicknameTextFilter); // set banned words pool for chat filter
-roomRouter.post('/:ruid/filter/chat', roomController.setChatTextFilter); // set banned words pool for nickname filter
-roomRouter.delete('/:ruid/filter/nickname', roomController.clearNicknameTextFilter); // clear banned words pool for chat filter
-roomRouter.delete('/:ruid/filter/chat', roomController.clearChatTextFilter); // clear banned words pool for nickname filter
-
 roomRouter.get('/:ruid/asset/team/colour', roomController.getTeamColours); // get team colours
 roomRouter.post('/:ruid/asset/team/colour', roomController.setTeamColours); // set team colours

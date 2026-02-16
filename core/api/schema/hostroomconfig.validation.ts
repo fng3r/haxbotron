@@ -25,28 +25,21 @@ const gameRuleSchema = Joi.object().keys({
     ,customJSONOptions: Joi.string().optional().allow(null, '')
 });
 
-const roomSettingSchema = Joi.object().keys({
-    maliciousBehaviourBanCriterion: Joi.number().required()
+const roomSettingSchema = Joi.object()
+    .keys({
+        antiChatFlood: Joi.boolean().required(),
+        chatFloodCriterion: Joi.number().required(),
+        chatFloodIntervalMillisecs: Joi.number().required(),
+        muteDefaultMillisecs: Joi.number().required(),
+        forbidDuplicatedNickname: Joi.boolean().required(),
+    })
+    .options({ stripUnknown: true });
 
-    ,chatFiltering : Joi.boolean().required()
-
-    ,antiChatFlood : Joi.boolean().required()
-    ,chatFloodCriterion : Joi.number().required()
-    ,chatFloodIntervalMillisecs: Joi.number().required()
-
-    ,muteDefaultMillisecs : Joi.number().required()
-
-    ,nicknameLengthLimit : Joi.number().required()
-    ,chatLengthLimit : Joi.number().required()
-    
-    ,forbidDuplicatedNickname: Joi.boolean().required()
-    ,nicknameTextFilter: Joi.boolean().required()
-    ,chatTextFilter: Joi.boolean().required()
-});
-
-export const nestedHostRoomConfigSchema = Joi.object().keys({
-    ruid: Joi.string().required()
-    ,_config: roomConfigSchema.required()
-    ,settings: roomSettingSchema.required()
-    ,rules: gameRuleSchema.required()
-});
+export const nestedHostRoomConfigSchema = Joi.object()
+    .keys({
+        ruid: Joi.string().required(),
+        _config: roomConfigSchema.required(),
+        settings: roomSettingSchema.required(),
+        rules: gameRuleSchema.required(),
+    })
+    .options({ stripUnknown: true });

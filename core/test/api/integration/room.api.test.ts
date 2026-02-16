@@ -29,12 +29,6 @@ const mockRoomOperations = {
   checkChatFreezed: jest.fn(() => false),
   freezeChat: jest.fn(),
   unfreezeChat: jest.fn(),
-  getNicknameTextFilteringPool: jest.fn(() => []),
-  getChatTextFilteringPool: jest.fn(() => []),
-  setNicknameTextFilter: jest.fn(),
-  setChatTextFilter: jest.fn(),
-  clearNicknameTextFilter: jest.fn(),
-  clearChatTextFilter: jest.fn(),
   getTeamColours: jest.fn(),
   setTeamColours: jest.fn(),
   checkPlayerMuted: jest.fn(() => false),
@@ -85,12 +79,6 @@ describe('Room API Contract Tests', () => {
     router.delete('/api/v1/room/:ruid/social/notice', roomController.deleteNotice);
     router.get('/api/v1/room/:ruid/social/discord/webhook', roomController.getDiscordWebhookConfig);
     router.post('/api/v1/room/:ruid/social/discord/webhook', roomController.setDiscordWebhookConfig);
-    router.get('/api/v1/room/:ruid/filter/nickname', roomController.getNicknameTextFilteringPool);
-    router.get('/api/v1/room/:ruid/filter/chat', roomController.getChatTextFilteringPool);
-    router.post('/api/v1/room/:ruid/filter/nickname', roomController.setNicknameTextFilter);
-    router.post('/api/v1/room/:ruid/filter/chat', roomController.setChatTextFilter);
-    router.delete('/api/v1/room/:ruid/filter/nickname', roomController.clearNicknameTextFilter);
-    router.delete('/api/v1/room/:ruid/filter/chat', roomController.clearChatTextFilter);
     router.get('/api/v1/room/:ruid/asset/team/colour', roomController.getTeamColours);
     router.post('/api/v1/room/:ruid/asset/team/colour', roomController.setTeamColours);
     router.get('/api/v1/room/:ruid/player/:id/permission/mute', roomController.checkPlayerMuted);
@@ -210,18 +198,6 @@ describe('Room API Contract Tests', () => {
       
       expect(response.status).toBe(404);
       expect(response.body.error.code).toBe('ROOM_NOT_FOUND');
-    });
-  });
-
-  describe('POST /api/v1/room/:ruid/filter/nickname - Set nickname filter', () => {
-    it('should return 400 when pool is missing', async () => {
-      const response = await request(server)
-        .post('/api/v1/room/test-room/filter/nickname')
-        .set('x-api-key', 'test-api-key')
-        .send({});
-      
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
     });
   });
 

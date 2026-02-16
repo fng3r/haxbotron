@@ -2,13 +2,7 @@ import ChatActivityMap from "../model/ChatActivityMap";
 import { Player } from "../model/GameObject/Player";
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";
 import { PlayerRoles } from "../model/PlayerRole/PlayerRoles";
-import { AhoCorasick } from "../model/TextFilter/filter";
 
-export type ChatMessageValidationReason = "too_long" | "separator" | "banned_words";
-export interface ChatMessageValidationResult {
-    isValid: boolean;
-    reason?: ChatMessageValidationReason;
-}
 export type MuteActionResult = "unmuted" | "muted_permanently" | "muted_temporarily";
 
 /**
@@ -90,30 +84,4 @@ export class ChatService {
         return "muted_temporarily";
     }
 
-    public validateMessageContent(
-        message: string,
-        chatLengthLimit: number,
-        chatTextFilterEnabled: boolean,
-        bannedWordsPool: string[]
-    ): ChatMessageValidationResult {
-        if (message.length > chatLengthLimit) {
-            return { isValid: false, reason: "too_long" };
-        }
-
-        if (message.includes("|,|")) {
-            return { isValid: false, reason: "separator" };
-        }
-
-        if (chatTextFilterEnabled && this.isIncludingBannedWords(bannedWordsPool, message)) {
-            return { isValid: false, reason: "banned_words" };
-        }
-
-        return { isValid: true };
-    }
-
-    private isIncludingBannedWords(pool: string[], compare: string): boolean {
-        const ac = new AhoCorasick(pool);
-        const results = ac.search(compare);
-        return Array.isArray(results) && results.length > 0;
-    }
 }

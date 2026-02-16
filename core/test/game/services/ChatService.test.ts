@@ -27,15 +27,6 @@ describe("ChatService", () => {
         expect(result).toBe(false);
     });
 
-    it("validates message content rules", () => {
-        const service = new ChatService(3);
-
-        expect(service.validateMessageContent("ok", 10, false, []).isValid).toBe(true);
-        expect(service.validateMessageContent("too-long-message", 5, false, []).reason).toBe("too_long");
-        expect(service.validateMessageContent("bad |,| token", 100, false, []).reason).toBe("separator");
-        expect(service.validateMessageContent("this is spam", 100, true, ["spam"]).reason).toBe("banned_words");
-    });
-
     it("applies flood mute and returns expire timestamp", () => {
         const service = new ChatService(3);
         const roomPlayer: any = {
