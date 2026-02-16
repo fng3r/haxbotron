@@ -4,7 +4,6 @@ import { TeamID } from "../../model/GameObject/TeamID";
 import * as LangRes from "../../resource/strings";
 import { ServiceContainer } from "../../services/ServiceContainer";
 import * as Tst from "../Translator";
-import { CommandListGroups } from "./GameCommands";
 
 export function cmdList(byPlayer: PlayerObject, playerGroup?: string): void {
     const services = ServiceContainer.getInstance();
@@ -35,18 +34,14 @@ function resolveTeam(playerGroup?: string): TeamID | undefined | "invalid" {
         return undefined;
     }
 
-    if (playerGroup === CommandListGroups.red) {
+    if (playerGroup === "red") {
         return TeamID.Red;
-    }
-
-    if (playerGroup === CommandListGroups.blue) {
+    } else if (playerGroup === "blue") {
         return TeamID.Blue;
-    }
-
-    if (playerGroup === CommandListGroups.spec) {
+    } else if (playerGroup === "spec") {
         return TeamID.Spec;
     }
-
+    
     return "invalid";
 }
 

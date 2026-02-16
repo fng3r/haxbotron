@@ -1,8 +1,7 @@
 /// <reference types="jest" />
 
 import { describe, expect, it } from "@jest/globals";
-import { parseCommand } from "../../../../game/controller/commands/CommandParser";
-import { GameCommandKey } from "../../../../game/controller/commands/GameCommands";
+import { GameCommandKey, parseCommand } from "../../../../game/controller/commands/CommandRegistry";
 
 describe("CommandParser", () => {
     function expectParsed(input: string, commandName: GameCommandKey, commandArgs: any[] = []): void {
@@ -52,8 +51,8 @@ describe("CommandParser", () => {
     it("parses alias commands", () => {
         expectParsed("!bb", "bb");
         expectParsed("!ии", "bb");
-        expectParsed("!x team message", "teamChat", ["team message"]);
-        expectParsed("!ч team message", "teamChat", ["team message"]);
+        expectParsed("!x team message", "x", ["team message"]);
+        expectParsed("!ч team message", "x", ["team message"]);
     });
 
     it("ignores surrounding whitespace", () => {

@@ -1,8 +1,7 @@
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
 import { ServiceContainer } from "../../services/ServiceContainer";
-import { commandExecutor } from "../commands/CommandExecutor";
-import { isCommandString, isTeamChatCommand, parseCommand } from "../commands/CommandParser";
+import { commandExecutor, isCommandString, isTeamChatCommand, parseCommand } from "../commands/CommandRegistry";
 import { getUnixTimestamp } from "../DateTimeUtils";
 import * as Tst from "../Translator";
 
@@ -20,8 +19,17 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
     const roomPlayer = playerList.get(player.id)!;
     const playerRole = services.playerRole.getRole(player.id)!;
     if (isCommandString(message)) {
-        executeCommand(player, message);
-        return !isTeamChatCommand(message) && !services.chat.isMessageBlockedByMute(roomPlayer);
+        const command = parseCommand(message);
+        if (command === null) {
+            services.room.sendAnnouncement(LangRes.command._ErrorWrongCommand, player.id, 0xFF7777, "normal", 2);
+        } else {
+            Promise.resolve(commandExecutor.executeCommand(player, command)).catch(() => {
+                services.logger.e('executeCommand', `Failed to execute command '${command.commandName}'`);
+            });
+        }
+
+        const isTeamChatCmd = command && isTeamChatCommand(command.commandName);
+        return !isTeamChatCmd && !services.chat.isMessageBlockedByMute(roomPlayer);
     }
 
     const currentTimestamp = getUnixTimestamp();
@@ -74,18 +82,4 @@ export function onPlayerChatListener(player: PlayerObject, message: string): boo
     }
 
     return true;
-}
-
-function executeCommand(byPlayer: PlayerObject, command: string): void {
-    const services = ServiceContainer.getInstance();
-
-    const parsedCommand = parseCommand(command);
-    if (!parsedCommand) {
-        services.room.sendAnnouncement(LangRes.command._ErrorWrongCommand, byPlayer.id, 0xFF7777, "normal", 2);
-        return;
-    }
-
-    Promise.resolve(commandExecutor.executeCommand(parsedCommand.commandName, byPlayer, parsedCommand.commandArgs)).catch(() => {
-        services.logger.e('executeCommand', `Failed to execute command '${parsedCommand.commandName}'`);
-    });
 }
