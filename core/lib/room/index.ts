@@ -5,29 +5,15 @@ export { RoomProcessManager } from "./RoomProcessManager";
 export { RoomOperationsAPI } from "./RoomOperationsAPI";
 export type { RoomDetailInfo, RoomInfo } from "./RoomOperationsAPI";
 
-let roomOperationsInstance: RoomOperationsAPI | null = null;
-
-export function getRoomOperations(): RoomOperationsAPI {
-    if (!roomOperationsInstance) {
-        throw new Error("Room operations not initialized. Call createRoomServices() first.");
-    }
-
-    return roomOperationsInstance;
-}
-
-export async function createRoomServices(): Promise<{
+export function createRoomServices(): {
     roomProcessManager: RoomProcessManager;
     roomOperations: RoomOperationsAPI;
-}> {
-    if (roomOperationsInstance) {
-        throw new Error("Room operations already initialized");
-    }
-
-    const roomProcessManager = RoomProcessManager.getInstance();
-    roomOperationsInstance = new RoomOperationsAPI(roomProcessManager);
+} {
+    const roomProcessManager = new RoomProcessManager();
+    const roomOperations = new RoomOperationsAPI(roomProcessManager);
 
     return {
         roomProcessManager,
-        roomOperations: roomOperationsInstance,
+        roomOperations,
     };
 }

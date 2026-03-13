@@ -38,20 +38,8 @@ const ROOM_STARTUP_TIMEOUT_MS = 30_000;
 const ROOM_SHUTDOWN_TIMEOUT_MS = 5_000;
 
 export class RoomProcessManager {
-    private static instance: RoomProcessManager;
-
     private readonly rooms = new Map<string, RoomHandle>();
     private sioServer: SIOserver | undefined;
-
-    private constructor() {}
-
-    public static getInstance(): RoomProcessManager {
-        if (!this.instance) {
-            this.instance = new RoomProcessManager();
-        }
-
-        return this.instance;
-    }
 
     public attachSocketIOServer(server: SIOserver): void {
         this.sioServer = server;
