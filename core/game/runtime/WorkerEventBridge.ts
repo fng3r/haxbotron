@@ -1,16 +1,23 @@
 import { getUnixTimestamp } from "../controller/DateTimeUtils";
-import { RoomWorkerEvent } from "../../lib/room/RoomProtocol";
+import {
+    AnyRoomRpcResponse,
+    RoomRpcCommand,
+    RoomRpcResponse,
+    RoomWorkerEvent,
+} from "../../lib/room/RoomProtocol";
 
-function emitEvent(event: RoomWorkerEvent): void {
+export function sendWorkerMessage<C extends RoomRpcCommand>(message: RoomRpcResponse<C>): void;
+export function sendWorkerMessage(message: RoomWorkerEvent): void;
+export function sendWorkerMessage(message: AnyRoomRpcResponse | RoomWorkerEvent): void {
     if (!process.send) {
         return;
     }
 
-    process.send(event);
+    process.send(message);
 }
 
 export function emitRoomReady(link: string): void {
-    emitEvent({
+    sendWorkerMessage({
         type: "event",
         event: "roomReady",
         payload: { link },
@@ -18,7 +25,7 @@ export function emitRoomReady(link: string): void {
 }
 
 export function emitRoomLog(origin: string, level: "info" | "error" | "warn", message: string): void {
-    emitEvent({
+    sendWorkerMessage({
         type: "event",
         event: "log",
         payload: {
@@ -31,7 +38,7 @@ export function emitRoomLog(origin: string, level: "info" | "error" | "warn", me
 }
 
 export function emitPlayerJoinLeave(playerID: number): void {
-    emitEvent({
+    sendWorkerMessage({
         type: "event",
         event: "joinleft",
         payload: { playerID },
@@ -39,7 +46,7 @@ export function emitPlayerJoinLeave(playerID: number): void {
 }
 
 export function emitPlayerStatusChange(playerID: number): void {
-    emitEvent({
+    sendWorkerMessage({
         type: "event",
         event: "statuschange",
         payload: { playerID },

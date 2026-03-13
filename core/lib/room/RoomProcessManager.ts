@@ -38,16 +38,6 @@ const DEFAULT_COMMAND_TIMEOUT_MS = 5_000;
 const ROOM_STARTUP_TIMEOUT_MS = 30_000;
 const ROOM_SHUTDOWN_TIMEOUT_MS = 5_000;
 
-type ForkOptionsWithSerialization = Parameters<typeof fork>[2] & {
-    serialization?: "json" | "advanced";
-};
-
-const forkWithSerialization = fork as unknown as (
-    modulePath: string,
-    args: string[],
-    options: ForkOptionsWithSerialization
-) => ChildProcess;
-
 export class RoomProcessManager {
     private readonly rooms = new Map<string, RoomHandle>();
     private sioServer: SIOserver | undefined;
@@ -74,7 +64,7 @@ export class RoomProcessManager {
         }
 
         const workerPath = path.resolve(__dirname, "../../game/runtime/roomWorker.js");
-        const child = forkWithSerialization(workerPath, [], {
+        const child = fork(workerPath, [], {
             stdio: ["ignore", "inherit", "inherit", "ipc"],
             env: process.env,
             serialization: "advanced",

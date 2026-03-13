@@ -2,6 +2,7 @@ import HaxballJS from "haxball.js";
 import { openRoomRuntime } from "../bot";
 import { handleRoomCommand } from "./RoomCommandHandler";
 import { RoomRuntime } from "./RoomRuntime";
+import { sendWorkerMessage } from "./WorkerEventBridge";
 import {
     AnyRoomRpcRequest,
     RoomRpcCommand,
@@ -49,9 +50,7 @@ async function handleRequest(request: AnyRoomRpcRequest): Promise<void> {
 }
 
 function sendResponse<C extends RoomRpcCommand>(response: RoomRpcResponse<C>): void {
-    if (process.send) {
-        process.send(response);
-    }
+    sendWorkerMessage(response);
 }
 
 function sendSuccessResponse<C extends RoomRpcCommand>(request: RoomRpcRequest<C>, result: RoomRpcResultMap[C]): void {
