@@ -119,9 +119,9 @@ const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
         runtime.room.setTeamColours(payload.team === 2 ? "blue" : "red", teamColourData);
         runtime.logger.i("system", `[TeamColour] New team colour is set for Team ${payload.team}.`);
     },
-    getDiscordWebhookConfig: (runtime) => runtime.social.getDiscordWebhook(),
+    getDiscordWebhookConfig: (runtime) => runtime.social.getDiscordWebhookConfig(),
     setDiscordWebhookConfig: (runtime, payload) => {
-        runtime.social.updateDiscordWebhook(payload.config);
+        runtime.social.updateDiscordWebhookConfig(payload.config);
     },
 };
 

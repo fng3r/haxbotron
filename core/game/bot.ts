@@ -7,7 +7,6 @@ import { emitPlayerStatusChange, emitRoomReady } from "./runtime/WorkerEventBrid
 import { DiscordWebhookService } from "../lib/integrations/DiscordWebhookService";
 import { RoomInitConfig } from "../lib/room.hostconfig";
 import { DiscordWebhookConfig } from "../lib/room.interface";
-import { loadStadiumData } from "../lib/stadiumLoader";
 import { Player } from "./model/GameObject/Player";
 import { TeamID } from "./model/GameObject/TeamID";
 import * as LangRes from "./resource/strings";
@@ -26,10 +25,6 @@ export async function openRoomRuntime(
     logger.i("initialization", "Loading initial config and open the game room...");
 
     const discordWebhookConfig = getDiscordWebhookConfigFromEnv();
-    const defaultStadium = loadStadiumData(runtimeConfig.rules.defaultMapName);
-    if (defaultStadium === null) {
-        throw new Error(`Unknown default stadium '${runtimeConfig.rules.defaultMapName}'`);
-    }
     const room = HBInit(runtimeConfig._config);
     const adminPassword = generateRandomString();
 
@@ -42,13 +37,12 @@ export async function openRoomRuntime(
         discordWebhookService
     );
 
-    runtime.room.setDefaultStadium(defaultStadium);
     runtime.logger.i(
         "initialization",
         `The game room is opened at ${runtime.config.getConfig()._LaunchDate.toLocaleString()}. RUID: ${runtime.config.getRUID()}`
     );
 
-    setDefaultSettings(runtime, discordWebhookService);
+    setDefaultSettings(runtime);
     setEventHandlers(runtime);
     runBackgroundTasks(runtime);
 
@@ -80,22 +74,17 @@ function applyGeolocationOverride(initConfig: RoomInitConfig): RoomInitConfig {
     return initConfig;
 }
 
-function setDefaultSettings(runtime: RoomRuntime, discordWebhookService: DiscordWebhookService): void {
+function setDefaultSettings(runtime: RoomRuntime): void {
     const config = runtime.config.getConfig();
     
-    runtime.room.loadDefaultStadium();
+    runtime.room.setDefaultStadium(config.rules.defaultMapName);
+    if (!runtime.room.loadDefaultStadium()) {
+        throw new Error(`Unknown default stadium '${config.rules.defaultMapName}'`);
+    }
     runtime.room.setScoreLimit(config.rules.scoreLimit);
     runtime.room.setTimeLimit(config.rules.timeLimit);
     runtime.room.setTeamsLock(config.rules.teamLock);
-
-    const webhook = runtime.social.getDiscordWebhook();
-    if (webhook.feed && webhook.passwordWebhookId && webhook.passwordWebhookToken) {
-        void discordWebhookService.sendPassword(webhook.passwordWebhookId, webhook.passwordWebhookToken, {
-            type: "password",
-            roomId: runtime.config.getRUID(),
-            password: runtime.config.getAdminPassword(),
-        });
-    }
+    runtime.social.sendPasswordWebhook(runtime.config.getRUID(), runtime.config.getAdminPassword());
 
     runtime.logger.i('initialization', `Room default settings were set according to loaded config`);
 }

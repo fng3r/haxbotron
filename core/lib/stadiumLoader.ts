@@ -11,9 +11,9 @@ import * as mapBff4v4 from "./stadium/bff_4v4.hbs";
 import * as map6man from "./stadium/6man.hbs";
 
 /**
-* load stadium map (JSON stringified).
-*/
-export function loadStadiumData(mapName: string): string | null {
+ * Resolve bundled stadium data by map name.
+ */
+export function getStadiumData(mapName: string): string | null {
     // LINK MAP FILE
     switch (mapName) {
         case 'big':

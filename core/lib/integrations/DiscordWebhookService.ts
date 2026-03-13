@@ -1,9 +1,9 @@
 import { AttachmentBuilder, EmbedBuilder, WebhookClient } from "discord.js";
 import moment from "moment";
 import { winstonLogger } from "../../winstonLoggerSystem";
+import { DiscordWebhookCredentials } from "../room.interface";
 
 type ReplayContent = {
-    type: "replay";
     roomId: string;
     matchStats: {
         scores: { time: number; red: number; blue: number };
@@ -14,16 +14,13 @@ type ReplayContent = {
 };
 
 type PasswordContent = {
-    type: "password";
     roomId: string;
     password: string;
 };
 
-export type DiscordWebhookContent = ReplayContent | PasswordContent;
-
 export class DiscordWebhookService {
-    public async sendReplay(webhookId: string, webhookToken: string, content: ReplayContent): Promise<void> {
-        const webhookClient = this.createWebhookClient(webhookId, webhookToken);
+    public async sendReplay(credentials: DiscordWebhookCredentials, content: ReplayContent): Promise<void> {
+        const webhookClient = this.createWebhookClient(credentials);
         if (!webhookClient) return;
 
         const { roomId, matchStats } = content;
@@ -70,12 +67,12 @@ export class DiscordWebhookService {
         }
     }
 
-    public async sendPassword(webhookId: string, webhookToken: string, content: PasswordContent): Promise<void> {
-        const webhookClient = this.createWebhookClient(webhookId, webhookToken);
+    public async sendPassword(credentials: DiscordWebhookCredentials, content: PasswordContent): Promise<void> {
+        const webhookClient = this.createWebhookClient(credentials);
         if (!webhookClient) return;
 
         const { roomId, password } = content;
-        const message = `🔒 ${roomId} Admin password was updated. Current admin password is '${password}'`;
+        const message = `🔒 [${roomId}] Admin password was updated. Current admin password is '${password}'`;
 
         try {
             await webhookClient.send(message);
@@ -84,9 +81,9 @@ export class DiscordWebhookService {
         }
     }
 
-    private createWebhookClient(id: string, token: string): WebhookClient | null {
+    private createWebhookClient(credentials: DiscordWebhookCredentials): WebhookClient | null {
         try {
-            return new WebhookClient({ id, token });
+            return new WebhookClient({ id: credentials.webhookId, token: credentials.webhookToken });
         } catch (e) {
             winstonLogger.error(`[Discord] Failed to create webhook client: ${e}`);
             return null;

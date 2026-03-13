@@ -1,4 +1,4 @@
-import { loadStadiumData } from "../../lib/stadiumLoader";
+import { getStadiumData } from "../../lib/stadiumLoader";
 
 /**
  * Service for managing the Haxball room instance
@@ -7,7 +7,7 @@ import { loadStadiumData } from "../../lib/stadiumLoader";
 export class RoomService {
     private _room: RoomObject;
     private _link: string = '';
-    private defaultStadium: string = '';
+    private defaultStadiumName: string = '';
     private teamColours: {
         red: {
             angle: number;
@@ -80,7 +80,7 @@ export class RoomService {
     }
 
     public setStadiumByName(mapName: string): boolean {
-        const loadedStadium = loadStadiumData(mapName);
+        const loadedStadium = getStadiumData(mapName);
         if (!loadedStadium) {
             return false;
         }
@@ -90,15 +90,15 @@ export class RoomService {
     }
 
     public getDefaultStadium(): string {
-        return this.defaultStadium;
+        return this.defaultStadiumName;
     }
 
-    public setDefaultStadium(stadium: string): void {
-        this.defaultStadium = stadium;
+    public setDefaultStadium(stadiumName: string): void {
+        this.defaultStadiumName = stadiumName;
     }
 
-    public loadDefaultStadium(): void {
-        this._room.setCustomStadium(this.defaultStadium);
+    public loadDefaultStadium(): boolean {
+        return this.setStadiumByName(this.defaultStadiumName);
     }
 
     public setScoreLimit(limit: number): void {

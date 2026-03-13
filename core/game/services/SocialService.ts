@@ -25,7 +25,7 @@ export class SocialService {
         this.discordWebhookService = discordWebhookService;
     }
 
-    public getDiscordWebhook() {
+    public getDiscordWebhookConfig() {
         return this.social.discordWebhook;
     }
 
@@ -33,11 +33,31 @@ export class SocialService {
         return this.social;
     }
 
-    public updateDiscordWebhook(webhook: Partial<typeof this.social.discordWebhook>): void {
+    public updateDiscordWebhookConfig(webhook: Partial<typeof this.social.discordWebhook>): void {
         this.social.discordWebhook = { ...this.social.discordWebhook, ...webhook };
     }
 
-    public emitReplayWebhook(roomId: string, matchStats: MatchStats, replay: Uint8Array | null): void {
+    public sendPasswordWebhook(roomId: string, password: string): void {
+        const webhook = this.social.discordWebhook;
+        if (
+            !this.discordWebhookService ||
+            !webhook.feed ||
+            !webhook.passwordWebhookId ||
+            !webhook.passwordWebhookToken
+        ) {
+            return;
+        }
+
+        void this.discordWebhookService.sendPassword({
+            webhookId: webhook.passwordWebhookId,
+            webhookToken: webhook.passwordWebhookToken,
+        }, {
+            roomId,
+            password,
+        });
+    }
+
+    public sendReplayWebhook(roomId: string, matchStats: MatchStats, replay: Uint8Array | null): void {
         const webhook = this.social.discordWebhook;
         if (
             !replay ||
@@ -50,15 +70,13 @@ export class SocialService {
             return;
         }
 
-        void this.discordWebhookService.sendReplay(
-            webhook.replaysWebhookId,
-            webhook.replaysWebhookToken,
-            {
-                type: "replay",
-                roomId: roomId,
-                matchStats: matchStats,
-                data: JSON.stringify(Array.from(replay))
-            }
-        );
+        void this.discordWebhookService.sendReplay({
+            webhookId: webhook.replaysWebhookId,
+            webhookToken: webhook.replaysWebhookToken,
+        }, {
+            roomId: roomId,
+            matchStats: matchStats,
+            data: JSON.stringify(Array.from(replay))
+        });
     }
 }

@@ -21,5 +21,5 @@ export function onGameStopListener(runtime: RoomRuntime, byPlayer: PlayerObject 
     runtime.logger.i('onGameStop', msg);
 
     const replay = room.stopRecording();
-    runtime.social.emitReplayWebhook(runtime.config.getRUID(), stats, replay);
+    runtime.social.sendReplayWebhook(runtime.config.getRUID(), stats, replay);
 }

@@ -128,8 +128,8 @@ describe("RoomCommandHandler", () => {
         expect(runtime.config.setRoomPassword).toHaveBeenCalledWith(undefined);
     });
 
-    it("updates native and cached team colours through the typed handler map", async () => {
-        const { runtime, nativeRoom } = createRuntime();
+    it("updates team colours through the room service", async () => {
+        const { runtime } = createRuntime();
 
         await handleRoomCommand(
             runtime,
@@ -143,7 +143,6 @@ describe("RoomCommandHandler", () => {
             })
         );
 
-        expect(nativeRoom.setTeamColors).toHaveBeenCalledWith(TeamID.Red, 45, 0xffffff, [0x111111, 0x222222, 0x333333]);
         expect(runtime.room.setTeamColours).toHaveBeenCalledWith("red", {
             angle: 45,
             textColour: 0xffffff,
