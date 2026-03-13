@@ -81,6 +81,9 @@ export type RoomRpcResultMap = {
     setDiscordWebhookConfig: void;
 };
 
+export type RoomRpcCommand = keyof RoomRpcCommandMap;
+export type RuntimeRoomRpcCommand = Exclude<RoomRpcCommand, "openRoom">;
+
 export type RoomWorkerEvent =
     | {
           type: "event";
@@ -103,23 +106,35 @@ export type RoomWorkerEvent =
           payload: { playerID: number };
       };
 
-export type RoomRpcRequest<C extends keyof RoomRpcCommandMap = keyof RoomRpcCommandMap> = {
+export type RoomRpcRequest<C extends RoomRpcCommand = RoomRpcCommand> = {
     type: "request";
     requestId: string;
     command: C;
     payload: RoomRpcCommandMap[C];
 };
 
-export type RoomRpcSuccessResponse<C extends keyof RoomRpcCommandMap = keyof RoomRpcCommandMap> = {
+export type AnyRoomRpcRequest = {
+    [C in RoomRpcCommand]: RoomRpcRequest<C>;
+}[RoomRpcCommand];
+
+export type RuntimeRoomRpcRequest<C extends RuntimeRoomRpcCommand = RuntimeRoomRpcCommand> = RoomRpcRequest<C>;
+
+export type AnyRuntimeRoomRpcRequest = {
+    [C in RuntimeRoomRpcCommand]: RuntimeRoomRpcRequest<C>;
+}[RuntimeRoomRpcCommand];
+
+export type RoomRpcSuccessResponse<C extends RoomRpcCommand = RoomRpcCommand> = {
     type: "response";
     requestId: string;
+    command: C;
     success: true;
     result: RoomRpcResultMap[C];
 };
 
-export type RoomRpcErrorResponse = {
+export type RoomRpcErrorResponse<C extends RoomRpcCommand = RoomRpcCommand> = {
     type: "response";
     requestId: string;
+    command: C;
     success: false;
     error: {
         message: string;
@@ -127,8 +142,27 @@ export type RoomRpcErrorResponse = {
     };
 };
 
-export type RoomRpcResponse<C extends keyof RoomRpcCommandMap = keyof RoomRpcCommandMap> =
+export type RoomRpcResponse<C extends RoomRpcCommand = RoomRpcCommand> =
     | RoomRpcSuccessResponse<C>
-    | RoomRpcErrorResponse;
+    | RoomRpcErrorResponse<C>;
 
-export type RoomWorkerMessage = RoomRpcResponse | RoomWorkerEvent;
+export type AnyRoomRpcResponse = {
+    [C in RoomRpcCommand]: RoomRpcResponse<C>;
+}[RoomRpcCommand];
+
+export type RoomWorkerMessage = AnyRoomRpcResponse | RoomWorkerEvent;
+
+export function isRoomRpcRequest(message: unknown): message is AnyRoomRpcRequest {
+    if (!message || typeof message !== "object") {
+        return false;
+    }
+
+    return "type" in message && message.type === "request" && "requestId" in message && "command" in message;
+}
+
+export function isRoomRpcResponseForCommand<C extends RoomRpcCommand>(
+    response: AnyRoomRpcResponse,
+    command: C
+): response is Extract<AnyRoomRpcResponse, { command: C }> {
+    return response.command === command;
+}

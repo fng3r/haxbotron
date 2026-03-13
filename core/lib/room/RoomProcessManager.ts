@@ -4,18 +4,19 @@ import { v4 as uuid } from "uuid";
 import { Server as SIOserver } from "socket.io";
 import { RoomInitConfig } from "../room.hostconfig";
 import {
+    AnyRoomRpcResponse,
+    RoomRpcCommand,
     RoomRpcCommandMap,
     RoomRpcRequest,
-    RoomRpcResponse,
     RoomRpcResultMap,
     RoomWorkerEvent,
     RoomWorkerMessage,
+    isRoomRpcResponseForCommand,
 } from "./RoomProtocol";
 
 type PendingRequest = {
-    command: keyof RoomRpcCommandMap;
-    resolve: (value: unknown) => void;
-    reject: (reason?: unknown) => void;
+    command: RoomRpcCommand;
+    settle: (response: AnyRoomRpcResponse) => void;
     timer: NodeJS.Timeout;
 };
 
@@ -36,6 +37,16 @@ type RoomHandle = {
 const DEFAULT_COMMAND_TIMEOUT_MS = 5_000;
 const ROOM_STARTUP_TIMEOUT_MS = 30_000;
 const ROOM_SHUTDOWN_TIMEOUT_MS = 5_000;
+
+type ForkOptionsWithSerialization = Parameters<typeof fork>[2] & {
+    serialization?: "json" | "advanced";
+};
+
+const forkWithSerialization = fork as unknown as (
+    modulePath: string,
+    args: string[],
+    options: ForkOptionsWithSerialization
+) => ChildProcess;
 
 export class RoomProcessManager {
     private readonly rooms = new Map<string, RoomHandle>();
@@ -63,11 +74,11 @@ export class RoomProcessManager {
         }
 
         const workerPath = path.resolve(__dirname, "../../game/runtime/roomWorker.js");
-        const child = fork(workerPath, [], {
+        const child = forkWithSerialization(workerPath, [], {
             stdio: ["ignore", "inherit", "inherit", "ipc"],
             env: process.env,
             serialization: "advanced",
-        } as any);
+        });
 
         const handle = this.createHandle(ruid, child);
         this.rooms.set(ruid, handle);
@@ -212,7 +223,7 @@ export class RoomProcessManager {
         }
     }
 
-    private handleWorkerResponse(handle: RoomHandle, response: RoomRpcResponse): void {
+    private handleWorkerResponse(handle: RoomHandle, response: AnyRoomRpcResponse): void {
         const pending = handle.pendingRequests.get(response.requestId);
         if (!pending) {
             return;
@@ -220,13 +231,7 @@ export class RoomProcessManager {
 
         clearTimeout(pending.timer);
         handle.pendingRequests.delete(response.requestId);
-
-        if (response.success) {
-            pending.resolve(response.result);
-            return;
-        }
-
-        pending.reject(new Error(response.error.message));
+        pending.settle(response);
     }
 
     private async request<C extends keyof RoomRpcCommandMap>(
@@ -251,8 +256,23 @@ export class RoomProcessManager {
 
             handle.pendingRequests.set(requestId, {
                 command,
-                resolve: (value) => resolve(value as RoomRpcResultMap[C]),
-                reject,
+                settle: (response) => {
+                    if (!isRoomRpcResponseForCommand(response, command)) {
+                        reject(
+                            new Error(
+                                `[RoomProcessManager] Mismatched response for '${String(command)}' in room '${handle.ruid}'`
+                            )
+                        );
+                        return;
+                    }
+
+                    if (response.success) {
+                        resolve(response.result as RoomRpcResultMap[C]);
+                        return;
+                    }
+
+                    reject(new Error(response.error.message));
+                },
                 timer,
             });
 
@@ -278,7 +298,15 @@ export class RoomProcessManager {
     private rejectPending(handle: RoomHandle, error: unknown): void {
         for (const pending of handle.pendingRequests.values()) {
             clearTimeout(pending.timer);
-            pending.reject(error);
+            pending.settle({
+                type: "response",
+                requestId: "",
+                command: pending.command,
+                success: false,
+                error: {
+                    message: error instanceof Error ? error.message : String(error),
+                },
+            });
         }
         handle.pendingRequests.clear();
     }

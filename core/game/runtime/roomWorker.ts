@@ -2,15 +2,21 @@ import HaxballJS from "haxball.js";
 import { openRoomRuntime } from "../bot";
 import { handleRoomCommand } from "./RoomCommandHandler";
 import { RoomRuntime } from "./RoomRuntime";
-import { RoomRpcRequest, RoomRpcResponse } from "../../lib/room/RoomProtocol";
-import { RoomInitConfig } from "../../lib/room.hostconfig";
+import {
+    AnyRoomRpcRequest,
+    RoomRpcCommand,
+    RoomRpcRequest,
+    RoomRpcResponse,
+    RoomRpcResultMap,
+    isRoomRpcRequest,
+} from "../../lib/room/RoomProtocol";
 
 let roomOpen = false;
 let roomRuntime: RoomRuntime | null = null;
 
 type HBInitFunction = Awaited<ReturnType<typeof HaxballJS>>;
 
-async function handleRequest(request: RoomRpcRequest): Promise<void> {
+async function handleRequest(request: AnyRoomRpcRequest): Promise<void> {
     try {
         if (request.command === "openRoom") {
             if (roomOpen) {
@@ -18,15 +24,9 @@ async function handleRequest(request: RoomRpcRequest): Promise<void> {
             }
 
             const HBInit: HBInitFunction = await HaxballJS();
-            const openPayload = request.payload as { ruid: string; initConfig: RoomInitConfig };
-            roomRuntime = await openRoomRuntime(HBInit, openPayload.initConfig);
+            roomRuntime = await openRoomRuntime(HBInit, request.payload.initConfig);
             roomOpen = true;
-            sendResponse({
-                type: "response",
-                requestId: request.requestId,
-                success: true,
-                result: undefined,
-            });
+            sendSuccessResponse(request, undefined);
             return;
         }
 
@@ -37,37 +37,47 @@ async function handleRequest(request: RoomRpcRequest): Promise<void> {
             throw new Error("Room runtime is not available");
         }
 
-        const result = await handleRoomCommand(roomRuntime, request.command, request.payload);
-        sendResponse({
-            type: "response",
-            requestId: request.requestId,
-            success: true,
-            result: result as any,
-        });
+        const result = await handleRoomCommand(roomRuntime, request);
+        sendSuccessResponse(request, result);
 
         if (request.command === "closeRoom") {
             process.nextTick(() => process.exit(0));
         }
     } catch (error) {
-        sendResponse({
-            type: "response",
-            requestId: request.requestId,
-            success: false,
-            error: {
-                message: error instanceof Error ? error.message : String(error),
-            },
-        });
+        sendErrorResponse(request, error);
     }
 }
 
-function sendResponse(response: RoomRpcResponse): void {
+function sendResponse<C extends RoomRpcCommand>(response: RoomRpcResponse<C>): void {
     if (process.send) {
         process.send(response);
     }
 }
 
-process.on("message", (message: RoomRpcRequest) => {
-    if (!message || typeof message !== "object" || message.type !== "request") {
+function sendSuccessResponse<C extends RoomRpcCommand>(request: RoomRpcRequest<C>, result: RoomRpcResultMap[C]): void {
+    sendResponse({
+        type: "response",
+        requestId: request.requestId,
+        command: request.command,
+        success: true,
+        result,
+    });
+}
+
+function sendErrorResponse<C extends RoomRpcCommand>(request: RoomRpcRequest<C>, error: unknown): void {
+    sendResponse({
+        type: "response",
+        requestId: request.requestId,
+        command: request.command,
+        success: false,
+        error: {
+            message: error instanceof Error ? error.message : String(error),
+        },
+    });
+}
+
+process.on("message", (message: unknown) => {
+    if (!isRoomRpcRequest(message)) {
         return;
     }
 
