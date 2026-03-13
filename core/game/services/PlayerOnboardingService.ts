@@ -2,7 +2,7 @@ import { Player } from "../model/GameObject/Player";
 import { PlayerStorage } from "../model/GameObject/PlayerState";
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";
 import { PlayerRoles } from "../model/PlayerRole/PlayerRoles";
-import { getRoomDbRepository, RoomDbRepository } from "../runtime/RoomDbRepository";
+import { RoomDbRepository } from "../runtime/RoomDbRepository";
 
 export interface JoinHydrationResult {
     player: Player;
@@ -18,7 +18,7 @@ export interface RoleResolutionResult {
  * Encapsulates player join persistence/rehydration and role resolution logic.
  */
 export class PlayerOnboardingService {
-    constructor(private readonly repository: RoomDbRepository = getRoomDbRepository()) {}
+    constructor(private readonly repository: RoomDbRepository) {}
 
     public async hydratePlayer(player: PlayerJoinObject, playerAuth: string, joinTimestamp: number): Promise<JoinHydrationResult> {
         const existing = await this.repository.readPlayer(playerAuth);

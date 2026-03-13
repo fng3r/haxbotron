@@ -12,6 +12,7 @@ import { PlayerRoleService } from "../services/PlayerRoleService";
 import { PlayerService } from "../services/PlayerService";
 import { RoomService } from "../services/RoomService";
 import { SocialService } from "../services/SocialService";
+import { RoomDbRepository } from "./RoomDbRepository";
 
 export interface RoomRuntime {
     config: ConfigService;
@@ -35,14 +36,16 @@ export function createRoomRuntime(
     logger: Logger,
     discordWebhookService?: DiscordWebhookService
 ): RoomRuntime {
+    const roomRepository = new RoomDbRepository(config._RUID);
+
     return {
         config: new ConfigService(config, adminPassword),
         room: new RoomService(room),
         player: new PlayerService(),
         playerRole: new PlayerRoleService(),
-        playerOnboarding: new PlayerOnboardingService(),
+        playerOnboarding: new PlayerOnboardingService(roomRepository),
         match: new MatchService(),
-        ban: new BanService(),
+        ban: new BanService(roomRepository),
         chat: new ChatService(config.settings.chatFloodCriterion),
         social: new SocialService(discordWebhook, discordWebhookService),
         notification: new NotificationService(),

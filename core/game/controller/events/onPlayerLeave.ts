@@ -1,5 +1,4 @@
 import * as LangRes from "../../resource/strings";
-import { getRoomDbRepository } from "../../runtime/RoomDbRepository";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge";
 import { getUnixTimestamp } from "../DateTimeUtils";
@@ -8,7 +7,6 @@ import * as Tst from "../Translator";
 
 export async function onPlayerLeaveListener(runtime: RoomRuntime, player: PlayerObject): Promise<void> {
     // Event called when a player leaves the room.
-    const repository = getRoomDbRepository();
     const room = runtime.room.getRoom();
     const playerList = runtime.player.getPlayerList();
     const config = runtime.config.getConfig();
@@ -31,7 +29,7 @@ export async function onPlayerLeaveListener(runtime: RoomRuntime, player: Player
     runtime.room.sendAnnouncement(Tst.maketext(LangRes.onLeft.playerLeft, placeholderLeft), null, 0xFFFFFF, "small", 0);
 
     playerList.get(player.id)!.entrytime.leftDate = leftTimeStamp;
-    await repository.upsertPlayer(repository.toPlayerStorage(playerList.get(player.id)!));
+    await runtime.playerOnboarding.persistPlayer(playerList.get(player.id)!);
     runtime.player.removePlayer(player.id);
     runtime.playerRole.removeRole(player.id);
 

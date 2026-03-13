@@ -7,8 +7,6 @@ export class KickStack {
     It can be used for processing who goaled, who made OG, and so on.
     */
 
-    // single ton pattern 
-    private static instance: KickStack = new KickStack();
     private _store: number[] = [];
     private ballPossession = {
         red: 0,
@@ -19,31 +17,27 @@ export class KickStack {
         team: 0
     };
 
-    private KickStack<Number>() { } // not use
-    public static getInstance(): KickStack {
-        if (this.instance == null) {
-            this.instance = new KickStack();
-        }
-        return this.instance;
-    }
-    
-    push(playerID: number): void {
+    public push(playerID: number): void {
         this._store.push(playerID);
     }
-    pop(): number | undefined {
+
+    public pop(): number | undefined {
         return this._store.pop();
     }
-    clear(): void {
+
+    public clear(): void {
         this._store = [];
         this.lastTouched = {
             id: 0,
             team: 0
         };
     }
-    getLastTouchPlayerID(): number {
+
+    public getLastTouchPlayerID(): number {
         return this.lastTouched.id;
     }
-    submitTouch(player: Player) {
+
+    public submitTouch(player: Player): void {
         this.lastTouched = {
             id: player.id,
             team: player.team
@@ -51,18 +45,20 @@ export class KickStack {
         this.push(player.id);
         this.possCount(player.team);
     }
-    passJudgment(team: TeamID): boolean { // 1: red team, 2: blue team
+
+    public passJudgment(team: TeamID): boolean { // 1: red team, 2: blue team
         return this.lastTouched.team == team;
     }
 
-    possCount(team: TeamID): void { // 1: red team, 2: blue team
+    public possCount(team: TeamID): void { // 1: red team, 2: blue team
         if(team == TeamID.Red) { 
             this.ballPossession.red++;
         } else if(team == TeamID.Blue) {
             this.ballPossession.blue++;
         }
     }
-    possCalculate(team: TeamID): number { // 1: red team, 2: blue team
+
+    public possCalculate(team: TeamID): number { // 1: red team, 2: blue team
         if(this.ballPossession.red == 0 && this.ballPossession.blue == 0) {
             return 0;
         } else {
@@ -74,7 +70,8 @@ export class KickStack {
         }
         return 0;
     }
-    possClear(): void {
+
+    public possClear(): void {
         this.ballPossession = {red: 0, blue: 0};
     }
 }

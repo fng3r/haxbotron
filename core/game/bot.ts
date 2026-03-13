@@ -4,12 +4,10 @@ import * as eventListener from "./controller/events/eventListeners";
 import { Logger } from "./controller/Logger";
 import * as Tst from "./controller/Translator";
 import { emitPlayerStatusChange, emitRoomReady } from "./runtime/WorkerEventBridge";
-import { initializeRoomDbRepository, resetRoomDbRepository } from "./runtime/RoomDbRepository";
 import { DiscordWebhookService } from "../lib/integrations/DiscordWebhookService";
 import { RoomInitConfig } from "../lib/room.hostconfig";
 import { DiscordWebhookConfig } from "../lib/room.interface";
 import { loadStadiumData } from "../lib/stadiumLoader";
-import { GameRoomConfig } from "./model/Configuration/GameRoomConfig";
 import { Player } from "./model/GameObject/Player";
 import { TeamID } from "./model/GameObject/TeamID";
 import * as LangRes from "./resource/strings";
@@ -23,10 +21,7 @@ export async function openRoomRuntime(
     initConfig: RoomInitConfig,
     discordWebhookService: DiscordWebhookService = new DiscordWebhookService()
 ): Promise<RoomRuntime> {
-    Logger.reset();
-    resetRoomDbRepository();
-
-    const logger = Logger.getInstance();
+    const logger = new Logger();
     logger.i("initialization", "Loading initial config and open the game room...");
 
     const runtimeConfig = applyGeolocationOverride(initConfig);
@@ -38,11 +33,9 @@ export async function openRoomRuntime(
     const room = HBInit(runtimeConfig._config);
     const adminPassword = generateRandomString();
 
-    initializeRoomDbRepository(runtimeConfig._RUID);
-
     const runtime = createRoomRuntime(
         room,
-        runtimeConfig as unknown as GameRoomConfig,
+        runtimeConfig,
         adminPassword,
         discordWebhookConfig,
         logger,

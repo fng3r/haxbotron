@@ -95,22 +95,3 @@ export class RoomDbRepository {
         await this.createBan(banList);
     }
 }
-
-let roomDbRepositoryInstance: RoomDbRepository | null = null;
-
-export function initializeRoomDbRepository(ruid: string): RoomDbRepository {
-    roomDbRepositoryInstance = new RoomDbRepository(ruid);
-    return roomDbRepositoryInstance;
-}
-
-export function getRoomDbRepository(): RoomDbRepository {
-    if (!roomDbRepositoryInstance) {
-        throw new Error("RoomDbRepository is not initialized. Call initializeRoomDbRepository() first.");
-    }
-
-    return roomDbRepositoryInstance;
-}
-
-export function resetRoomDbRepository(): void {
-    roomDbRepositoryInstance = null;
-}

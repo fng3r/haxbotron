@@ -1,5 +1,5 @@
 import { BanList } from "../model/PlayerBan/BanList";
-import { getRoomDbRepository, RoomDbRepository } from "../runtime/RoomDbRepository";
+import { RoomDbRepository } from "../runtime/RoomDbRepository";
 
 export type JoinBanStatus = "not_banned" | "permanent_ban" | "temporary_ban_active" | "temporary_ban_expired";
 
@@ -17,7 +17,7 @@ export interface BanDisplayEntry {
  * Centralizes ban-related domain behavior for in-page runtime.
  */
 export class BanService {
-    constructor(private readonly repository: RoomDbRepository = getRoomDbRepository()) {}
+    constructor(private readonly repository: RoomDbRepository) {}
 
     public createPermanentBan(conn: string, auth: string, reason: string, registerTimestamp: number): BanList {
         return {
