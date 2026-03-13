@@ -1,5 +1,3 @@
-import { emitPlayerStatusChange } from "./WorkerEventBridge";
-import { RoomRuntime } from "./RoomRuntime";
 import {
     RoomRpcCommandMap,
     RoomRpcResultMap,
@@ -7,6 +5,8 @@ import {
     RuntimeRoomRpcRequest,
     TeamColourInfo,
 } from "../../lib/room/RoomProtocol";
+import { RoomRuntime } from "./RoomRuntime";
+import { emitPlayerStatusChange } from "./WorkerEventBridge";
 
 type RuntimeRoomCommandHandlerMap = {
     [C in RuntimeRoomRpcCommand]: (
@@ -116,11 +116,6 @@ const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
             teamColour3: payload.teamColour3,
         };
 
-        runtime.room.getRoom().setTeamColors(payload.team, payload.angle, payload.textColour, [
-            payload.teamColour1,
-            payload.teamColour2,
-            payload.teamColour3,
-        ]);
         runtime.room.setTeamColours(payload.team === 2 ? "blue" : "red", teamColourData);
         runtime.logger.i("system", `[TeamColour] New team colour is set for Team ${payload.team}.`);
     },
