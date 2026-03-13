@@ -21,10 +21,10 @@ export async function openRoomRuntime(
     initConfig: RoomInitConfig,
     discordWebhookService: DiscordWebhookService = new DiscordWebhookService()
 ): Promise<RoomRuntime> {
-    const logger = new Logger();
+    const runtimeConfig = applyGeolocationOverride(initConfig);
+    const logger = new Logger(runtimeConfig._RUID);
     logger.i("initialization", "Loading initial config and open the game room...");
 
-    const runtimeConfig = applyGeolocationOverride(initConfig);
     const discordWebhookConfig = getDiscordWebhookConfigFromEnv();
     const defaultStadium = loadStadiumData(runtimeConfig.rules.defaultMapName);
     if (defaultStadium === null) {
