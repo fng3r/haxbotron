@@ -1,6 +1,6 @@
 export interface RoomConfig {
     // The name for the room.
-    roomName?: string;
+    roomName: string;
     // The name for the host player.
     playerName?: string;
     // The password for the room (no password if ommited).

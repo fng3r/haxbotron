@@ -1,14 +1,18 @@
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 import * as LangRes from "../../resource/strings";
+import { ServiceContainer } from "../../services/ServiceContainer";
 
 export function cmdAdm(byPlayer: PlayerObject): void {
-    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id)!;
+    const services = ServiceContainer.getInstance();
+    const room = services.room.getRoom();
+    
+    const playerRole = services.playerRole.getRole(byPlayer.id)!;
     if(PlayerRoles.atLeast(playerRole, PlayerRoles.ADM)) {
-        window.gameRoom._room.setPlayerAdmin(byPlayer.id, true);
+        room.setPlayerAdmin(byPlayer.id, true);
 
         window._emitSIOPlayerStatusChangeEvent(byPlayer.id);
     } else {
-        window.gameRoom._room.sendAnnouncement(LangRes.command.adm._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
+        services.room.sendAnnouncement(LangRes.command.adm._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
     }
 }

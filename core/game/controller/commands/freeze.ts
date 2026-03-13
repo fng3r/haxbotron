@@ -1,20 +1,22 @@
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 import * as LangRes from "../../resource/strings";
-import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
+import { ServiceContainer } from "../../services/ServiceContainer";
 
 export function cmdFreeze(byPlayer: PlayerObject): void {
-    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id)!;
+    const services = ServiceContainer.getInstance();
+    
+    const playerRole = services.playerRole.getRole(byPlayer.id)!;
     if(PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
-        if(window.gameRoom.isMuteAll) {
-            window.gameRoom.isMuteAll = false; //off
-            window.gameRoom._room.sendAnnouncement(LangRes.command.freeze.offFreeze, null, 0x479947, "normal", 1);
+        const isFrozen = services.chat.toggleFreeze();
+        if (isFrozen) {
+            services.room.sendAnnouncement(LangRes.command.freeze.onFreeze, null, 0x479947, "normal", 1);
         } else {
-            window.gameRoom.isMuteAll = true; //on
-            window.gameRoom._room.sendAnnouncement(LangRes.command.freeze.onFreeze, null, 0x479947, "normal", 1);
+            services.room.sendAnnouncement(LangRes.command.freeze.offFreeze, null, 0x479947, "normal", 1);
         }
 
         window._emitSIOPlayerStatusChangeEvent(byPlayer.id);
     } else {
-        window.gameRoom._room.sendAnnouncement(LangRes.command.freeze._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
+        services.room.sendAnnouncement(LangRes.command.freeze._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
     }
 }

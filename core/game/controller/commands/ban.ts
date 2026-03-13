@@ -1,15 +1,19 @@
-import {getRemainingTimeString, getUnixTimestamp} from "../DateTimeUtils";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
+import { extractPlayerIdentifier, isPlayerId, PlayerId } from "../../model/PlayerIdentifier/PlayerIdentifier";
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 import * as LangRes from "../../resource/strings";
+import { ServiceContainer } from "../../services/ServiceContainer";
+import { getRemainingTimeString, getUnixTimestamp } from "../DateTimeUtils";
 import * as Tst from "../Translator";
-import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
-import {getAllBansFromDB, getPlayerDataFromDB, setBanlistDataToDB} from "../Storage";
-import {extractPlayerIdentifier, isPlayerId, PlayerId} from "../../model/PlayerIdentifier/PlayerIdentifier";
 
 export async function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, banDuration?: number): Promise<void> {
-    const playerRole = window.gameRoom.playerRoles.get(byPlayer.id)!;
+    const services = ServiceContainer.getInstance();
+    const room = services.room.getRoom();
+    const playerList = services.player.getPlayerList();
+    
+    const playerRole = services.playerRole.getRole(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
-        window.gameRoom._room.sendAnnouncement(LangRes.command.mute._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
+        services.room.sendAnnouncement(LangRes.command.mute._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
 
@@ -18,10 +22,10 @@ export async function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, b
     if(isPlayerId(playerIdentifier1)) {
         const playerId = (playerIdentifier1 as PlayerId).id;
         const banInMinutes = banDuration || -1;
-        if (window.gameRoom.playerList.has(playerId)) {
-            const player = window.gameRoom.playerList.get(playerId)!;
+        if (playerList.has(playerId)) {
+            const player = playerList.get(playerId)!;
             let placeholder = {
-                targetName: window.gameRoom.playerList.get(playerId)!.name
+                targetName: playerList.get(playerId)!.name
                 ,ticketTarget: playerId
                 ,byPlayerName: byPlayer.name
                 ,byPlayerId: byPlayer.id
@@ -30,48 +34,39 @@ export async function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, b
             const currentTimestamp: number = getUnixTimestamp();
 
             if (banInMinutes === -1) {
-                await setBanlistDataToDB({conn: player.conn, auth: player.auth, reason: '', register: currentTimestamp, expire: -1});
-                window.gameRoom._room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.permanentBan, placeholder), false);
-                window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successPermaBan, placeholder), null, 0x479947, "normal", 1);
+                await services.ban.upsertBan(
+                    services.ban.createPermanentBan(player.conn, player.auth, '', currentTimestamp)
+                );
+                room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.permanentBan, placeholder), false);
+                services.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successPermaBan, placeholder), null, 0x479947, "normal", 1);
             } else {
-                const expirationTimestamp = currentTimestamp + banInMinutes * 60 * 1000;
-                await setBanlistDataToDB({
-                    conn: player.conn,
-                    auth: player.auth,
-                    reason: '',
-                    register: currentTimestamp,
-                    expire: expirationTimestamp
-                });
-                window.gameRoom._room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.tempBan, placeholder), false);
-                window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successTempBan, placeholder), null, 0x479947, "normal", 1);
+                await services.ban.upsertBan(
+                    services.ban.createTemporaryBan(player.conn, player.auth, '', currentTimestamp, banInMinutes * 60 * 1000)
+                );
+                room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.tempBan, placeholder), false);
+                services.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successTempBan, placeholder), null, 0x479947, "normal", 1);
             }
 
             window._emitSIOPlayerStatusChangeEvent(byPlayer.id);
         } else {
-            window.gameRoom._room.sendAnnouncement(LangRes.command.ban._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 2);
+            services.room.sendAnnouncement(LangRes.command.ban._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 2);
         }
     }
 }
 
 export async function cmdBans(byPlayer: PlayerObject): Promise<void> {
-    const bans = await getAllBansFromDB(window.gameRoom.config._RUID)
-    if (bans === undefined) {
-        window.gameRoom._room.sendAnnouncement(LangRes.command.bans._ErrorFailedToGet, null, 0xFF7777, "normal", 2);
+    const services = ServiceContainer.getInstance();
+
+    const banEntries = await services.ban.getBanDisplayEntries();
+    if (banEntries === undefined) {
+        services.room.sendAnnouncement(LangRes.command.bans._ErrorFailedToGet, null, 0xFF7777, "normal", 2);
         return;
     }
 
-    if (bans!.length === 0) {
-        window.gameRoom._room.sendAnnouncement(LangRes.command.bans.noBans, null, 0x479947, "normal", 1);
+    if (banEntries.length === 0) {
+        services.room.sendAnnouncement(LangRes.command.bans.noBans, null, 0x479947, "normal", 1);
     } else {
-        const bannedPlayersStrings = [];
-        for (const ban of bans) {
-            let player = await getPlayerDataFromDB(ban.auth);
-            bannedPlayersStrings.push(Tst.maketext(LangRes.command.bans.singleBan, {
-                playerName: player!.name,
-                banInMinutes: getRemainingTimeString(ban.expire)
-            }));
-        }
-
-        window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.command.bans.allBans, {bannedPlayers: bannedPlayersStrings.join(', ')}), null, 0x479947, "normal", 1);
+        const bannedPlayersString = banEntries.map(banEntry => `${banEntry.playerName} (${getRemainingTimeString(banEntry.expire)})`).join(', ');
+        services.room.sendAnnouncement(Tst.maketext(LangRes.command.bans.allBans, {bannedPlayers: bannedPlayersString}), null, 0x479947, "normal", 1);
     }
 }

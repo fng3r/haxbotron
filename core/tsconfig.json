@@ -76,6 +76,9 @@
     "public",
     ".logs",
     ".node-persist",
+    "test",
+    "**/*.test.ts",
+    "**/*.spec.ts",
     "webpack.config.bot.js",
     "webpack.config.react.js"
   ]

@@ -1,45 +1,49 @@
-import * as Tst from "../Translator";
-import * as LangRes from "../../resource/strings";
 import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { updateAdmins } from "../RoomTools";
+import { getInjectedDBRepository } from "../../repositories/InjectedDBRepository";
+import * as LangRes from "../../resource/strings";
+import { ServiceContainer } from "../../services/ServiceContainer";
 import { getUnixTimestamp } from "../DateTimeUtils";
-import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
-import { convertToPlayerStorage, getBanlistDataFromDB, setBanlistDataToDB, setPlayerDataToDB } from "../Storage";
+import { updateAdmins } from "../RoomTools";
+import * as Tst from "../Translator";
 
 export async function onPlayerLeaveListener(player: PlayerObject): Promise<void> {
     // Event called when a player leaves the room.
+    const services = ServiceContainer.getInstance();
+    const repository = getInjectedDBRepository();
+    const room = services.room.getRoom();
+    const playerList = services.player.getPlayerList();
+    const config = services.config.getConfig();
+    
     let leftTimeStamp: number = getUnixTimestamp();
 
-    if (!window.gameRoom.playerList.has(player.id)) { // if the player wasn't registered in playerList
-        return; // exit this event
+    if (!playerList.has(player.id)) { // if the player wasn't registered in playerList
+        return;
     }
 
-    const existingPlayer = window.gameRoom.playerList.get(player.id)!;
+    const existingPlayer = playerList.get(player.id)!;
 
     let placeholderLeft = {
         playerID: player.id,
         playerName: player.name,
         playerAuth: existingPlayer.auth,
-        possTeamRed: window.gameRoom.ballStack.possCalculate(TeamID.Red),
-        possTeamBlue: window.gameRoom.ballStack.possCalculate(TeamID.Blue)
     };
 
-    window.gameRoom.logger.i('onPlayerLeave', `${player.name}#${player.id} has left.`);
-    window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.onLeft.playerLeft, placeholderLeft), null, 0xFFFFFF, "small", 0);
+    services.logger.i('onPlayerLeave', `${player.name}#${player.id} has left.`);
+    services.room.sendAnnouncement(Tst.maketext(LangRes.onLeft.playerLeft, placeholderLeft), null, 0xFFFFFF, "small", 0);
 
-    window.gameRoom.playerList.get(player.id)!.entrytime.leftDate = leftTimeStamp; // save left time
-    await setPlayerDataToDB(convertToPlayerStorage(window.gameRoom.playerList.get(player.id)!)); // save
-    window.gameRoom.playerList.delete(player.id); // delete from player list
-    window.gameRoom.playerRoles.delete(player.id); // delete from roles list
+    playerList.get(player.id)!.entrytime.leftDate = leftTimeStamp;
+    await repository.upsertPlayer(repository.toPlayerStorage(playerList.get(player.id)!));
+    services.player.removePlayer(player.id);
+    services.playerRole.removeRole(player.id);
 
-    if(window.gameRoom.config.rules.autoAdmin) { // if auto admin option is enabled
-        updateAdmins(); // update admin
+    if(config.rules.autoAdmin) {
+        updateAdmins();
     }
 
-    const playersCount = window.gameRoom._room.getPlayerList().length;
+    const playersCount = room.getPlayerList().length;
     // reset password to default one when more than one slot become available
-    if (playersCount === window.gameRoom.config._config.maxPlayers! - 2) {
-        window.gameRoom._room.setPassword(window.gameRoom.config._config.password || null);
+    if (playersCount === config._config.maxPlayers! - 2) {
+        room.setPassword(config._config.password || null);
     }
 
     // emit websocket event

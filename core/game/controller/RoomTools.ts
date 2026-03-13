@@ -1,25 +1,34 @@
 import { PlayerObject } from "../model/GameObject/PlayerObject";
 import * as LangRes from "../resource/strings";
 import * as Tst from "./Translator";
+import { ServiceContainer } from "../services/ServiceContainer";
 
 export function setDefaultStadiums(): void {
-    window.gameRoom._room.setCustomStadium(window.gameRoom.stadiumData.default); // if game mode is 'ready'
+    const services = ServiceContainer.getInstance();
+    services.room.loadDefaultStadium(); // if game mode is 'ready'
 }
 
 export function setDefaultRoomLimitation(): void {
-    window.gameRoom._room.setScoreLimit(window.gameRoom.config.rules.scoreLimit);
-    window.gameRoom._room.setTimeLimit(window.gameRoom.config.rules.timeLimit);
-    window.gameRoom._room.setTeamsLock(window.gameRoom.config.rules.teamLock);
+    const services = ServiceContainer.getInstance();
+    const config = services.config.getConfig();
+    
+    services.room.setScoreLimit(config.rules.scoreLimit);
+    services.room.setTimeLimit(config.rules.timeLimit);
+    services.room.setTeamsLock(config.rules.teamLock);
 }
 
 export function updateAdmins(): void {
+    const services = ServiceContainer.getInstance();
+    const room = services.room.getRoom();
+    const playerList = services.player.getPlayerList();
+    
     let placeholderUpdateAdmins = {
         playerID: 0,
         playerName: ''
     };
 
     // Get all players except the host (id = 0 is always the host)
-    let players = window.gameRoom._room.getPlayerList().filter(
+    let players = room.getPlayerList().filter(
             // only no afk mode players
             (player: PlayerObject) => player.id !== 0
         );
@@ -27,12 +36,12 @@ export function updateAdmins(): void {
     if (players.find((player: PlayerObject) => player.admin) != null) return; // Do nothing if any admin player is still left.
 
     placeholderUpdateAdmins.playerID = players[0].id;
-    placeholderUpdateAdmins.playerName = window.gameRoom.playerList.get(players[0].id)!.name;
+    placeholderUpdateAdmins.playerName = playerList.get(players[0].id)!.name;
 
-    window.gameRoom._room.setPlayerAdmin(players[0]!.id, true); // Give admin to the first non admin player in the list
-    window.gameRoom.playerList.get(players[0].id)!.admin = true;
-    window.gameRoom.logger.i('updateAdmins', `${window.gameRoom.playerList.get(players[0].id)!.name}#${players[0].id} has been admin(value:${window.gameRoom.playerList.get(players[0].id)!.admin}), because there were no admin players.`);
-    window.gameRoom._room.sendAnnouncement(Tst.maketext(LangRes.funcUpdateAdmins.newAdmin, placeholderUpdateAdmins), null, 0xFFFFFF, "normal", 0);
+    room.setPlayerAdmin(players[0]!.id, true); // Give admin to the first non admin player in the list
+    playerList.get(players[0].id)!.admin = true;
+    services.logger.i('updateAdmins', `${playerList.get(players[0].id)!.name}#${players[0].id} has been admin(value:${playerList.get(players[0].id)!.admin}), because there were no admin players.`);
+    services.room.sendAnnouncement(Tst.maketext(LangRes.funcUpdateAdmins.newAdmin, placeholderUpdateAdmins), null, 0xFFFFFF, "normal", 0);
 }
 
 export function shuffleArray<T>(array: T[]): T[] {

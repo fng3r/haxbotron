@@ -1,98 +1,16 @@
-import { Logger } from "../game/controller/Logger";
-import ChatActivityMap from "../game/model/ChatActivityMap";
-import { GameRoomConfig } from "../game/model/Configuration/GameRoomConfig";
-import { KickStack } from "../game/model/GameObject/BallTrace";
-import { PlayerObject, PlayerStorage } from "../game/model/GameObject/PlayerObject";
-import { PlayersSet } from "../game/model/GameObject/PlayersSet";
+import { PlayerStorage } from "../game/model/GameObject/PlayerObject";
 import { BanList } from "../game/model/PlayerBan/BanList";
 import { PlayerRole } from "../game/model/PlayerRole/PlayerRole";
 import { RoomConfig } from '../game/model/RoomObject/RoomConfig';
 import { Room } from "../game/model/RoomObject/RoomObject";
+import { ServiceContainer } from "../game/services/ServiceContainer";
+import { DiscordWebhookContent } from "../lib/browser/DiscordWebhookService";
 
 declare global {
     interface Window {
         // ==============================
-        // bot
-        gameRoom: {
-            _room: Room // haxball room container
-
-            config: GameRoomConfig // bot settings collection
-            link: string // for sharing URI link of the room
-
-            social: {
-                discordWebhook: {
-                    feed: boolean
-                    passwordWebhookId: string
-                    passwordWebhookToken: string
-                    replaysWebhookId: string
-                    replaysWebhookToken: string
-                    replayUpload: boolean
-                }
-            }
-
-            stadiumData: {
-                default: string
-            }
-
-            bannedWordsPool: {
-                nickname: string[]
-                chat: string[]
-            }
-
-            teamColours: {
-                red: {
-                    angle: number
-                    textColour: number
-                    teamColour1: number
-                    teamColour2: number
-                    teamColour3: number
-                }
-                blue: {
-                    angle: number
-                    textColour: number
-                    teamColour1: number
-                    teamColour2: number
-                    teamColour3: number
-                }
-            }
-
-            matchStats: {
-                startedAt: number
-                startingLineup: {
-                    red: PlayerObject[],
-                    blue: PlayerObject[]
-                },
-                scores: {
-                    red: number,
-                    blue: number,
-                    time: number
-                }
-            }
-
-            logger: Logger // logger for whole bot application
-            adminPassword: string
-            isGamingNow: boolean // is playing now?
-            isMuteAll: boolean // is All players muted?
-            playerList: PlayersSet // player list (key: player.id, value: Player), usage: playerList.get(player.id).name
-            playerRoles: Map<number, PlayerRole>
-
-            ballStack: KickStack // stack for ball tracing
-
-            antiTrollingChatFloodMap: ChatActivityMap // map<playerId, chatActivityTimestamp[]>
-
-            notice: string // Notice Message
-
-            // on dev-console tools for emergency
-            onEmergency: {
-                list(): void
-                chat(msg: string, playerID?: number): void
-                kick(playerID: number, msg?: string): void
-                ban(playerID: number, msg?: string): void
-                //banclearall(): void
-                //banlist(): void
-                password(password?: string): void
-            }
-        }
+        // Service Container (preferred way to access services)
+        services?: ServiceContainer
         // ==============================
 
         // ==============================
@@ -101,7 +19,7 @@ declare global {
         _emitSIOLogEvent(origin: string, type: string, message: string): void
         _emitSIOPlayerInOutEvent(playerID: number): void
         _emitSIOPlayerStatusChangeEvent(playerID: number): void
-        _feedSocialDiscordWebhook(id: string, token: string, type: string, content: any): void
+        _feedSocialDiscordWebhook(id: string, token: string, content: DiscordWebhookContent): void
         // CRUD with DB Server via REST API
         async _createPlayerDB(ruid: string, player: PlayerStorage): Promise<void>
         async _readPlayerDB(ruid: string, playerAuth: string): Promise<PlayerStorage | undefined>

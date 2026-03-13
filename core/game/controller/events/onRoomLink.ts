@@ -1,3 +1,5 @@
+import { ServiceContainer } from "../../services/ServiceContainer";
+
 export function onRoomLinkListener(url: string): void {
     // Event called when the room link is created.
         // this bot application provides some informations by DOM control.
@@ -10,6 +12,8 @@ export function onRoomLinkListener(url: string): void {
         console.log(roomLinkValue[0].href); // room link (url)
         */
 
-    window.gameRoom.link = url;
-    window.gameRoom.logger.i('onRoomLink', `This room has a link now: ${url}`);
+    const services = ServiceContainer.getInstance();
+    
+    services.room.setLink(url);
+    services.logger.i('onRoomLink', `This room has a link now: ${url}`);
 }

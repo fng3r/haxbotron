@@ -27,9 +27,10 @@ export const command = {
     _ErrorWrongCommand : '❌ You did wrong command. 📑 !help or !help COMMAND for details.'
     ,_ErrorNoPermission: '❌ You are not admin. You can\'t use this command.'
     ,_ErrorDisabled: '❌ This command is disabled. You can\'t use this command.'
-    ,help: '📑 !about, !adm, !auth, !bb, !deanon, !list, !listroles, !map, !staff\n' +
-           '📑 !freeze, !mute, !mutes, !ban, !bans !setpassword, !switch\n' +
-           '📑 !help COMMAND for detail. (eg. !help stats).'
+    ,help: '📑 List of available commands:\n' +
+           '📑 !about, !adm, !auth, !bb, !deanon, !list, !listroles, !map, !staff\n' +
+           '📑 !freeze, !mute, !mutes, !ban, !bans, !setpassword, !switch\n' +
+           '📑 !help COMMAND - shows command help message. (eg. !help deanon).'
     ,helpman: { // detailed description for a command
         _ErrorWrongCommand : '❌ This command is unknown or disabled.'
         ,help: '📑 !help COMMAND - shows you how to use COMMAND command.'
@@ -45,10 +46,10 @@ export const command = {
             '📑 big, bigeasy, classic, gbhotclassic, gbhotbig, realsoccer\n' +
             '📑 futsal1v1, futsal4v4, bff4v4, icebear, 6man'
         ,mute: '📑 !mute #ID time(in minutes) - prohibits the player whose id is ID to chat for specified time (permanently if not specified). Or unmute if the player is already muted. (eg: !mute #12 5)\n' +
-            '📑 You can check IDs by command !list'
+            '📑 You can check IDs by using command !list'
         ,mutes: '📑 !mutes - shows muted players'
         ,ban: '📑 !ban #ID time(in minutes) - bans the player for specified time (permanently if not specified). (eg: !ban #12 5). Or unban if the player is already banned.\n' +
-            '📑 You can check IDs by command !list'
+            '📑 You can check IDs by using command !list'
         ,bans: '📑 !bans - shows banned players'
         ,setpassword: '📑 !setpassword - sets or resets room password. (eg: !setpassword 2552 | !setpassword - to reset)'
         ,staff: '📑 !staff - shows staff player in the room.'
@@ -60,11 +61,11 @@ export const command = {
         _ErrorNoPermission : '❌ You must have \'adm+\' role to use this command.'
     }
     ,auth: {
-        _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by command !list red,blue,spec,mute'
+        _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by using command !list'
         ,playerAuth: `📄 {playerName}#{playerID} public id: {playerAuth}`
     }
     ,deanon: {
-        _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by command !list red,blue,spec,mute'
+        _ErrorNoPlayer: '❌ Wrong player ID. 📑 You can check IDs by using command !list'
         ,playerNicknames: `📄 {playerName}#{playerID} nicknames: {nicknamesList}`
     }
     ,map: {
@@ -74,14 +75,14 @@ export const command = {
     }
     ,mute: {
         _ErrorNoPermission: '❌ You are not admin. You can\'t do this command.'
-        ,_ErrorNoPlayer: '❌ Wrong player ID. You can only target numeric ID.(eg: !mute #12 5)\n📑 You can check IDs by command !list red,blue,spec,mute'
-        ,successTempMute: '🔇 {targetName}#{ticketTarget} player is muted for {muteInMinutes} minute(s). You can command it against for release.'
-        ,successPermaMute: '🔇 {targetName}#{ticketTarget} player is muted permanently by {byPlayerName}#{byPlayerId}. You can command it against for release.'
-        ,successUnmute: '🔊 Player {targetName}#{ticketTarget} is unmuted.'
+        ,_ErrorNoPlayer: '❌ Wrong player ID. You can only target numeric ID.(eg: !mute #12 5)\n📑 You can check IDs by using command !list'
+        ,successTempMute: '🔇 Player {targetName}#{targetId} is muted for {muteInMinutes} minute(s). You can use this command again to unmute.'
+        ,successPermaMute: '🔇 Player {targetName}#{targetId} is muted permanently by {byPlayerName}#{byPlayerId}. You can use this command again to unmute.'
+        ,successUnmute: '🔊 Player {targetName}#{targetId} is unmuted.'
     }
     ,ban: {
         _ErrorNoPermission: '❌ You are not admin. You can\'t do this command.'
-        ,_ErrorNoPlayer: '❌ Wrong player ID. You can only target numeric ID.(eg: !ban #12 5)\n📑 You can check IDs by command !list red,blue,spec,mute'
+        ,_ErrorNoPlayer: '❌ Wrong player ID. You can only target numeric ID.(eg: !ban #12 5)\n📑 You can check IDs by using command !list'
         ,successTempBan: '🚫 {targetName}#{ticketTarget} player is banned for {banInMinutes} minute(s) by {byPlayerName}#{byPlayerId}. You can command it against for release.'
         ,successPermaBan: '🚫 {targetName}#{ticketTarget} player is banned permanently by {byPlayerName}#{byPlayerId}. You can command it against for release.'
         ,successUnban: '🟢 Player {targetName}#{ticketTarget} was unbanned by {byPlayerName}#{byPlayerId}.'
@@ -89,17 +90,15 @@ export const command = {
     ,bans: {
         _ErrorFailedToGet: '❌ Failed to get ban list.'
         ,noBans: '🚫 No banned players'
-        ,allBans: '🚫 {bannedPlayers}'
-        ,singleBan: '{playerName} ({banInMinutes})'
+        ,allBans: '🚫 Banned players: {bannedPlayers}'
     }
     ,list: {
         _ErrorNoTeam: '❌ You can only request red,blue,spec players list.'
-        ,_ErrorNoOne: '❌ There\'s no one.'
+        ,_ErrorNoOne: '❌ There are no players.'
         ,whoisList: '📜 {whoisResult}'
     }
     ,listroles: {
-        singleRole: '{playerName} ({playerRole})'
-        ,rolesList: '📜 {rolesList}'
+        rolesList: '📜 {rolesList}'
     }
     ,freeze: {
         _ErrorNoPermission : '❌ You are not admin. You can\'t do this command.'
@@ -148,13 +147,6 @@ export const onChat = {
     ,includeSeparator: '🚫 Chat message includes banned word (|,|).'
 }
 
-export const onStop = {
-    feedSocialDiscordWebhook: {
-        replayMessage: '[{roomId}] {startedAt}',
-        adminPasswordMessage: '🔒 [{roomId}] Admin password was updated. Current admin password is \'{password}\''
-    }
-}
-
 export const onVictory = {
     victory: '🎉 {winnerTeam} team won. Score: 🔴{redScore}-{blueScore}🔵. Possession: 🔴{possTeamRed}%-{possTeamBlue}%🔵'
 }
@@ -175,7 +167,7 @@ export const onStadium = {
 
 export const onGoal = {
     goal: '⚽️ {scorerName} | {score} | {time}'
-    ,goalWithAssist: '⚽️ {scorerName} (👟 {assistName}) | {score} | {time} '
+    ,goalWithAssist: '⚽️ {scorerName} (👟 {assistantName}) | {score} | {time} '
     ,og: '🥅 {ogName} | {score} | {time}'
 }
 

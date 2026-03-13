@@ -1,16 +1,23 @@
-import {PlayerObject} from "../../model/GameObject/PlayerObject";
-import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
+import { PlayerObject } from "../../model/GameObject/PlayerObject";
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
+import { ServiceContainer } from "../../services/ServiceContainer";
 
 export function cmdStaff(byPlayer: PlayerObject): void {
-    const [...players] = window.gameRoom.playerList.values();
-    let staffPlayersString = players
-        .filter(player => PlayerRoles.atLeast(window.gameRoom.playerRoles.get(player.id)!, PlayerRoles.S_ADM))
-        .map(player => {
-            const playerRole = window.gameRoom.playerRoles.get(player.id)!.role;
-            return `${player.name}#${player.id} (${playerRole})`;
-        })
-        .join(', ');
-    staffPlayersString = `👨🏻‍💼 Staff: ${staffPlayersString || 'No staff players'}`;
+    const services = ServiceContainer.getInstance();
+    const playerList = services.player.getPlayerList();
+    
+    const entries = []
+    for (const player of playerList.values()) {
+        const role = services.playerRole.getRole(player.id);
+        if (!role) {
+            continue;
+        }
 
-    window.gameRoom._room.sendAnnouncement(staffPlayersString, null, 0x479947, "normal", 1);
+        if (PlayerRoles.atLeast(role, PlayerRoles.S_ADM)) {
+            entries.push(`${player.name}#${player.id} (${role.role})`);
+        }
+    }
+    const staffPlayersString = `👨🏻‍💼 Staff: ${entries.join(', ') || 'No staff players'}`;
+
+    services.room.sendAnnouncement(staffPlayersString, null, 0x479947, "normal", 1);
 }

@@ -39,20 +39,11 @@ export interface BrowserHostRoomGameRules {
 }
 
 export interface BrowserHostRoomSettings {
-    maliciousBehaviourBanCriterion: number
-
-    chatFiltering : boolean
-
     antiChatFlood : boolean
     chatFloodCriterion : number
     chatFloodIntervalMillisecs: number
 
     muteDefaultMillisecs : number
 
-    nicknameLengthLimit : number
-    chatLengthLimit : number
-
     forbidDuplicatedNickname: boolean
-    nicknameTextFilter: boolean
-    chatTextFilter: boolean
 }
