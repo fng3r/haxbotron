@@ -10,10 +10,10 @@ type LoggerLike = {
 };
 
 /**
- * Runtime-injected adapter used by browser-exposed DB functions.
+ * Room runtime adapter used by the worker-side repository.
  * Preserves legacy behavior: logs and swallows known errors by returning undefined/void.
  */
-export class InjectedDbAdapter {
+export class RoomDbApiAdapter {
     constructor(
         private readonly gateway: DbApiGateway = new DbApiGateway(),
         private readonly logger: LoggerLike = winstonLogger
@@ -240,7 +240,7 @@ export class InjectedDbAdapter {
 
     public async createPlayerRole(playerRole: PlayerRole): Promise<void> {
         try {
-            const result = await this.gateway.createPlayerRoleLegacy(playerRole);
+            const result = await this.gateway.createPlayerRoleQueryPayload(playerRole);
             if (result.status === 204) {
                 this.logger.info(`${result.status} Succeed on setPlayerRoleDB: Updated. auth(${playerRole.auth})`);
             }
@@ -255,7 +255,7 @@ export class InjectedDbAdapter {
 
     public async setPlayerRole(playerRole: PlayerRole): Promise<void> {
         try {
-            const result = await this.gateway.updatePlayerRoleLegacy(playerRole);
+            const result = await this.gateway.updatePlayerRoleQueryPayload(playerRole);
             if (result.status === 204) {
                 this.logger.info(`${result.status} Succeed on setPlayerRoleDB: Updated. auth(${playerRole.auth})`);
             }
@@ -270,7 +270,7 @@ export class InjectedDbAdapter {
 
     public async deletePlayerRole(playerRole: PlayerRole): Promise<void> {
         try {
-            const result = await this.gateway.deletePlayerRoleLegacy(playerRole);
+            const result = await this.gateway.deletePlayerRoleQueryPayload(playerRole);
             if (result.status === 204) {
                 this.logger.info(`${result.status} Succeed on deletePlayerRoleDB: Deleted. auth(${playerRole.auth})`);
             }
@@ -284,4 +284,4 @@ export class InjectedDbAdapter {
     }
 }
 
-export const injectedDbAdapter = new InjectedDbAdapter();
+export const roomDbApiAdapter = new RoomDbApiAdapter();

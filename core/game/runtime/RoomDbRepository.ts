@@ -2,12 +2,12 @@ import { Player } from "../model/GameObject/Player";
 import { PlayerStorage } from "../model/GameObject/PlayerState";
 import { BanList } from "../model/PlayerBan/BanList";
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";
-import { InjectedDbAdapter } from "../../lib/db/adapters/InjectedDbAdapter";
+import { RoomDbApiAdapter } from "../../lib/db/adapters/RoomDbApiAdapter";
 
 export class RoomDbRepository {
     constructor(
         private readonly ruid: string,
-        private readonly adapter: InjectedDbAdapter = new InjectedDbAdapter()
+        private readonly adapter: RoomDbApiAdapter = new RoomDbApiAdapter()
     ) {}
 
     public toPlayerStorage(player: Player): PlayerStorage {

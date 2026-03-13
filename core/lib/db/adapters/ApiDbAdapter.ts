@@ -64,7 +64,7 @@ export class ApiDbAdapter {
         return response.data;
     }
 
-    // Methods currently used by injected workflows too, if needed.
+    // Methods shared with the room runtime adapter when both paths use the same DB API.
     public async createPlayer(ruid: string, player: PlayerStorage): Promise<void> {
         await this.gateway.createPlayer(ruid, player);
     }

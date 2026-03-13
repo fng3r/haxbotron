@@ -104,7 +104,7 @@ describe("RoomDbRepository", () => {
         expect(adapter.updateBan).not.toHaveBeenCalled();
     });
 
-    it("delegates role operations to injected functions", async () => {
+    it("delegates role operations to the room DB adapter", async () => {
         const adapter = createMockAdapter();
         const repository = new RoomDbRepository(ruid, adapter as any);
 
