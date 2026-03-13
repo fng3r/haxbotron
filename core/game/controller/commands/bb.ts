@@ -1,7 +1,5 @@
-import {PlayerObject} from "../../model/GameObject/PlayerObject";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
 
-export function cmdBb(byPlayer: PlayerObject): void {
-    const services = ServiceContainer.getInstance();
-    services.room.getRoom().kickPlayer(byPlayer.id, '!bb', false);
+export function cmdBb(runtime: RoomRuntime, byPlayer: PlayerObject): void {
+    runtime.room.getRoom().kickPlayer(byPlayer.id, '!bb', false);
 }

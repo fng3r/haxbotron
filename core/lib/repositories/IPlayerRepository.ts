@@ -1,4 +1,4 @@
-import { PlayerStorage } from "../../game/model/GameObject/PlayerObject";
+import { PlayerStorage } from "../../game/model/GameObject/PlayerState";
 import { IRepository } from "./IRepository";
 
 /**

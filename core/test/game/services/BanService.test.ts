@@ -13,7 +13,7 @@ describe("BanService", () => {
     };
 
     function createService() {
-        const repository = {
+        const repository: any = {
             readBan: jest.fn(),
             deleteBan: jest.fn(),
             upsertBan: jest.fn(),

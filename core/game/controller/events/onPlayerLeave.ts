@@ -1,18 +1,17 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { getInjectedDBRepository } from "../../repositories/InjectedDBRepository";
 import * as LangRes from "../../resource/strings";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { getRoomDbRepository } from "../../runtime/RoomDbRepository";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge";
 import { getUnixTimestamp } from "../DateTimeUtils";
 import { updateAdmins } from "../RoomTools";
 import * as Tst from "../Translator";
 
-export async function onPlayerLeaveListener(player: PlayerObject): Promise<void> {
+export async function onPlayerLeaveListener(runtime: RoomRuntime, player: PlayerObject): Promise<void> {
     // Event called when a player leaves the room.
-    const services = ServiceContainer.getInstance();
-    const repository = getInjectedDBRepository();
-    const room = services.room.getRoom();
-    const playerList = services.player.getPlayerList();
-    const config = services.config.getConfig();
+    const repository = getRoomDbRepository();
+    const room = runtime.room.getRoom();
+    const playerList = runtime.player.getPlayerList();
+    const config = runtime.config.getConfig();
     
     let leftTimeStamp: number = getUnixTimestamp();
 
@@ -28,16 +27,16 @@ export async function onPlayerLeaveListener(player: PlayerObject): Promise<void>
         playerAuth: existingPlayer.auth,
     };
 
-    services.logger.i('onPlayerLeave', `${player.name}#${player.id} has left.`);
-    services.room.sendAnnouncement(Tst.maketext(LangRes.onLeft.playerLeft, placeholderLeft), null, 0xFFFFFF, "small", 0);
+    runtime.logger.i('onPlayerLeave', `${player.name}#${player.id} has left.`);
+    runtime.room.sendAnnouncement(Tst.maketext(LangRes.onLeft.playerLeft, placeholderLeft), null, 0xFFFFFF, "small", 0);
 
     playerList.get(player.id)!.entrytime.leftDate = leftTimeStamp;
     await repository.upsertPlayer(repository.toPlayerStorage(playerList.get(player.id)!));
-    services.player.removePlayer(player.id);
-    services.playerRole.removeRole(player.id);
+    runtime.player.removePlayer(player.id);
+    runtime.playerRole.removeRole(player.id);
 
     if(config.rules.autoAdmin) {
-        updateAdmins();
+        updateAdmins(runtime);
     }
 
     const playersCount = room.getPlayerList().length;
@@ -47,5 +46,5 @@ export async function onPlayerLeaveListener(player: PlayerObject): Promise<void>
     }
 
     // emit websocket event
-    window._emitSIOPlayerInOutEvent(player.id);
+    emitPlayerJoinLeave(player.id);
 }

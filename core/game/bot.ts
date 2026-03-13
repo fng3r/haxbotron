@@ -1,134 +1,150 @@
-// ENTRYPOINT
-
 import { generateRandomString } from "../lib/utils";
 import { getUnixTimestamp } from "./controller/DateTimeUtils";
 import * as eventListener from "./controller/events/eventListeners";
 import { Logger } from "./controller/Logger";
 import * as Tst from "./controller/Translator";
+import { emitPlayerStatusChange, emitRoomReady } from "./runtime/WorkerEventBridge";
+import { initializeRoomDbRepository, resetRoomDbRepository } from "./runtime/RoomDbRepository";
+import { DiscordWebhookService } from "../lib/integrations/DiscordWebhookService";
+import { RoomInitConfig } from "../lib/room.hostconfig";
+import { DiscordWebhookConfig } from "../lib/room.interface";
+import { loadStadiumData } from "../lib/stadiumLoader";
 import { GameRoomConfig } from "./model/Configuration/GameRoomConfig";
 import { Player } from "./model/GameObject/Player";
-import { PlayerObject } from "./model/GameObject/PlayerObject";
-import { ScoresObject } from "./model/GameObject/ScoresObject";
 import { TeamID } from "./model/GameObject/TeamID";
 import * as LangRes from "./resource/strings";
-import { ServiceContainer } from "./services/ServiceContainer";
+import { createCommandExecutor } from "./controller/commands/CommandRegistry";
+import { createRoomRuntime, RoomRuntime } from "./runtime/RoomRuntime";
 
+type HBInitFunction = (config: RoomConfigObject) => RoomObject;
 
-makeRoom();
+export async function openRoomRuntime(
+    HBInit: HBInitFunction,
+    initConfig: RoomInitConfig,
+    discordWebhookService: DiscordWebhookService = new DiscordWebhookService()
+): Promise<RoomRuntime> {
+    Logger.reset();
+    resetRoomDbRepository();
 
-
-// ====================================================================================================
-// create room, set defaults settings and register event handlers
-function makeRoom(): void {
-    createRoom();
-    
-    setDefaultSettings();
-    
-    setEventHandlers();
-    
-    runBackgroundTasks();
-}
-
-
-// ====================================================================================================
-// start room with loaded config
-function createRoom(): void {
     const logger = Logger.getInstance();
-    logger.i('initialization', `Loading initial config and open the game room...`);
+    logger.i("initialization", "Loading initial config and open the game room...");
 
-    // load initial configurations
-    const loadedConfig: GameRoomConfig = JSON.parse(localStorage.getItem('_initConfig')!);
-    const discordWebhook = JSON.parse(localStorage.getItem('_discordWebhookConfig')!);
-    const defaultStadium = localStorage.getItem('_defaultMap')!;
-
-    const room = window.HBInit(loadedConfig._config);
+    const runtimeConfig = applyGeolocationOverride(initConfig);
+    const discordWebhookConfig = getDiscordWebhookConfigFromEnv();
+    const defaultStadium = loadStadiumData(runtimeConfig.rules.defaultMapName);
+    if (defaultStadium === null) {
+        throw new Error(`Unknown default stadium '${runtimeConfig.rules.defaultMapName}'`);
+    }
+    const room = HBInit(runtimeConfig._config);
     const adminPassword = generateRandomString();
 
-    // Initialize new service container
-    const services = ServiceContainer.initialize(
+    initializeRoomDbRepository(runtimeConfig._RUID);
+
+    const runtime = createRoomRuntime(
         room,
-        loadedConfig,
+        runtimeConfig as unknown as GameRoomConfig,
         adminPassword,
-        discordWebhook,
-        logger
+        discordWebhookConfig,
+        logger,
+        discordWebhookService
     );
 
-    // Set stadium data from localStorage (injected by browser.ts)
-    services.room.setDefaultStadium(defaultStadium);
-   
-    services.logger.i('initialization', `The game room is opened at ${services.config.getConfig()._LaunchDate.toLocaleString()}. RUID: ${services.config.getRUID()}`);
+    runtime.room.setDefaultStadium(defaultStadium);
+    runtime.logger.i(
+        "initialization",
+        `The game room is opened at ${runtime.config.getConfig()._LaunchDate.toLocaleString()}. RUID: ${runtime.config.getRUID()}`
+    );
 
-    // clear localStorage
-    localStorage.removeItem('_initConfig');
-    localStorage.removeItem('_defaultMap');
-    localStorage.removeItem('_discordWebhookConfig');
+    setDefaultSettings(runtime, discordWebhookService);
+    setEventHandlers(runtime);
+    runBackgroundTasks(runtime);
 
-    window.document.title = `Haxbotron ${services.config.getRUID()}`;
-    window.services = services;
-    
-    console.log(`Haxbotron loaded bot script. (RUID ${services.config.getRUID()}, TOKEN ${services.config.getConfig()._config.token})`);
+    console.log(`Haxbotron loaded room runtime. (RUID ${runtime.config.getRUID()}, TOKEN ${runtime.config.getConfig()._config.token})`);
+
+    return runtime;
 }
 
+function getDiscordWebhookConfigFromEnv(): DiscordWebhookConfig {
+    return {
+        feed: JSON.parse(process.env.DISCORD_WEBHOOK_FEED || false.toString()),
+        replayUpload: JSON.parse(process.env.DISCORD_WEBHOOK_REPLAY_UPLOAD || false.toString()),
+        replaysWebhookId: process.env.DISCORD_REPLAYS_WEBHOOK_ID || "",
+        replaysWebhookToken: process.env.DISCORD_REPLAYS_WEBHOOK_TOKEN || "",
+        passwordWebhookId: process.env.DISCORD_PASSWORD_WEBHOOK_ID || "",
+        passwordWebhookToken: process.env.DISCORD_PASSWORD_WEBHOOK_TOKEN || "",
+    };
+}
 
-function setDefaultSettings(): void {
-    const services = ServiceContainer.getInstance();
-    const config = services.config.getConfig();
+function applyGeolocationOverride(initConfig: RoomInitConfig): RoomInitConfig {
+    if (process.env.TWEAKS_GEOLOCATIONOVERRIDE && JSON.parse(process.env.TWEAKS_GEOLOCATIONOVERRIDE.toLowerCase()) === true) {
+        initConfig._config.geo = {
+            code: process.env.TWEAKS_GEOLOCATIONOVERRIDE_CODE || "KR",
+            lat: parseFloat(process.env.TWEAKS_GEOLOCATIONOVERRIDE_LAT || "37.5665"),
+            lon: parseFloat(process.env.TWEAKS_GEOLOCATIONOVERRIDE_LON || "126.978"),
+        };
+    }
+
+    return initConfig;
+}
+
+function setDefaultSettings(runtime: RoomRuntime, discordWebhookService: DiscordWebhookService): void {
+    const config = runtime.config.getConfig();
     
-    services.room.loadDefaultStadium();
-    services.room.setScoreLimit(config.rules.scoreLimit);
-    services.room.setTimeLimit(config.rules.timeLimit);
-    services.room.setTeamsLock(config.rules.teamLock);
+    runtime.room.loadDefaultStadium();
+    runtime.room.setScoreLimit(config.rules.scoreLimit);
+    runtime.room.setTimeLimit(config.rules.timeLimit);
+    runtime.room.setTeamsLock(config.rules.teamLock);
 
-    const webhook = services.social.getDiscordWebhook();
-    window._feedSocialDiscordWebhook(
-        webhook.passwordWebhookId,
-        webhook.passwordWebhookToken,
-        {
+    const webhook = runtime.social.getDiscordWebhook();
+    if (webhook.feed && webhook.passwordWebhookId && webhook.passwordWebhookToken) {
+        void discordWebhookService.sendPassword(webhook.passwordWebhookId, webhook.passwordWebhookToken, {
             type: "password",
-            roomId: services.config.getRUID(),
-            password: services.config.getAdminPassword()
-        }
-    );
+            roomId: runtime.config.getRUID(),
+            password: runtime.config.getAdminPassword(),
+        });
+    }
 
-    services.logger.i('initialization', `Room default settings were set according to loaded config`);
+    runtime.logger.i('initialization', `Room default settings were set according to loaded config`);
 }
 
 
-function setEventHandlers(): void {
-    const services = ServiceContainer.getInstance();
-    const room = services.room.getRoom();
+function setEventHandlers(runtime: RoomRuntime): void {
+    const room = runtime.room.getRoom();
+    const commandExecutor = createCommandExecutor(runtime);
     
-    services.logger.i('initialization', `Register game room event handlers...`);
+    runtime.logger.i('initialization', `Register game room event handlers...`);
 
-    room.onPlayerJoin = async (player: PlayerObject): Promise<void> => await eventListener.onPlayerJoinListener(player);
-    room.onPlayerLeave = async (player: PlayerObject): Promise<void> => await eventListener.onPlayerLeaveListener(player);
-    room.onTeamVictory = async (scores: ScoresObject): Promise<void> => await eventListener.onTeamVictoryListener(scores);
-    room.onPlayerChat = (player: PlayerObject, message: string): boolean => eventListener.onPlayerChatListener(player, message);
-    room.onTeamGoal = async (team: TeamID): Promise<void> => await eventListener.onTeamGoalListener(team);
-    room.onPlayerBallKick = (byPlayer: PlayerObject): void => eventListener.onPlayerBallKickListener(byPlayer);
-    room.onPlayerTeamChange = (changedPlayer: PlayerObject, byPlayer: PlayerObject): void => eventListener.onPlayerTeamChangeListener(changedPlayer, byPlayer);
-    room.onGameStart = (byPlayer: PlayerObject): void => eventListener.onGameStartListener(byPlayer);
-    room.onGameStop = (byPlayer: PlayerObject): void => eventListener.onGameStopListener(byPlayer);
-    room.onPlayerAdminChange = (changedPlayer: PlayerObject, byPlayer: PlayerObject): void => eventListener.onPlayerAdminChangeListener(changedPlayer, byPlayer);
-    room.onPlayerKicked = async (kickedPlayer: PlayerObject, reason: string, ban: boolean, byPlayer: PlayerObject): Promise<void> => await eventListener.onPlayerKickedListener(kickedPlayer, reason, ban, byPlayer);
-    room.onGameTick = () => eventListener.onGameTickListener();
-    room.onGamePause = (byPlayer: PlayerObject): void => eventListener.onGamePauseListener(byPlayer);
-    room.onGameUnpause = (byPlayer: PlayerObject): void => eventListener.onGameUnpauseListener(byPlayer);
-    room.onStadiumChange = (newStadiumName: string, byPlayer: PlayerObject): void => eventListener.onStadiumChangeListner(newStadiumName, byPlayer);
-    room.onRoomLink = (url: string): void => eventListener.onRoomLinkListener(url);
+    room.onPlayerJoin = async (player: PlayerJoinObject): Promise<void> => await eventListener.onPlayerJoinListener(runtime, player);
+    room.onPlayerLeave = async (player: PlayerObject): Promise<void> => await eventListener.onPlayerLeaveListener(runtime, player);
+    room.onTeamVictory = async (scores: ScoresObject): Promise<void> => await eventListener.onTeamVictoryListener(runtime, scores);
+    room.onPlayerChat = (player: PlayerObject, message: string): boolean => eventListener.onPlayerChatListener(runtime, commandExecutor, player, message);
+    room.onTeamGoal = async (team: TeamID): Promise<void> => await eventListener.onTeamGoalListener(runtime, team);
+    room.onPlayerBallKick = (byPlayer: PlayerObject): void => eventListener.onPlayerBallKickListener(runtime, byPlayer);
+    room.onPlayerTeamChange = (changedPlayer: PlayerObject, byPlayer: PlayerObject | null): void => eventListener.onPlayerTeamChangeListener(runtime, changedPlayer, byPlayer);
+    room.onGameStart = (byPlayer: PlayerObject | null): void => eventListener.onGameStartListener(runtime, byPlayer);
+    room.onGameStop = (byPlayer: PlayerObject | null): void => eventListener.onGameStopListener(runtime, byPlayer);
+    room.onPlayerAdminChange = (changedPlayer: PlayerObject, byPlayer: PlayerObject | null): void => eventListener.onPlayerAdminChangeListener(runtime, changedPlayer, byPlayer);
+    room.onPlayerKicked = async (kickedPlayer: PlayerObject, reason: string, ban: boolean, byPlayer: PlayerObject | null): Promise<void> => await eventListener.onPlayerKickedListener(runtime, kickedPlayer, reason, ban, byPlayer);
+    room.onGameTick = () => eventListener.onGameTickListener(runtime);
+    room.onGamePause = (byPlayer: PlayerObject): void => eventListener.onGamePauseListener(runtime, byPlayer);
+    room.onGameUnpause = (byPlayer: PlayerObject): void => eventListener.onGameUnpauseListener(runtime, byPlayer);
+    room.onStadiumChange = (newStadiumName: string, byPlayer: PlayerObject): void => eventListener.onStadiumChangeListner(runtime, newStadiumName, byPlayer);
+    room.onRoomLink = (url: string): void => {
+        eventListener.onRoomLinkListener(runtime, url);
+        emitRoomReady(url);
+    };
 
-    services.logger.i('initialization', `All event handlers were registered`);
+    runtime.logger.i('initialization', `All event handlers were registered`);
 }
 
 
-function runBackgroundTasks(): void {
-    const services = ServiceContainer.getInstance();
+function runBackgroundTasks(runtime: RoomRuntime): void {
     
-    services.logger.i('initialization', `Run timers for executing background tasks...`);
+    runtime.logger.i('initialization', `Run timers for executing background tasks...`);
 
     const advertisementTimer = setInterval(() => {
         if (LangRes.scheduler.advertise) {
-            services.room.sendAnnouncement(LangRes.scheduler.advertise, null, 0xF4F4F4, "normal", 0);
+            runtime.room.sendAnnouncement(LangRes.scheduler.advertise, null, 0xF4F4F4, "normal", 0);
         }
     }, 600_000); // 10 mins
     
@@ -140,19 +156,19 @@ function runBackgroundTasks(): void {
             targetName: '',
         }
     
-        services.player.getPlayerList().forEach((player: Player) => { // auto unmute system
+        runtime.player.getPlayerList().forEach((player: Player) => { // auto unmute system
             placeholderScheduler.targetID = player.id;
             placeholderScheduler.targetName = player.name;
     
             // check muted player and unmute when it's time to unmute
             if (player.permissions.mute && player.permissions.muteExpire !== -1 && nowTimeStamp > player.permissions.muteExpire) {
                 player.permissions.mute = false;
-                services.chat.clearChatActivity(player.id); // clear previous chat activity on unmute
-                services.room.sendAnnouncement(Tst.maketext(LangRes.scheduler.autoUnmute, placeholderScheduler), null, 0x479947, "normal", 0);
-                window._emitSIOPlayerStatusChangeEvent(player.id);
+                runtime.chat.clearChatActivity(player.id); // clear previous chat activity on unmute
+                runtime.room.sendAnnouncement(Tst.maketext(LangRes.scheduler.autoUnmute, placeholderScheduler), null, 0x479947, "normal", 0);
+                emitPlayerStatusChange(player.id);
             }
         });
     }, 5000); // 5 secs
 
-    services.logger.i('initialization', `Background tasks are running now`);
+    runtime.logger.i('initialization', `Background tasks are running now`);
 }

@@ -1,36 +1,31 @@
 /// <reference types="jest" />
 
 import { Player } from "../../../game/model/GameObject/Player";
-import { PlayerStorage } from "../../../game/model/GameObject/PlayerObject";
+import { PlayerStorage } from "../../../game/model/GameObject/PlayerState";
 import { BanList } from "../../../game/model/PlayerBan/BanList";
 import { PlayerRole } from "../../../game/model/PlayerRole/PlayerRole";
 import { PlayerRoles } from "../../../game/model/PlayerRole/PlayerRoles";
-import { InjectedDBRepository } from "../../../game/repositories/InjectedDBRepository";
+import { RoomDbRepository } from "../../../game/runtime/RoomDbRepository";
 
-function setupMockWindow(ruid: string): void {
-    (global as any).window = {
-        services: {
-            config: {
-                getRUID: jest.fn(() => ruid)
-            }
-        },
-        _createPlayerDB: jest.fn(),
-        _readPlayerDB: jest.fn(),
-        _updatePlayerDB: jest.fn(),
-        _deletePlayerDB: jest.fn(),
-        _getPlayerRoleDB: jest.fn(),
-        _createPlayerRoleDB: jest.fn(),
-        _setPlayerRoleDB: jest.fn(),
-        _deletePlayerRoleDB: jest.fn(),
-        _createBanlistDB: jest.fn(),
-        _getAllBansDB: jest.fn(),
-        _readBanlistDB: jest.fn(),
-        _updateBanlistDB: jest.fn(),
-        _deleteBanlistDB: jest.fn(),
+function createMockAdapter() {
+    return {
+        createPlayer: jest.fn(),
+        readPlayer: jest.fn(),
+        updatePlayer: jest.fn(),
+        deletePlayer: jest.fn(),
+        getPlayerRole: jest.fn(),
+        createPlayerRole: jest.fn(),
+        setPlayerRole: jest.fn(),
+        deletePlayerRole: jest.fn(),
+        createBan: jest.fn(),
+        getAllBans: jest.fn(),
+        readBan: jest.fn(),
+        updateBan: jest.fn(),
+        deleteBan: jest.fn(),
     };
 }
 
-describe("InjectedDBRepository", () => {
+describe("RoomDbRepository", () => {
     const ruid = "room-1";
     const samplePlayer: PlayerStorage = {
         auth: "auth-1",
@@ -59,67 +54,71 @@ describe("InjectedDBRepository", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        setupMockWindow(ruid);
     });
 
     it("upsertPlayer updates when player already exists", async () => {
-        const repository = new InjectedDBRepository();
-        ((global as any).window._readPlayerDB as jest.Mock).mockResolvedValue(samplePlayer);
+        const adapter = createMockAdapter();
+        const repository = new RoomDbRepository(ruid, adapter as any);
+        adapter.readPlayer.mockResolvedValue(samplePlayer);
 
         await repository.upsertPlayer(samplePlayer);
 
-        expect((global as any).window._readPlayerDB).toHaveBeenCalledWith(ruid, samplePlayer.auth);
-        expect((global as any).window._updatePlayerDB).toHaveBeenCalledWith(ruid, samplePlayer);
-        expect((global as any).window._createPlayerDB).not.toHaveBeenCalled();
+        expect(adapter.readPlayer).toHaveBeenCalledWith(ruid, samplePlayer.auth);
+        expect(adapter.updatePlayer).toHaveBeenCalledWith(ruid, samplePlayer);
+        expect(adapter.createPlayer).not.toHaveBeenCalled();
     });
 
     it("upsertPlayer creates when player does not exist", async () => {
-        const repository = new InjectedDBRepository();
-        ((global as any).window._readPlayerDB as jest.Mock).mockResolvedValue(undefined);
+        const adapter = createMockAdapter();
+        const repository = new RoomDbRepository(ruid, adapter as any);
+        adapter.readPlayer.mockResolvedValue(undefined);
 
         await repository.upsertPlayer(samplePlayer);
 
-        expect((global as any).window._readPlayerDB).toHaveBeenCalledWith(ruid, samplePlayer.auth);
-        expect((global as any).window._createPlayerDB).toHaveBeenCalledWith(ruid, samplePlayer);
-        expect((global as any).window._updatePlayerDB).not.toHaveBeenCalled();
+        expect(adapter.readPlayer).toHaveBeenCalledWith(ruid, samplePlayer.auth);
+        expect(adapter.createPlayer).toHaveBeenCalledWith(ruid, samplePlayer);
+        expect(adapter.updatePlayer).not.toHaveBeenCalled();
     });
 
     it("upsertBan updates when ban already exists", async () => {
-        const repository = new InjectedDBRepository();
-        ((global as any).window._readBanlistDB as jest.Mock).mockResolvedValue(sampleBan);
+        const adapter = createMockAdapter();
+        const repository = new RoomDbRepository(ruid, adapter as any);
+        adapter.readBan.mockResolvedValue(sampleBan);
 
         await repository.upsertBan(sampleBan);
 
-        expect((global as any).window._readBanlistDB).toHaveBeenCalledWith(ruid, sampleBan.conn);
-        expect((global as any).window._updateBanlistDB).toHaveBeenCalledWith(ruid, sampleBan);
-        expect((global as any).window._createBanlistDB).not.toHaveBeenCalled();
+        expect(adapter.readBan).toHaveBeenCalledWith(ruid, sampleBan.conn);
+        expect(adapter.updateBan).toHaveBeenCalledWith(ruid, sampleBan);
+        expect(adapter.createBan).not.toHaveBeenCalled();
     });
 
     it("upsertBan creates when ban does not exist", async () => {
-        const repository = new InjectedDBRepository();
-        ((global as any).window._readBanlistDB as jest.Mock).mockResolvedValue(undefined);
+        const adapter = createMockAdapter();
+        const repository = new RoomDbRepository(ruid, adapter as any);
+        adapter.readBan.mockResolvedValue(undefined);
 
         await repository.upsertBan(sampleBan);
 
-        expect((global as any).window._readBanlistDB).toHaveBeenCalledWith(ruid, sampleBan.conn);
-        expect((global as any).window._createBanlistDB).toHaveBeenCalledWith(ruid, sampleBan);
-        expect((global as any).window._updateBanlistDB).not.toHaveBeenCalled();
+        expect(adapter.readBan).toHaveBeenCalledWith(ruid, sampleBan.conn);
+        expect(adapter.createBan).toHaveBeenCalledWith(ruid, sampleBan);
+        expect(adapter.updateBan).not.toHaveBeenCalled();
     });
 
     it("delegates role operations to injected functions", async () => {
-        const repository = new InjectedDBRepository();
+        const adapter = createMockAdapter();
+        const repository = new RoomDbRepository(ruid, adapter as any);
 
         await repository.createPlayerRole(sampleRole);
         await repository.updatePlayerRole(sampleRole);
         await repository.deletePlayerRole(sampleRole);
 
-        expect((global as any).window._createPlayerRoleDB).toHaveBeenCalledWith(sampleRole);
-        expect((global as any).window._setPlayerRoleDB).toHaveBeenCalledWith(sampleRole);
-        expect((global as any).window._deletePlayerRoleDB).toHaveBeenCalledWith(sampleRole);
+        expect(adapter.createPlayerRole).toHaveBeenCalledWith(sampleRole);
+        expect(adapter.setPlayerRole).toHaveBeenCalledWith(sampleRole);
+        expect(adapter.deletePlayerRole).toHaveBeenCalledWith(sampleRole);
     });
 
     it("maps player to player storage", () => {
-        const repository = new InjectedDBRepository();
+        const repository = new RoomDbRepository(ruid, createMockAdapter() as any);
         const player = {
             auth: "auth-1",
             conn: "conn-1",

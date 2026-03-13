@@ -1,7 +1,7 @@
 import * as P from "parsimmon";
 import { Parser } from "parsimmon";
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
 import { cmdAbout } from "./about";
 import { cmdAdm } from "./adm";
 import { cmdAuth } from "./auth";
@@ -53,7 +53,7 @@ type CommandEntry<Name extends string, Args> = {
     name: Name;
     altNames?: readonly string[];
     argsParser?: (lang: CommandLang) => Parser<Args>;
-    handle: (byPlayer: PlayerObject, ...args: ToArgs<Args>) => void | Promise<void>;
+    handle: (runtime: RoomRuntime, byPlayer: PlayerObject, ...args: ToArgs<Args>) => void | Promise<void>;
     help?: string;
 }
 
@@ -102,9 +102,9 @@ const registry = [
         name: "help",
         argsParser: () =>
             optional(P.whitespace.then(P.letter.atLeast(1).tie())).map((cmdName) => [cmdName] as const),
-        handle: (byPlayer, commandName?: string) => {
+        handle: (runtime, byPlayer, commandName?: string) => {
             const cmdHelp = buildHelpCommand(helpMap);
-            cmdHelp(byPlayer, commandName);
+            cmdHelp(runtime, byPlayer, commandName);
         },
         help: LangRes.command.helpman.help,
     }),
@@ -189,7 +189,7 @@ type RegistryEntry = (typeof registry)[number];
 type ArgsFor<Key extends GameCommandKey> = Extract<
     RegistryEntry,
     { name: Key }
-> extends { handle: (by: PlayerObject, ...args: infer A) => unknown }
+> extends { handle: (runtime: RoomRuntime, by: PlayerObject, ...args: infer A) => unknown }
     ? A
     : never;
 
@@ -234,19 +234,26 @@ export function parseCommand(commandText: string): ParsedCommand | null {
     return result.value as ParsedCommand;
 }
 
-export const commandExecutor = {
-    async executeCommand(byPlayer: PlayerObject, parsed: ParsedCommand): Promise<void> {
-        const entry = registry.find((r) => r.name === parsed.commandName);
-        if (!entry) throw new Error(`Command '${parsed.commandName}' is not registered`);
-        type Args = Parameters<typeof entry.handle> extends readonly [PlayerObject, ...infer A]
-            ? A
-            : never;
-        await (entry.handle as (by: PlayerObject, ...args: Args) => void | Promise<void>)(
-            byPlayer,
-            ...(parsed.commandArgs)
-        );
-    },
-};
+export interface CommandExecutor {
+    executeCommand(byPlayer: PlayerObject, parsed: ParsedCommand): Promise<void>;
+}
+
+export function createCommandExecutor(runtime: RoomRuntime): CommandExecutor {
+    return {
+        async executeCommand(byPlayer: PlayerObject, parsed: ParsedCommand): Promise<void> {
+            const entry = registry.find((r) => r.name === parsed.commandName);
+            if (!entry) throw new Error(`Command '${parsed.commandName}' is not registered`);
+            type Args = Parameters<typeof entry.handle> extends readonly [RoomRuntime, PlayerObject, ...infer A]
+                ? A
+                : never;
+            await (entry.handle as (runtime: RoomRuntime, by: PlayerObject, ...args: Args) => void | Promise<void>)(
+                runtime,
+                byPlayer,
+                ...(parsed.commandArgs)
+            );
+        },
+    };
+}
 
 export function isCommandString(message: string): boolean {
     return message.startsWith(COMMANDS_PREFIX);

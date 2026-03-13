@@ -1,8 +1,8 @@
 import { Context } from "koa";
 import { Player } from "../../../game/model/GameObject/Player";
 import { TeamID } from "../../../game/model/GameObject/TeamID";
-import { getRoomOperations } from "../../../lib/browser";
-import { BrowserHostRoomInitConfig } from '../../../lib/browser.hostconfig';
+import { getRoomOperations } from "../../../lib/room";
+import { RoomInitConfig } from '../../../lib/room.hostconfig';
 import { ConflictError, PlayerNotFoundError, RoomNotFoundError, ValidationError } from "../../../lib/errors";
 import { formatJoiError } from "../../middleware/errorHandler";
 import { discordWebhookConfigSchema } from "../../schema/discordwebhook.validation";
@@ -20,7 +20,7 @@ export async function createRoom(ctx: Context) {
         throw new ValidationError(formatted.message, formatted.details);
     }
 
-    const newRoomConfig: BrowserHostRoomInitConfig = {
+    const newRoomConfig: RoomInitConfig = {
         _LaunchDate: new Date()
         , _RUID: ctx.request.body.ruid
         , _config: ctx.request.body._config

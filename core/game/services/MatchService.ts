@@ -1,5 +1,4 @@
 import { KickStack } from "../model/GameObject/BallTrace";
-import { PlayerObject } from "../model/GameObject/PlayerObject";
 import { PlayersSet } from "../model/GameObject/PlayersSet";
 import { TeamID } from "../model/GameObject/TeamID";
 

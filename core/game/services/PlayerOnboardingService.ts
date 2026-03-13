@@ -1,8 +1,8 @@
 import { Player } from "../model/GameObject/Player";
-import { PlayerObject, PlayerStorage } from "../model/GameObject/PlayerObject";
+import { PlayerStorage } from "../model/GameObject/PlayerState";
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";
 import { PlayerRoles } from "../model/PlayerRole/PlayerRoles";
-import { getInjectedDBRepository, InjectedDBRepository } from "../repositories/InjectedDBRepository";
+import { getRoomDbRepository, RoomDbRepository } from "../runtime/RoomDbRepository";
 
 export interface JoinHydrationResult {
     player: Player;
@@ -18,19 +18,19 @@ export interface RoleResolutionResult {
  * Encapsulates player join persistence/rehydration and role resolution logic.
  */
 export class PlayerOnboardingService {
-    constructor(private readonly repository: InjectedDBRepository = getInjectedDBRepository()) {}
+    constructor(private readonly repository: RoomDbRepository = getRoomDbRepository()) {}
 
-    public async hydratePlayer(player: PlayerObject, joinTimestamp: number): Promise<JoinHydrationResult> {
-        const existing = await this.repository.readPlayer(player.auth);
+    public async hydratePlayer(player: PlayerJoinObject, playerAuth: string, joinTimestamp: number): Promise<JoinHydrationResult> {
+        const existing = await this.repository.readPlayer(playerAuth);
         if (existing) {
             return {
-                player: this.createReturningPlayer(player, existing, joinTimestamp),
+                player: this.createReturningPlayer(player, playerAuth, existing, joinTimestamp),
                 previousName: existing.name !== player.name ? existing.name : undefined
             };
         }
 
         return {
-            player: this.createNewPlayer(player, joinTimestamp)
+            player: this.createNewPlayer(player, playerAuth, joinTimestamp)
         };
     }
 
@@ -63,9 +63,10 @@ export class PlayerOnboardingService {
         };
     }
 
-    private createReturningPlayer(player: PlayerObject, existing: PlayerStorage, joinTimestamp: number): Player {
+    private createReturningPlayer(player: PlayerJoinObject, playerAuth: string, existing: PlayerStorage, joinTimestamp: number): Player {
         return new Player(
             player,
+            playerAuth,
             existing.nicknames.concat(player.name),
             {
                 mute: existing.mute,
@@ -81,9 +82,10 @@ export class PlayerOnboardingService {
         );
     }
 
-    private createNewPlayer(player: PlayerObject, joinTimestamp: number): Player {
+    private createNewPlayer(player: PlayerJoinObject, playerAuth: string, joinTimestamp: number): Player {
         return new Player(
             player,
+            playerAuth,
             [player.name],
             {
                 mute: false,

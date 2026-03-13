@@ -1,26 +1,22 @@
-import { PlayerObject } from "../model/GameObject/PlayerObject";
 import * as LangRes from "../resource/strings";
+import { RoomRuntime } from "../runtime/RoomRuntime";
 import * as Tst from "./Translator";
-import { ServiceContainer } from "../services/ServiceContainer";
 
-export function setDefaultStadiums(): void {
-    const services = ServiceContainer.getInstance();
-    services.room.loadDefaultStadium(); // if game mode is 'ready'
+export function setDefaultStadiums(runtime: RoomRuntime): void {
+    runtime.room.loadDefaultStadium(); // if game mode is 'ready'
 }
 
-export function setDefaultRoomLimitation(): void {
-    const services = ServiceContainer.getInstance();
-    const config = services.config.getConfig();
+export function setDefaultRoomLimitation(runtime: RoomRuntime): void {
+    const config = runtime.config.getConfig();
     
-    services.room.setScoreLimit(config.rules.scoreLimit);
-    services.room.setTimeLimit(config.rules.timeLimit);
-    services.room.setTeamsLock(config.rules.teamLock);
+    runtime.room.setScoreLimit(config.rules.scoreLimit);
+    runtime.room.setTimeLimit(config.rules.timeLimit);
+    runtime.room.setTeamsLock(config.rules.teamLock);
 }
 
-export function updateAdmins(): void {
-    const services = ServiceContainer.getInstance();
-    const room = services.room.getRoom();
-    const playerList = services.player.getPlayerList();
+export function updateAdmins(runtime: RoomRuntime): void {
+    const room = runtime.room.getRoom();
+    const playerList = runtime.player.getPlayerList();
     
     let placeholderUpdateAdmins = {
         playerID: 0,
@@ -40,8 +36,8 @@ export function updateAdmins(): void {
 
     room.setPlayerAdmin(players[0]!.id, true); // Give admin to the first non admin player in the list
     playerList.get(players[0].id)!.admin = true;
-    services.logger.i('updateAdmins', `${playerList.get(players[0].id)!.name}#${players[0].id} has been admin(value:${playerList.get(players[0].id)!.admin}), because there were no admin players.`);
-    services.room.sendAnnouncement(Tst.maketext(LangRes.funcUpdateAdmins.newAdmin, placeholderUpdateAdmins), null, 0xFFFFFF, "normal", 0);
+    runtime.logger.i('updateAdmins', `${playerList.get(players[0].id)!.name}#${players[0].id} has been admin(value:${playerList.get(players[0].id)!.admin}), because there were no admin players.`);
+    runtime.room.sendAnnouncement(Tst.maketext(LangRes.funcUpdateAdmins.newAdmin, placeholderUpdateAdmins), null, 0xFFFFFF, "normal", 0);
 }
 
 export function shuffleArray<T>(array: T[]): T[] {
@@ -58,9 +54,4 @@ export function shuffleArray<T>(array: T[]): T[] {
     }
 
     return newArray;
-}
-
-export function getCookieFromHeadless(name: string): string {
-    let result = new RegExp('(?:^|; )' + encodeURIComponent(name) + '=([^;]*)').exec(document.cookie);
-    return result ? result[1] : '';
 }

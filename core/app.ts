@@ -14,7 +14,7 @@ import { authenticationMiddleware } from "./api/middleware/authenticationMiddlew
 import { errorHandler } from "./api/middleware/errorHandler";
 import { wsAuthenticationMiddleware } from "./api/middleware/wsAuthenticationMiddleware";
 import { indexAPIRouter } from "./api/router/v1";
-import { createBrowserServices } from "./lib/browser/";
+import { createRoomServices } from "./lib/room";
 import { getApiKeys, getServerConfig } from "./lib/config";
 import { winstonLogger } from "./winstonLoggerSystem";
 
@@ -46,12 +46,11 @@ sio.on('connection', (socket: SIOsocket) => {
 })
 sio.use(wsAuthenticationMiddleware);
 
-// Start server after browser services are initialized
+// Start server after room services are initialized
 (async () => {
-    // Initialize browser services first
-    const { browserManager } = await createBrowserServices();
-    browserManager.attachSocketIOServer(sio);
-    winstonLogger.info('[core] Browser services initialized');
+    const { roomProcessManager } = await createRoomServices();
+    roomProcessManager.attachSocketIOServer(sio);
+    winstonLogger.info("[core] Room services initialized");
 
     // Now start the server
     server.listen(coreServerSettings.port, () => {

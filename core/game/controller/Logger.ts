@@ -1,7 +1,7 @@
+import { emitRoomLog } from "../runtime/WorkerEventBridge";
+
 export class Logger {
-    // written in Singleton Pattern
-    // If the bot created Logger object once, never create ever until the bot instance dead. 
-    private static instance: Logger;
+    private static instance: Logger | null = null;
 
     private Logger() { } // not use
     
@@ -14,16 +14,20 @@ export class Logger {
 
     public i(origin: string, msg: string): void { // for common info log
         console.info(msg);
-        window._emitSIOLogEvent(origin, 'info', msg);
+        emitRoomLog(origin, "info", msg);
     }
 
     public e(origin: string, msg: string): void { // for error log
         console.error(msg);
-        window._emitSIOLogEvent(origin, 'error', msg);
+        emitRoomLog(origin, "error", msg);
     }
 
     public w(origin: string, msg: string): void { // for warning log
         console.warn(msg);
-        window._emitSIOLogEvent(origin, 'warn', msg);
+        emitRoomLog(origin, "warn", msg);
+    }
+
+    public static reset(): void {
+        this.instance = null;
     }
 }

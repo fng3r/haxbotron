@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from "axios";
-import { PlayerStorage } from "../../game/model/GameObject/PlayerObject";
+import { PlayerStorage } from "../../game/model/GameObject/PlayerState";
 import { IPlayerRepository } from "./IPlayerRepository";
 import { DatabaseError } from "../errors";
 import { winstonLogger } from "../../winstonLoggerSystem";

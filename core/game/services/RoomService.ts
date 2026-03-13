@@ -1,12 +1,11 @@
 import { loadStadiumData } from "../../lib/stadiumLoader";
-import { Room } from "../model/RoomObject/RoomObject";
 
 /**
  * Service for managing the Haxball room instance
  * Exposes the native Haxball room API (_room) and manages room-level state
  */
 export class RoomService {
-    private _room: Room;
+    private _room: RoomObject;
     private _link: string = '';
     private defaultStadium: string = '';
     private teamColours: {
@@ -26,7 +25,7 @@ export class RoomService {
         };
     };
 
-    constructor(room: Room) {
+    constructor(room: RoomObject) {
         this._room = room;
         this.teamColours = {
             red: { 
@@ -54,7 +53,7 @@ export class RoomService {
      * - setScoreLimit()
      * - etc.
      */
-    public getRoom(): Room {
+    public getRoom(): RoomObject {
         return this._room;
     }
 

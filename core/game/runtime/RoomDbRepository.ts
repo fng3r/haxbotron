@@ -1,13 +1,15 @@
 import { Player } from "../model/GameObject/Player";
-import { PlayerStorage } from "../model/GameObject/PlayerObject";
+import { PlayerStorage } from "../model/GameObject/PlayerState";
 import { BanList } from "../model/PlayerBan/BanList";
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";
+import { InjectedDbAdapter } from "../../lib/db/adapters/InjectedDbAdapter";
 
-/**
- * Adapter over injected browser functions exposed by RoomLifecycleService.
- * Keeps direct window._* access in one place.
- */
-export class InjectedDBRepository {
+export class RoomDbRepository {
+    constructor(
+        private readonly ruid: string,
+        private readonly adapter: InjectedDbAdapter = new InjectedDbAdapter()
+    ) {}
+
     public toPlayerStorage(player: Player): PlayerStorage {
         return {
             auth: player.auth,
@@ -19,28 +21,24 @@ export class InjectedDBRepository {
             joinDate: player.entrytime.joinDate,
             leftDate: player.entrytime.leftDate,
             nicknames: Array.from(player.nicknames.values()),
-            malActCount: player.permissions.malActCount
+            malActCount: player.permissions.malActCount,
         };
     }
 
     public async createPlayer(player: PlayerStorage): Promise<void> {
-        const ruid = this.getRuid();
-        await window._createPlayerDB(ruid, player);
+        await this.adapter.createPlayer(this.ruid, player);
     }
 
     public async readPlayer(auth: string): Promise<PlayerStorage | undefined> {
-        const ruid = this.getRuid();
-        return await window._readPlayerDB(ruid, auth);
+        return await this.adapter.readPlayer(this.ruid, auth);
     }
 
     public async updatePlayer(player: PlayerStorage): Promise<void> {
-        const ruid = this.getRuid();
-        await window._updatePlayerDB(ruid, player);
+        await this.adapter.updatePlayer(this.ruid, player);
     }
 
     public async deletePlayer(auth: string): Promise<void> {
-        const ruid = this.getRuid();
-        await window._deletePlayerDB(ruid, auth);
+        await this.adapter.deletePlayer(this.ruid, auth);
     }
 
     public async upsertPlayer(player: PlayerStorage): Promise<void> {
@@ -53,44 +51,39 @@ export class InjectedDBRepository {
     }
 
     public async createPlayerRole(playerRole: PlayerRole): Promise<void> {
-        await window._createPlayerRoleDB(playerRole);
+        await this.adapter.createPlayerRole(playerRole);
     }
 
     public async readPlayerRole(auth: string): Promise<PlayerRole | undefined> {
-        return await window._getPlayerRoleDB(auth);
+        return await this.adapter.getPlayerRole(auth);
     }
 
     public async updatePlayerRole(playerRole: PlayerRole): Promise<void> {
-        await window._setPlayerRoleDB(playerRole);
+        await this.adapter.setPlayerRole(playerRole);
     }
 
     public async deletePlayerRole(playerRole: PlayerRole): Promise<void> {
-        await window._deletePlayerRoleDB(playerRole);
+        await this.adapter.deletePlayerRole(playerRole);
     }
 
     public async createBan(banList: BanList): Promise<void> {
-        const ruid = this.getRuid();
-        await window._createBanlistDB(ruid, banList);
+        await this.adapter.createBan(this.ruid, banList);
     }
 
     public async readBan(conn: string): Promise<BanList | undefined> {
-        const ruid = this.getRuid();
-        return await window._readBanlistDB(ruid, conn);
+        return await this.adapter.readBan(this.ruid, conn);
     }
 
     public async readAllBans(): Promise<BanList[] | undefined> {
-        const ruid = this.getRuid();
-        return await window._getAllBansDB(ruid);
+        return await this.adapter.getAllBans(this.ruid);
     }
 
     public async updateBan(banList: BanList): Promise<void> {
-        const ruid = this.getRuid();
-        await window._updateBanlistDB(ruid, banList);
+        await this.adapter.updateBan(this.ruid, banList);
     }
 
     public async deleteBan(conn: string): Promise<void> {
-        const ruid = this.getRuid();
-        await window._deleteBanlistDB(ruid, conn);
+        await this.adapter.deleteBan(this.ruid, conn);
     }
 
     public async upsertBan(banList: BanList): Promise<void> {
@@ -101,21 +94,23 @@ export class InjectedDBRepository {
         }
         await this.createBan(banList);
     }
-
-    private getRuid(): string {
-        const services = window.services;
-        if (!services) {
-            throw new Error("ServiceContainer is not available on window");
-        }
-        return services.config.getRUID();
-    }
 }
 
-let injectedDBRepositoryInstance: InjectedDBRepository | null = null;
+let roomDbRepositoryInstance: RoomDbRepository | null = null;
 
-export function getInjectedDBRepository(): InjectedDBRepository {
-    if (!injectedDBRepositoryInstance) {
-        injectedDBRepositoryInstance = new InjectedDBRepository();
+export function initializeRoomDbRepository(ruid: string): RoomDbRepository {
+    roomDbRepositoryInstance = new RoomDbRepository(ruid);
+    return roomDbRepositoryInstance;
+}
+
+export function getRoomDbRepository(): RoomDbRepository {
+    if (!roomDbRepositoryInstance) {
+        throw new Error("RoomDbRepository is not initialized. Call initializeRoomDbRepository() first.");
     }
-    return injectedDBRepositoryInstance;
+
+    return roomDbRepositoryInstance;
+}
+
+export function resetRoomDbRepository(): void {
+    roomDbRepositoryInstance = null;
 }

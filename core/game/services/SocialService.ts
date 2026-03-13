@@ -1,5 +1,6 @@
-import { DiscordWebhookConfig } from "../../lib/browser.interface";
+import { DiscordWebhookConfig } from "../../lib/room.interface";
 import { MatchStats } from "./MatchService";
+import { DiscordWebhookService } from "../../lib/integrations/DiscordWebhookService";
 
 /**
  * Service for managing social integrations (Discord webhooks, etc.)
@@ -15,11 +16,13 @@ export class SocialService {
             replayUpload: boolean;
         };
     };
+    private readonly discordWebhookService?: DiscordWebhookService;
 
-    constructor(discordWebhook: DiscordWebhookConfig) {
+    constructor(discordWebhook: DiscordWebhookConfig, discordWebhookService?: DiscordWebhookService) {
         this.social = {
             discordWebhook: discordWebhook
         };
+        this.discordWebhookService = discordWebhookService;
     }
 
     public getDiscordWebhook() {
@@ -36,11 +39,18 @@ export class SocialService {
 
     public emitReplayWebhook(roomId: string, matchStats: MatchStats, replay: Uint8Array | null): void {
         const webhook = this.social.discordWebhook;
-        if (!replay || !webhook.feed || !webhook.replayUpload || !webhook.replaysWebhookId || !webhook.replaysWebhookToken) {
+        if (
+            !replay ||
+            !this.discordWebhookService ||
+            !webhook.feed ||
+            !webhook.replayUpload ||
+            !webhook.replaysWebhookId ||
+            !webhook.replaysWebhookToken
+        ) {
             return;
         }
 
-        window._feedSocialDiscordWebhook(
+        void this.discordWebhookService.sendReplay(
             webhook.replaysWebhookId,
             webhook.replaysWebhookToken,
             {

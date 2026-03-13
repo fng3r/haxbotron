@@ -1,5 +1,5 @@
 import { BanList } from "../../../game/model/PlayerBan/BanList";
-import { PlayerStorage } from "../../../game/model/GameObject/PlayerObject";
+import { PlayerStorage } from "../../../game/model/GameObject/PlayerState";
 import { PlayerRole } from "../../../game/model/PlayerRole/PlayerRole";
 import { winstonLogger } from "../../../winstonLoggerSystem";
 import { DbApiGateway } from "../DbApiGateway";

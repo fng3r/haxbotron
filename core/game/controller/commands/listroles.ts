@@ -1,13 +1,10 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
 import * as Tst from "../Translator";
 
-export function cmdListRoles(byPlayer: PlayerObject): void {
-    const services = ServiceContainer.getInstance();
-    
-    const [...playerRoles] = services.playerRole.getRoles().values();
+export function cmdListRoles(runtime: RoomRuntime, byPlayer: PlayerObject): void {
+    const [...playerRoles] = runtime.playerRole.getRoles().values();
     const rolesString = playerRoles.map(playerRole => `${playerRole.name} (${playerRole.role})`).join(', ');
 
-    services.room.sendAnnouncement(Tst.maketext(LangRes.command.listroles.rolesList, {rolesList: rolesString}), null, 0x479947, "normal", 1);
+    runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.listroles.rolesList, {rolesList: rolesString}), null, 0x479947, "normal", 1);
 }

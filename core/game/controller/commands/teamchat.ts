@@ -1,15 +1,13 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { TeamID } from "../../model/GameObject/TeamID";
 import * as LangRes from "../../resource/strings";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
 
-export function cmdTeamChat(byPlayer: PlayerObject, message: string): void {
-    const services = ServiceContainer.getInstance();
-    const playerList = services.player.getPlayerList();
+export function cmdTeamChat(runtime: RoomRuntime, byPlayer: PlayerObject, message: string): void {
+    const playerList = runtime.player.getPlayerList();
     
     const player = playerList.get(byPlayer.id)!;
-    if (services.chat.isMessageBlockedByMute(player)) {
-        services.room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2);
+    if (runtime.chat.isMessageBlockedByMute(player)) {
+        runtime.room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2);
         return;
     }
 
@@ -18,7 +16,7 @@ export function cmdTeamChat(byPlayer: PlayerObject, message: string): void {
     const resultMessage = `${messagePrefix} ${byPlayer.name}: ${message}`;
     for (const player of playerList.values()) {
         if (player.team === byPlayer.team) {
-            services.room.sendAnnouncement(resultMessage, player.id, messageColor, "bold", 1);
+            runtime.room.sendAnnouncement(resultMessage, player.id, messageColor, "bold", 1);
         }
     }
 }

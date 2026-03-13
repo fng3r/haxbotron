@@ -38,7 +38,7 @@ const mockRoomOperations = {
   setDiscordWebhookConfig: jest.fn(),
 };
 
-jest.mock('../../../lib/browser/', () => ({
+jest.mock('../../../lib/room', () => ({
   getRoomOperations: jest.fn(() => mockRoomOperations),
 }));
 

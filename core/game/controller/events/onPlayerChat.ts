@@ -1,65 +1,64 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
-import { ServiceContainer } from "../../services/ServiceContainer";
-import { commandExecutor, isCommandString, isTeamChatCommand, parseCommand } from "../commands/CommandRegistry";
+import { CommandExecutor, isCommandString, isTeamChatCommand, parseCommand } from "../commands/CommandRegistry";
 import { getUnixTimestamp } from "../DateTimeUtils";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
 import * as Tst from "../Translator";
 
-export function onPlayerChatListener(player: PlayerObject, message: string): boolean {
+export function onPlayerChatListener(runtime: RoomRuntime, commandExecutor: CommandExecutor, player: PlayerObject, message: string): boolean {
     // Event called when a player sends a chat message.
     // The event function can return false in order to filter the chat message.
     // Then It prevents the chat message from reaching other players in the room.
 
-    const services = ServiceContainer.getInstance();
-    const playerList = services.player.getPlayerList();
-    const config = services.config.getConfig();
+    const playerList = runtime.player.getPlayerList();
+    const config = runtime.config.getConfig();
     
-    services.logger.i('onPlayerChat', `[${player.name}#${player.id}] ${message}`);
+    runtime.logger.i('onPlayerChat', `[${player.name}#${player.id}] ${message}`);
 
     const roomPlayer = playerList.get(player.id)!;
-    const playerRole = services.playerRole.getRole(player.id)!;
+    const playerRole = runtime.playerRole.getRole(player.id)!;
     if (isCommandString(message)) {
         const command = parseCommand(message);
         if (command === null) {
-            services.room.sendAnnouncement(LangRes.command._ErrorWrongCommand, player.id, 0xFF7777, "normal", 2);
+            runtime.room.sendAnnouncement(LangRes.command._ErrorWrongCommand, player.id, 0xFF7777, "normal", 2);
         } else {
             Promise.resolve(commandExecutor.executeCommand(player, command)).catch(() => {
-                services.logger.e('executeCommand', `Failed to execute command '${command.commandName}'`);
+                runtime.logger.e('executeCommand', `Failed to execute command '${command.commandName}'`);
             });
         }
 
         const isTeamChatCmd = command && isTeamChatCommand(command.commandName);
-        return !isTeamChatCmd && !services.chat.isMessageBlockedByMute(roomPlayer);
+        return !isTeamChatCmd && !runtime.chat.isMessageBlockedByMute(roomPlayer);
     }
 
     const currentTimestamp = getUnixTimestamp();
-    if (services.chat.canBypassChatRestrictions(playerRole)) {
-        services.chat.recordChatActivity(player.id, currentTimestamp);
+    if (runtime.chat.canBypassChatRestrictions(playerRole)) {
+        runtime.chat.recordChatActivity(player.id, currentTimestamp);
         return true;
     }
 
-    if (services.chat.isMessageBlockedByMute(roomPlayer)) {
-        services.room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2);
+    if (runtime.chat.isMessageBlockedByMute(roomPlayer)) {
+        runtime.room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2);
         return false;
     }
 
     // Anti Chat Flood Checking
     if (config.settings.antiChatFlood) { // if anti chat flood options is enabled
-        const isFlood = services.chat.detectChatFlood(
+        const isFlood = runtime.chat.detectChatFlood(
             player.id,
             currentTimestamp,
             config.settings.chatFloodCriterion,
             config.settings.chatFloodIntervalMillisecs
         );
         if (isFlood && !roomPlayer.permissions.mute) {
-            services.chat.applyFloodMute(roomPlayer, currentTimestamp, config.settings.muteDefaultMillisecs); // record mute expiration date by unix timestamp
+            runtime.chat.applyFloodMute(roomPlayer, currentTimestamp, config.settings.muteDefaultMillisecs); // record mute expiration date by unix timestamp
             const placeholder = {
                 playerID: player.id,
                 playerName: player.name
             };
-            services.room.sendAnnouncement(Tst.maketext(LangRes.antitrolling.chatFlood.muteReason, placeholder), null, 0xFF0000, "normal", 1); // notify that fact
+            runtime.room.sendAnnouncement(Tst.maketext(LangRes.antitrolling.chatFlood.muteReason, placeholder), null, 0xFF0000, "normal", 1); // notify that fact
 
-            window._emitSIOPlayerStatusChangeEvent(player.id);
+            emitPlayerStatusChange(player.id);
             return false;
         }
     }

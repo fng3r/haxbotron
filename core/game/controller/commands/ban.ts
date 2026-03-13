@@ -1,19 +1,18 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { extractPlayerIdentifier, isPlayerId, PlayerId } from "../../model/PlayerIdentifier/PlayerIdentifier";
 import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 import * as LangRes from "../../resource/strings";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
 import { getRemainingTimeString, getUnixTimestamp } from "../DateTimeUtils";
 import * as Tst from "../Translator";
 
-export async function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, banDuration?: number): Promise<void> {
-    const services = ServiceContainer.getInstance();
-    const room = services.room.getRoom();
-    const playerList = services.player.getPlayerList();
+export async function cmdBan(runtime: RoomRuntime, byPlayer: PlayerObject, playerIdentifier: string, banDuration?: number): Promise<void> {
+    const room = runtime.room.getRoom();
+    const playerList = runtime.player.getPlayerList();
     
-    const playerRole = services.playerRole.getRole(byPlayer.id)!;
+    const playerRole = runtime.playerRole.getRole(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
-        services.room.sendAnnouncement(LangRes.command.mute._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command.mute._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
 
@@ -34,39 +33,37 @@ export async function cmdBan(byPlayer: PlayerObject, playerIdentifier: string, b
             const currentTimestamp: number = getUnixTimestamp();
 
             if (banInMinutes === -1) {
-                await services.ban.upsertBan(
-                    services.ban.createPermanentBan(player.conn, player.auth, '', currentTimestamp)
+                await runtime.ban.upsertBan(
+                    runtime.ban.createPermanentBan(player.conn, player.auth, '', currentTimestamp)
                 );
                 room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.permanentBan, placeholder), false);
-                services.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successPermaBan, placeholder), null, 0x479947, "normal", 1);
+                runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successPermaBan, placeholder), null, 0x479947, "normal", 1);
             } else {
-                await services.ban.upsertBan(
-                    services.ban.createTemporaryBan(player.conn, player.auth, '', currentTimestamp, banInMinutes * 60 * 1000)
+                await runtime.ban.upsertBan(
+                    runtime.ban.createTemporaryBan(player.conn, player.auth, '', currentTimestamp, banInMinutes * 60 * 1000)
                 );
                 room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.tempBan, placeholder), false);
-                services.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successTempBan, placeholder), null, 0x479947, "normal", 1);
+                runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successTempBan, placeholder), null, 0x479947, "normal", 1);
             }
 
-            window._emitSIOPlayerStatusChangeEvent(byPlayer.id);
+            emitPlayerStatusChange(byPlayer.id);
         } else {
-            services.room.sendAnnouncement(LangRes.command.ban._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 2);
+            runtime.room.sendAnnouncement(LangRes.command.ban._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 2);
         }
     }
 }
 
-export async function cmdBans(byPlayer: PlayerObject): Promise<void> {
-    const services = ServiceContainer.getInstance();
-
-    const banEntries = await services.ban.getBanDisplayEntries();
+export async function cmdBans(runtime: RoomRuntime, byPlayer: PlayerObject): Promise<void> {
+    const banEntries = await runtime.ban.getBanDisplayEntries();
     if (banEntries === undefined) {
-        services.room.sendAnnouncement(LangRes.command.bans._ErrorFailedToGet, null, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command.bans._ErrorFailedToGet, null, 0xFF7777, "normal", 2);
         return;
     }
 
     if (banEntries.length === 0) {
-        services.room.sendAnnouncement(LangRes.command.bans.noBans, null, 0x479947, "normal", 1);
+        runtime.room.sendAnnouncement(LangRes.command.bans.noBans, null, 0x479947, "normal", 1);
     } else {
         const bannedPlayersString = banEntries.map(banEntry => `${banEntry.playerName} (${getRemainingTimeString(banEntry.expire)})`).join(', ');
-        services.room.sendAnnouncement(Tst.maketext(LangRes.command.bans.allBans, {bannedPlayers: bannedPlayersString}), null, 0x479947, "normal", 1);
+        runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.bans.allBans, {bannedPlayers: bannedPlayersString}), null, 0x479947, "normal", 1);
     }
 }

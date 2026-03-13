@@ -1,17 +1,15 @@
-import { ScoresObject } from "../../model/GameObject/ScoresObject";
 import { TeamID } from "../../model/GameObject/TeamID";
 import * as LangRes from "../../resource/strings";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
 import * as Tst from "../Translator";
 
-export async function onTeamGoalListener(team: TeamID): Promise<void> {
+export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Promise<void> {
     // Event called when a team scores a goal.
-    const services = ServiceContainer.getInstance();
-    const room = services.room.getRoom();
-    const playerList = services.player.getPlayerList();
+    const room = runtime.room.getRoom();
+    const playerList = runtime.player.getPlayerList();
     
     let scores: ScoresObject | null = room.getScores(); //get scores object (it includes time data about seconds elapsed)
-    services.logger.i('onTeamGoal', `Goal time logger (secs):${Math.round(scores?.time || 0)}`);
+    runtime.logger.i('onTeamGoal', `Goal time logger (secs):${Math.round(scores?.time || 0)}`);
 
     var placeholderGoal = { 
         teamID: team,
@@ -29,7 +27,7 @@ export async function onTeamGoalListener(team: TeamID): Promise<void> {
         placeholderGoal.teamName = 'Blue';
     }
 
-    const { scorer, assistant } = services.match.consumeGoalTouches();
+    const { scorer, assistant } = runtime.match.consumeGoalTouches();
     if (scorer !== undefined) {
         // check whether or not it is an OG. and process it!
         if (playerList.get(scorer)!.team === team) { // if the goal is normal goal (not OG)
@@ -42,13 +40,13 @@ export async function onTeamGoalListener(team: TeamID): Promise<void> {
                 playerList.get(assistant)!.matchRecord.assists++;
                 goalMsg = Tst.maketext(LangRes.onGoal.goalWithAssist, placeholderGoal);
             }
-            services.room.sendAnnouncement(goalMsg, null, 0xFFFFFF, "normal", 0);
-            services.logger.i('onTeamGoal', goalMsg);
+            runtime.room.sendAnnouncement(goalMsg, null, 0xFFFFFF, "normal", 0);
+            runtime.logger.i('onTeamGoal', goalMsg);
         } else { // if the goal is OG
             placeholderGoal.ogName = playerList.get(scorer)!.name;
             playerList.get(scorer)!.matchRecord.ogs++;
-            services.room.sendAnnouncement(Tst.maketext(LangRes.onGoal.og, placeholderGoal), null, 0xFFFFFF, "normal", 0);
-            services.logger.i('onTeamGoal', `${playerList.get(scorer)!.name}#${scorer} made an OG.`);
+            runtime.room.sendAnnouncement(Tst.maketext(LangRes.onGoal.og, placeholderGoal), null, 0xFFFFFF, "normal", 0);
+            runtime.logger.i('onTeamGoal', `${playerList.get(scorer)!.name}#${scorer} made an OG.`);
         }
     }
 }
@@ -67,4 +65,3 @@ const formatMatchTime = (totalSeconds?: number): string => {
 const formatScore = (redScore?: number, blueScore?: number): string => {
     return `${redScore || 0}-${blueScore || 0}`;
 };
-

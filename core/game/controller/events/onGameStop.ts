@@ -1,27 +1,25 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
 
 
-export function onGameStopListener(byPlayer: PlayerObject): void {
+export function onGameStopListener(runtime: RoomRuntime, byPlayer: PlayerObject | null): void {
     /*
     Event called when a game stops.
     byPlayer is the player which caused the event (can be null if the event wasn't caused by a player).
     Haxball developer Basro said, The game will be stopped automatically after a team victory. (victory -> stop)
     */
-    const services = ServiceContainer.getInstance();
-    const room = services.room.getRoom();
+    const room = runtime.room.getRoom();
 
-    const stats = services.match.getMatchStats();
-    services.logger.i('onGameStop', JSON.stringify(stats));
+    const stats = runtime.match.getMatchStats();
+    runtime.logger.i('onGameStop', JSON.stringify(stats));
 
-    services.match.stopMatch();
+    runtime.match.stopMatch();
 
     let msg = "The game has been stopped.";
     if (byPlayer !== null && byPlayer.id != 0) {
         msg += `(by ${byPlayer.name}#${byPlayer.id})`;
     }
-    services.logger.i('onGameStop', msg);
+    runtime.logger.i('onGameStop', msg);
 
     const replay = room.stopRecording();
-    services.social.emitReplayWebhook(services.config.getRUID(), stats, replay);
+    runtime.social.emitReplayWebhook(runtime.config.getRUID(), stats, replay);
 }
