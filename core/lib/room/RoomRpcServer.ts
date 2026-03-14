@@ -2,7 +2,7 @@ import {
     AnyRoomRpcResponse,
     RoomRpcCommand,
     RoomRpcRequest,
-    RoomRpcResultMap,
+    RoomRpcResult,
 } from "./RoomProtocol";
 
 export class RoomRpcServer {
@@ -10,7 +10,7 @@ export class RoomRpcServer {
 
     public async handleRequest<C extends RoomRpcCommand>(
         request: RoomRpcRequest<C>,
-        handler: () => Promise<RoomRpcResultMap[C]> | RoomRpcResultMap[C]
+        handler: () => Promise<RoomRpcResult<C>> | RoomRpcResult<C>
     ): Promise<void> {
         try {
             const result = await handler();

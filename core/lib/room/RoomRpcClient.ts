@@ -1,11 +1,11 @@
 import { v4 as uuid } from "uuid";
 import {
     AnyRoomRpcRequest,
-    AnyRoomRpcResponse,
     RoomRpcCommand,
-    RoomRpcCommandMap,
+    AnyRoomRpcResponse,
+    RoomRpcPayload,
     RoomRpcRequest,
-    RoomRpcResultMap,
+    RoomRpcResult,
     isRoomRpcResponseForCommand,
 } from "./RoomProtocol";
 
@@ -26,9 +26,9 @@ export class RoomRpcClient {
 
     public async request<C extends RoomRpcCommand>(
         command: C,
-        payload: RoomRpcCommandMap[C],
+        payload: RoomRpcPayload<C>,
         timeoutMs: number
-    ): Promise<RoomRpcResultMap[C]> {
+    ): Promise<RoomRpcResult<C>> {
         const requestId = uuid();
         const request: RoomRpcRequest<C> = {
             type: "request",
@@ -37,7 +37,7 @@ export class RoomRpcClient {
             payload,
         };
 
-        return await new Promise<RoomRpcResultMap[C]>((resolve, reject) => {
+        return await new Promise<RoomRpcResult<C>>((resolve, reject) => {
             const timer = setTimeout(() => {
                 this.pendingRequests.delete(requestId);
                 reject(new Error(`[RoomRpcClient] '${String(command)}' timed out in ${this.scopeLabel}`));
@@ -46,7 +46,7 @@ export class RoomRpcClient {
             this.pendingRequests.set(requestId, {
                 command,
                 resolve: (value) => {
-                    resolve(value as RoomRpcResultMap[C]);
+                    resolve(value as RoomRpcResult<C>);
                 },
                 reject,
                 timer,

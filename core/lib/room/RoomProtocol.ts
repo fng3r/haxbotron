@@ -25,66 +25,6 @@ export interface TeamColourInfo {
     teamColour3: number;
 }
 
-export type RoomRpcCommandMap = {
-    openRoom: { ruid: string; initConfig: RoomInitConfig };
-    closeRoom: undefined;
-    getRoomLink: undefined;
-    getRoomInfo: undefined;
-    getRoomDetailInfo: undefined;
-    getOnlinePlayersIDList: undefined;
-    checkOnlinePlayer: { id: number };
-    getPlayerInfo: { id: number };
-    banPlayerTemporarily: { id: number; ban: boolean; reason: string; seconds: number };
-    broadcast: { message: string };
-    whisper: { id: number; message: string };
-    getNotice: undefined;
-    setNotice: { message: string };
-    setPassword: { password: string };
-    getChatFreeze: undefined;
-    setChatFreeze: { freeze: boolean };
-    setPlayerMute: { id: number; muteExpireTime: number };
-    setPlayerUnmute: { id: number };
-    getTeamColours: { team: TeamID };
-    setTeamColours: {
-        team: TeamID;
-        angle: number;
-        textColour: number;
-        teamColour1: number;
-        teamColour2: number;
-        teamColour3: number;
-    };
-    getDiscordWebhookConfig: undefined;
-    setDiscordWebhookConfig: { config: DiscordWebhookConfig };
-};
-
-export type RoomRpcResultMap = {
-    openRoom: void;
-    closeRoom: void;
-    getRoomLink: string;
-    getRoomInfo: RoomInfo;
-    getRoomDetailInfo: RoomDetailInfo;
-    getOnlinePlayersIDList: number[];
-    checkOnlinePlayer: boolean;
-    getPlayerInfo: Player | undefined;
-    banPlayerTemporarily: void;
-    broadcast: void;
-    whisper: void;
-    getNotice: string | null;
-    setNotice: void;
-    setPassword: void;
-    getChatFreeze: boolean;
-    setChatFreeze: void;
-    setPlayerMute: void;
-    setPlayerUnmute: void;
-    getTeamColours: TeamColourInfo;
-    setTeamColours: void;
-    getDiscordWebhookConfig: DiscordWebhookConfig;
-    setDiscordWebhookConfig: void;
-};
-
-export type RoomRpcCommand = keyof RoomRpcCommandMap;
-export type RuntimeRoomRpcCommand = Exclude<RoomRpcCommand, "openRoom">;
-
 export type RoomWorkerEvent =
     | {
           type: "event";
@@ -111,7 +51,7 @@ export type RoomRpcRequest<C extends RoomRpcCommand = RoomRpcCommand> = {
     type: "request";
     requestId: string;
     command: C;
-    payload: RoomRpcCommandMap[C];
+    payload: RoomRpcPayload<C>;
 };
 
 export type AnyRoomRpcRequest = {
@@ -129,7 +69,7 @@ export type RoomRpcSuccessResponse<C extends RoomRpcCommand = RoomRpcCommand> = 
     requestId: string;
     command: C;
     success: true;
-    result: RoomRpcResultMap[C];
+    result: RoomRpcResult<C>;
 };
 
 export type RoomRpcErrorResponse<C extends RoomRpcCommand = RoomRpcCommand> = {
@@ -162,31 +102,6 @@ type ValidationResult<T> =
           success: false;
           error: string;
       };
-
-const roomRpcCommands: RoomRpcCommand[] = [
-    "openRoom",
-    "closeRoom",
-    "getRoomLink",
-    "getRoomInfo",
-    "getRoomDetailInfo",
-    "getOnlinePlayersIDList",
-    "checkOnlinePlayer",
-    "getPlayerInfo",
-    "banPlayerTemporarily",
-    "broadcast",
-    "whisper",
-    "getNotice",
-    "setNotice",
-    "setPassword",
-    "getChatFreeze",
-    "setChatFreeze",
-    "setPlayerMute",
-    "setPlayerUnmute",
-    "getTeamColours",
-    "setTeamColours",
-    "getDiscordWebhookConfig",
-    "setDiscordWebhookConfig",
-];
 
 const roomWorkerEvents: RoomWorkerEvent["event"][] = ["roomReady", "log", "joinleft", "statuschange"];
 
@@ -233,76 +148,147 @@ const roomDetailInfoSchema = Joi.object<RoomDetailInfo>({
     rules: Joi.any().required(),
 }).required();
 
-const requestPayloadSchemas: { [C in RoomRpcCommand]: Joi.Schema } = {
-    openRoom: Joi.object({
-        ruid: Joi.string().required(),
-        initConfig: Joi.object<RoomInitConfig>().required(),
-    }).required(),
-    closeRoom: undefinedSchema,
-    getRoomLink: undefinedSchema,
-    getRoomInfo: undefinedSchema,
-    getRoomDetailInfo: undefinedSchema,
-    getOnlinePlayersIDList: undefinedSchema,
-    checkOnlinePlayer: Joi.object({ id: Joi.number().required() }).required(),
-    getPlayerInfo: Joi.object({ id: Joi.number().required() }).required(),
-    banPlayerTemporarily: Joi.object({
-        id: Joi.number().required(),
-        ban: Joi.boolean().required(),
-        reason: Joi.string().required(),
-        seconds: Joi.number().required(),
-    }).required(),
-    broadcast: Joi.object({ message: Joi.string().required() }).required(),
-    whisper: Joi.object({
-        id: Joi.number().required(),
-        message: Joi.string().required(),
-    }).required(),
-    getNotice: undefinedSchema,
-    setNotice: Joi.object({ message: Joi.string().required() }).required(),
-    setPassword: Joi.object({ password: Joi.string().required() }).required(),
-    getChatFreeze: undefinedSchema,
-    setChatFreeze: Joi.object({ freeze: Joi.boolean().required() }).required(),
-    setPlayerMute: Joi.object({
-        id: Joi.number().required(),
-        muteExpireTime: Joi.number().required(),
-    }).required(),
-    setPlayerUnmute: Joi.object({ id: Joi.number().required() }).required(),
-    getTeamColours: Joi.object({ team: teamIdSchema.required() }).required(),
-    setTeamColours: Joi.object({
-        team: teamIdSchema.required(),
-        angle: Joi.number().required(),
-        textColour: Joi.number().required(),
-        teamColour1: Joi.number().required(),
-        teamColour2: Joi.number().required(),
-        teamColour3: Joi.number().required(),
-    }).required(),
-    getDiscordWebhookConfig: undefinedSchema,
-    setDiscordWebhookConfig: Joi.object({ config: discordWebhookConfigSchema }).required(),
+type RoomRpcDefinition<Payload, Result> = {
+    payloadSchema: Joi.Schema;
+    resultSchema: Joi.Schema;
+    __types?: {
+        payload: Payload;
+        result: Result;
+    };
 };
 
-const responseResultSchemas: { [C in RoomRpcCommand]: Joi.Schema } = {
-    openRoom: undefinedSchema,
-    closeRoom: undefinedSchema,
-    getRoomLink: Joi.string().required(),
-    getRoomInfo: roomInfoSchema,
-    getRoomDetailInfo: roomDetailInfoSchema,
-    getOnlinePlayersIDList: Joi.array().items(Joi.number().required()).required(),
-    checkOnlinePlayer: Joi.boolean().required(),
-    getPlayerInfo: Joi.any(),
-    banPlayerTemporarily: undefinedSchema,
-    broadcast: undefinedSchema,
-    whisper: undefinedSchema,
-    getNotice: Joi.alternatives(Joi.string(), Joi.valid(null)).required(),
-    setNotice: undefinedSchema,
-    setPassword: undefinedSchema,
-    getChatFreeze: Joi.boolean().required(),
-    setChatFreeze: undefinedSchema,
-    setPlayerMute: undefinedSchema,
-    setPlayerUnmute: undefinedSchema,
-    getTeamColours: teamColourInfoSchema,
-    setTeamColours: undefinedSchema,
-    getDiscordWebhookConfig: discordWebhookConfigSchema,
-    setDiscordWebhookConfig: undefinedSchema,
+function defineRoomRpcCommand<Payload, Result>(
+    payloadSchema: Joi.Schema,
+    resultSchema: Joi.Schema
+): RoomRpcDefinition<Payload, Result> {
+    return {
+        payloadSchema,
+        resultSchema,
+    };
+}
+
+export const roomRpcDefinitions = {
+    openRoom: defineRoomRpcCommand<{ ruid: string; initConfig: RoomInitConfig }, void>(
+        Joi.object({
+            ruid: Joi.string().required(),
+            initConfig: Joi.object<RoomInitConfig>().required(),
+        }).required(),
+        undefinedSchema
+    ),
+    closeRoom: defineRoomRpcCommand<undefined, void>(undefinedSchema, undefinedSchema),
+    getRoomLink: defineRoomRpcCommand<undefined, string>(undefinedSchema, Joi.string().required()),
+    getRoomInfo: defineRoomRpcCommand<undefined, RoomInfo>(undefinedSchema, roomInfoSchema),
+    getRoomDetailInfo: defineRoomRpcCommand<undefined, RoomDetailInfo>(undefinedSchema, roomDetailInfoSchema),
+    getOnlinePlayersIDList: defineRoomRpcCommand<undefined, number[]>(
+        undefinedSchema,
+        Joi.array().items(Joi.number().required()).required()
+    ),
+    checkOnlinePlayer: defineRoomRpcCommand<{ id: number }, boolean>(
+        Joi.object({ id: Joi.number().required() }).required(),
+        Joi.boolean().required()
+    ),
+    getPlayerInfo: defineRoomRpcCommand<{ id: number }, Player | undefined>(
+        Joi.object({ id: Joi.number().required() }).required(),
+        Joi.any()
+    ),
+    banPlayerTemporarily: defineRoomRpcCommand<{ id: number; ban: boolean; reason: string; seconds: number }, void>(
+        Joi.object({
+            id: Joi.number().required(),
+            ban: Joi.boolean().required(),
+            reason: Joi.string().required(),
+            seconds: Joi.number().required(),
+        }).required(),
+        undefinedSchema
+    ),
+    broadcast: defineRoomRpcCommand<{ message: string }, void>(
+        Joi.object({ message: Joi.string().required() }).required(),
+        undefinedSchema
+    ),
+    whisper: defineRoomRpcCommand<{ id: number; message: string }, void>(
+        Joi.object({
+            id: Joi.number().required(),
+            message: Joi.string().required(),
+        }).required(),
+        undefinedSchema
+    ),
+    getNotice: defineRoomRpcCommand<undefined, string | null>(
+        undefinedSchema,
+        Joi.alternatives(Joi.string(), Joi.valid(null)).required()
+    ),
+    setNotice: defineRoomRpcCommand<{ message: string }, void>(
+        Joi.object({ message: Joi.string().required() }).required(),
+        undefinedSchema
+    ),
+    setPassword: defineRoomRpcCommand<{ password: string }, void>(
+        Joi.object({ password: Joi.string().required() }).required(),
+        undefinedSchema
+    ),
+    getChatFreeze: defineRoomRpcCommand<undefined, boolean>(undefinedSchema, Joi.boolean().required()),
+    setChatFreeze: defineRoomRpcCommand<{ freeze: boolean }, void>(
+        Joi.object({ freeze: Joi.boolean().required() }).required(),
+        undefinedSchema
+    ),
+    setPlayerMute: defineRoomRpcCommand<{ id: number; muteExpireTime: number }, void>(
+        Joi.object({
+            id: Joi.number().required(),
+            muteExpireTime: Joi.number().required(),
+        }).required(),
+        undefinedSchema
+    ),
+    setPlayerUnmute: defineRoomRpcCommand<{ id: number }, void>(
+        Joi.object({ id: Joi.number().required() }).required(),
+        undefinedSchema
+    ),
+    getTeamColours: defineRoomRpcCommand<{ team: TeamID }, TeamColourInfo>(
+        Joi.object({ team: teamIdSchema.required() }).required(),
+        teamColourInfoSchema
+    ),
+    setTeamColours: defineRoomRpcCommand<{
+        team: TeamID;
+        angle: number;
+        textColour: number;
+        teamColour1: number;
+        teamColour2: number;
+        teamColour3: number;
+    }, void>(
+        Joi.object({
+            team: teamIdSchema.required(),
+            angle: Joi.number().required(),
+            textColour: Joi.number().required(),
+            teamColour1: Joi.number().required(),
+            teamColour2: Joi.number().required(),
+            teamColour3: Joi.number().required(),
+        }).required(),
+        undefinedSchema
+    ),
+    getDiscordWebhookConfig: defineRoomRpcCommand<undefined, DiscordWebhookConfig>(
+        undefinedSchema,
+        discordWebhookConfigSchema
+    ),
+    setDiscordWebhookConfig: defineRoomRpcCommand<{ config: DiscordWebhookConfig }, void>(
+        Joi.object({ config: discordWebhookConfigSchema }).required(),
+        undefinedSchema
+    ),
 };
+
+export type RoomRpcContract = {
+    [C in keyof typeof roomRpcDefinitions]: typeof roomRpcDefinitions[C] extends RoomRpcDefinition<
+        infer Payload,
+        infer Result
+    >
+        ? {
+              payload: Payload;
+              result: Result;
+          }
+        : never;
+};
+
+export type RoomRpcCommand = keyof typeof roomRpcDefinitions;
+export type RuntimeRoomRpcCommand = Exclude<RoomRpcCommand, "openRoom">;
+export type RoomRpcPayload<C extends RoomRpcCommand> = RoomRpcContract[C]["payload"];
+export type RoomRpcResult<C extends RoomRpcCommand> = RoomRpcContract[C]["result"];
+
+const roomRpcCommands = Object.keys(roomRpcDefinitions) as RoomRpcCommand[];
 
 const eventPayloadSchemas: Record<RoomWorkerEvent["event"], Joi.Schema> = {
     roomReady: Joi.object({
@@ -381,7 +367,10 @@ export function parseRoomRpcRequest(message: unknown): ValidationResult<AnyRoomR
         return envelopeValidation;
     }
 
-    const payloadValidation = validate(requestPayloadSchemas[envelopeValidation.value.command], envelopeValidation.value.payload);
+    const payloadValidation = validate(
+        roomRpcDefinitions[envelopeValidation.value.command].payloadSchema,
+        envelopeValidation.value.payload
+    );
     if (!payloadValidation.success) {
         return {
             success: false,
@@ -447,7 +436,7 @@ export function parseRoomWorkerMessage(message: unknown): ValidationResult<RoomW
 
     const response = responseValidation.value;
     if (response.success) {
-        const resultValidation = validate(responseResultSchemas[response.command], response.result);
+        const resultValidation = validate(roomRpcDefinitions[response.command].resultSchema, response.result);
         if (!resultValidation.success) {
             return {
                 success: false,

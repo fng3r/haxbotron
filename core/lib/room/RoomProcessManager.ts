@@ -5,8 +5,9 @@ import { Server as SIOserver } from "socket.io";
 import { RoomInitConfig } from "../room.hostconfig";
 import {
     AnyRoomRpcResponse,
-    RoomRpcCommandMap,
-    RoomRpcResultMap,
+    RoomRpcCommand,
+    RoomRpcPayload,
+    RoomRpcResult,
     RoomWorkerEvent,
     parseRoomWorkerMessage,
 } from "./RoomProtocol";
@@ -96,12 +97,12 @@ export class RoomProcessManager {
         ]);
     }
 
-    public async requestRoom<C extends keyof RoomRpcCommandMap>(
+    public async requestRoom<C extends RoomRpcCommand>(
         ruid: string,
         command: C,
-        payload: RoomRpcCommandMap[C],
+        payload: RoomRpcPayload<C>,
         timeoutMs: number = DEFAULT_COMMAND_TIMEOUT_MS
-    ): Promise<RoomRpcResultMap[C]> {
+    ): Promise<RoomRpcResult<C>> {
         const handle = this.getRoomHandle(ruid);
         return await this.request(handle, command, payload, timeoutMs);
     }
@@ -220,12 +221,12 @@ export class RoomProcessManager {
         handle.rpcClient.handleResponse(response);
     }
 
-    private async request<C extends keyof RoomRpcCommandMap>(
+    private async request<C extends RoomRpcCommand>(
         handle: RoomHandle,
         command: C,
-        payload: RoomRpcCommandMap[C],
+        payload: RoomRpcPayload<C>,
         timeoutMs: number
-    ): Promise<RoomRpcResultMap[C]> {
+    ): Promise<RoomRpcResult<C>> {
         return await handle.rpcClient.request(command, payload, timeoutMs);
     }
 

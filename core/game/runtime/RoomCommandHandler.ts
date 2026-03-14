@@ -1,6 +1,6 @@
 import {
-    RoomRpcCommandMap,
-    RoomRpcResultMap,
+    RoomRpcPayload,
+    RoomRpcResult,
     RuntimeRoomRpcCommand,
     RuntimeRoomRpcRequest,
     TeamColourInfo,
@@ -11,8 +11,8 @@ import { emitPlayerStatusChange } from "./WorkerEventBridge";
 type RuntimeRoomCommandHandlerMap = {
     [C in RuntimeRoomRpcCommand]: (
         runtime: RoomRuntime,
-        payload: RoomRpcCommandMap[C]
-    ) => Promise<RoomRpcResultMap[C]> | RoomRpcResultMap[C];
+        payload: RoomRpcPayload<C>
+    ) => Promise<RoomRpcResult<C>> | RoomRpcResult<C>;
 };
 
 const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
@@ -128,6 +128,6 @@ const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
 export async function handleRoomCommand<C extends RuntimeRoomRpcCommand>(
     runtime: RoomRuntime,
     request: RuntimeRoomRpcRequest<C>
-): Promise<RoomRpcResultMap[C]> {
+): Promise<RoomRpcResult<C>> {
     return await roomCommandHandlers[request.command](runtime, request.payload);
 }
