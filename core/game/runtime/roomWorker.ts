@@ -5,20 +5,18 @@ import { RoomRuntime } from "./RoomRuntime";
 import { sendWorkerMessage } from "./WorkerEventBridge";
 import {
     AnyRoomRpcRequest,
-    RoomRpcCommand,
-    RoomRpcRequest,
-    RoomRpcResponse,
-    RoomRpcResultMap,
-    isRoomRpcRequest,
+    parseRoomRpcRequest,
 } from "../../lib/room/RoomProtocol";
+import { RoomRpcServer } from "../../lib/room/RoomRpcServer";
 
 let roomOpen = false;
 let roomRuntime: RoomRuntime | null = null;
+const rpcServer = new RoomRpcServer(sendWorkerMessage);
 
 type HBInitFunction = Awaited<ReturnType<typeof HaxballJS>>;
 
 async function handleRequest(request: AnyRoomRpcRequest): Promise<void> {
-    try {
+    await rpcServer.handleRequest(request, async () => {
         if (request.command === "openRoom") {
             if (roomOpen) {
                 throw new Error("Room is already initialized in this worker");
@@ -27,8 +25,7 @@ async function handleRequest(request: AnyRoomRpcRequest): Promise<void> {
             const HBInit: HBInitFunction = await HaxballJS();
             roomRuntime = await openRoomRuntime(HBInit, request.payload.initConfig);
             roomOpen = true;
-            sendSuccessResponse(request, undefined);
-            return;
+            return undefined;
         }
 
         if (!roomOpen) {
@@ -39,46 +36,21 @@ async function handleRequest(request: AnyRoomRpcRequest): Promise<void> {
         }
 
         const result = await handleRoomCommand(roomRuntime, request);
-        sendSuccessResponse(request, result);
 
         if (request.command === "closeRoom") {
             process.nextTick(() => process.exit(0));
         }
-    } catch (error) {
-        sendErrorResponse(request, error);
-    }
-}
 
-function sendResponse<C extends RoomRpcCommand>(response: RoomRpcResponse<C>): void {
-    sendWorkerMessage(response);
-}
-
-function sendSuccessResponse<C extends RoomRpcCommand>(request: RoomRpcRequest<C>, result: RoomRpcResultMap[C]): void {
-    sendResponse({
-        type: "response",
-        requestId: request.requestId,
-        command: request.command,
-        success: true,
-        result,
-    });
-}
-
-function sendErrorResponse<C extends RoomRpcCommand>(request: RoomRpcRequest<C>, error: unknown): void {
-    sendResponse({
-        type: "response",
-        requestId: request.requestId,
-        command: request.command,
-        success: false,
-        error: {
-            message: error instanceof Error ? error.message : String(error),
-        },
+        return result;
     });
 }
 
 process.on("message", (message: unknown) => {
-    if (!isRoomRpcRequest(message)) {
+    const parsedRequest = parseRoomRpcRequest(message);
+    if (!parsedRequest.success) {
+        console.warn(`[roomWorker] Ignored invalid IPC request: ${parsedRequest.error}`);
         return;
     }
 
-    void handleRequest(message);
+    void handleRequest(parsedRequest.value);
 });

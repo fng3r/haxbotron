@@ -5,25 +5,17 @@ import { Server as SIOserver } from "socket.io";
 import { RoomInitConfig } from "../room.hostconfig";
 import {
     AnyRoomRpcResponse,
-    RoomRpcCommand,
     RoomRpcCommandMap,
-    RoomRpcRequest,
     RoomRpcResultMap,
     RoomWorkerEvent,
-    RoomWorkerMessage,
-    isRoomRpcResponseForCommand,
+    parseRoomWorkerMessage,
 } from "./RoomProtocol";
-
-type PendingRequest = {
-    command: RoomRpcCommand;
-    settle: (response: AnyRoomRpcResponse) => void;
-    timer: NodeJS.Timeout;
-};
+import { RoomRpcClient } from "./RoomRpcClient";
 
 type RoomHandle = {
     ruid: string;
     child: ChildProcess;
-    pendingRequests: Map<string, PendingRequest>;
+    rpcClient: RoomRpcClient;
     ready: boolean;
     roomLink?: string;
     startupTimer?: NodeJS.Timeout;
@@ -130,7 +122,12 @@ export class RoomProcessManager {
         return {
             ruid,
             child,
-            pendingRequests: new Map(),
+            rpcClient: new RoomRpcClient(
+                (request) => {
+                    child.send(request);
+                },
+                `room '${ruid}'`
+            ),
             ready: false,
             startupResolve,
             startupReject,
@@ -145,22 +142,28 @@ export class RoomProcessManager {
             handle.startupReject(new Error(`[RoomProcessManager] Timed out while starting room '${handle.ruid}'`));
         }, ROOM_STARTUP_TIMEOUT_MS);
 
-        handle.child.on("message", (message: RoomWorkerMessage) => {
-            if (!message || typeof message !== "object" || !("type" in message)) {
+        handle.child.on("message", (message: unknown) => {
+            const parsedMessage = parseRoomWorkerMessage(message);
+            if (!parsedMessage.success) {
+                console.warn(
+                    `[RoomProcessManager] Ignored invalid IPC message from room '${handle.ruid}': ${parsedMessage.error}`
+                );
                 return;
             }
 
-            if (message.type === "event") {
-                this.handleWorkerEvent(handle, message);
+            const validatedMessage = parsedMessage.value;
+
+            if (validatedMessage.type === "event") {
+                this.handleWorkerEvent(handle, validatedMessage);
                 return;
             }
 
-            this.handleWorkerResponse(handle, message);
+            this.handleWorkerResponse(handle, validatedMessage);
         });
 
         handle.child.on("exit", () => {
             this.resolveExit(handle);
-            this.rejectPending(handle, new Error(`[RoomProcessManager] Room worker '${handle.ruid}' exited unexpectedly`));
+            handle.rpcClient.rejectAll(new Error(`[RoomProcessManager] Room worker '${handle.ruid}' exited unexpectedly`));
             if (handle.startupTimer) {
                 clearTimeout(handle.startupTimer);
             }
@@ -172,7 +175,7 @@ export class RoomProcessManager {
         });
 
         handle.child.on("error", (error) => {
-            this.rejectPending(handle, error);
+            handle.rpcClient.rejectAll(error);
             handle.startupReject(error);
         });
     }
@@ -214,14 +217,7 @@ export class RoomProcessManager {
     }
 
     private handleWorkerResponse(handle: RoomHandle, response: AnyRoomRpcResponse): void {
-        const pending = handle.pendingRequests.get(response.requestId);
-        if (!pending) {
-            return;
-        }
-
-        clearTimeout(pending.timer);
-        handle.pendingRequests.delete(response.requestId);
-        pending.settle(response);
+        handle.rpcClient.handleResponse(response);
     }
 
     private async request<C extends keyof RoomRpcCommandMap>(
@@ -230,46 +226,7 @@ export class RoomProcessManager {
         payload: RoomRpcCommandMap[C],
         timeoutMs: number
     ): Promise<RoomRpcResultMap[C]> {
-        const requestId = uuid();
-        const request: RoomRpcRequest<C> = {
-            type: "request",
-            requestId,
-            command,
-            payload,
-        };
-
-        const result = await new Promise<RoomRpcResultMap[C]>((resolve, reject) => {
-            const timer = setTimeout(() => {
-                handle.pendingRequests.delete(requestId);
-                reject(new Error(`[RoomProcessManager] '${String(command)}' timed out for room '${handle.ruid}'`));
-            }, timeoutMs);
-
-            handle.pendingRequests.set(requestId, {
-                command,
-                settle: (response) => {
-                    if (!isRoomRpcResponseForCommand(response, command)) {
-                        reject(
-                            new Error(
-                                `[RoomProcessManager] Mismatched response for '${String(command)}' in room '${handle.ruid}'`
-                            )
-                        );
-                        return;
-                    }
-
-                    if (response.success) {
-                        resolve(response.result as RoomRpcResultMap[C]);
-                        return;
-                    }
-
-                    reject(new Error(response.error.message));
-                },
-                timer,
-            });
-
-            handle.child.send(request);
-        });
-
-        return result;
+        return await handle.rpcClient.request(command, payload, timeoutMs);
     }
 
     private getRoomHandle(ruid: string): RoomHandle {
@@ -283,22 +240,6 @@ export class RoomProcessManager {
 
     private emitSocketIOEvent(event: string, data: unknown): void {
         this.sioServer?.sockets.emit(event, data);
-    }
-
-    private rejectPending(handle: RoomHandle, error: unknown): void {
-        for (const pending of handle.pendingRequests.values()) {
-            clearTimeout(pending.timer);
-            pending.settle({
-                type: "response",
-                requestId: "",
-                command: pending.command,
-                success: false,
-                error: {
-                    message: error instanceof Error ? error.message : String(error),
-                },
-            });
-        }
-        handle.pendingRequests.clear();
     }
 
     private resolveExit(handle: RoomHandle): void {
