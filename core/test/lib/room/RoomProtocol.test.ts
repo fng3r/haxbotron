@@ -67,4 +67,16 @@ describe("RoomProtocol validation", () => {
 
         expect(result.success).toBe(false);
     });
+
+    it("accepts empty getOnlinePlayersIDList responses", () => {
+        const result = parseRoomWorkerMessage({
+            type: "response",
+            requestId: "req-1",
+            command: "getOnlinePlayersIDList",
+            success: true,
+            result: [],
+        });
+
+        expect(result.success).toBe(true);
+    });
 });

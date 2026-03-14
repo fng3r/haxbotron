@@ -217,7 +217,7 @@ describe("roomWorker pipeline", () => {
         });
     });
 
-    it("ignores invalid requests", () => {
+    it("returns an immediate error response for invalid requests", () => {
         messageHandler?.({
             type: "request",
             requestId: "bad-1",
@@ -227,7 +227,16 @@ describe("roomWorker pipeline", () => {
             },
         });
 
-        expect(mockSendWorkerMessage).not.toHaveBeenCalled();
+        expect(mockSendWorkerMessage).toHaveBeenCalledWith({
+            type: "response",
+            requestId: "bad-1",
+            command: "setChatFreeze",
+            success: false,
+            error: {
+                message: expect.stringContaining("Invalid payload for 'setChatFreeze'"),
+                code: "INVALID_RPC_REQUEST",
+            },
+        });
         expect(mockWarn).toHaveBeenCalledWith(expect.stringContaining("Ignored invalid IPC request"));
     });
 

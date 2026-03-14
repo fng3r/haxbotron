@@ -181,7 +181,7 @@ export const roomRpcDefinitions = {
     getRoomDetailInfo: defineRoomRpcCommand<undefined, RoomDetailInfo>(undefinedSchema, roomDetailInfoSchema),
     getOnlinePlayersIDList: defineRoomRpcCommand<undefined, number[]>(
         undefinedSchema,
-        Joi.array().items(Joi.number().required()).required()
+        Joi.array().items(Joi.number()).required()
     ),
     checkOnlinePlayer: defineRoomRpcCommand<{ id: number }, boolean>(
         Joi.object({ id: Joi.number().required() }).required(),
@@ -191,11 +191,11 @@ export const roomRpcDefinitions = {
         Joi.object({ id: Joi.number().required() }).required(),
         Joi.any()
     ),
-    banPlayerTemporarily: defineRoomRpcCommand<{ id: number; ban: boolean; reason: string; seconds: number }, void>(
+    banPlayerTemporarily: defineRoomRpcCommand<{ id: number; ban: boolean; reason?: string; seconds: number }, void>(
         Joi.object({
             id: Joi.number().required(),
             ban: Joi.boolean().required(),
-            reason: Joi.string().required(),
+            reason: Joi.string().allow("").optional(),
             seconds: Joi.number().required(),
         }).required(),
         undefinedSchema
@@ -219,8 +219,8 @@ export const roomRpcDefinitions = {
         Joi.object({ message: Joi.string().required() }).required(),
         undefinedSchema
     ),
-    setPassword: defineRoomRpcCommand<{ password: string }, void>(
-        Joi.object({ password: Joi.string().required() }).required(),
+    setPassword: defineRoomRpcCommand<{ password: string | null }, void>(
+        Joi.object({ password: Joi.alternatives(Joi.string().allow(""), Joi.valid(null)).required() }).required(),
         undefinedSchema
     ),
     getChatFreeze: defineRoomRpcCommand<undefined, boolean>(undefinedSchema, Joi.boolean().required()),
@@ -289,6 +289,10 @@ export type RoomRpcPayload<C extends RoomRpcCommand> = RoomRpcContract[C]["paylo
 export type RoomRpcResult<C extends RoomRpcCommand> = RoomRpcContract[C]["result"];
 
 const roomRpcCommands = Object.keys(roomRpcDefinitions) as RoomRpcCommand[];
+
+export function isRoomRpcCommandName(value: unknown): value is RoomRpcCommand {
+    return typeof value === "string" && roomRpcCommands.includes(value as RoomRpcCommand);
+}
 
 const eventPayloadSchemas: Record<RoomWorkerEvent["event"], Joi.Schema> = {
     roomReady: Joi.object({

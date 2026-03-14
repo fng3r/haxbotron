@@ -262,6 +262,24 @@ describe("RoomCommandHandler", () => {
         expect(nativeRoom.kickPlayer).toHaveBeenCalledWith(7, "spam", true);
     });
 
+    it("handles banPlayerTemporarily without reason", async () => {
+        const { runtime, nativeRoom, player, banItem } = createRuntime();
+
+        await expect(
+            handleRoomCommand(runtime, createRequest("banPlayerTemporarily", { id: 7, ban: false, seconds: 30 }))
+        ).resolves.toBeUndefined();
+
+        expect(runtime.ban.createTemporaryBan).toHaveBeenCalledWith(
+            player.conn,
+            player.auth,
+            "",
+            expect.any(Number),
+            30_000
+        );
+        expect(runtime.ban.upsertBan).toHaveBeenCalledWith(banItem);
+        expect(nativeRoom.kickPlayer).toHaveBeenCalledWith(7, "", false);
+    });
+
     it("ignores banPlayerTemporarily for missing players", async () => {
         const { runtime, nativeRoom } = createRuntime();
 
@@ -306,12 +324,15 @@ describe("RoomCommandHandler", () => {
         const { runtime } = createRuntime();
 
         await expect(handleRoomCommand(runtime, createRequest("setPassword", { password: "" }))).resolves.toBeUndefined();
+        await expect(handleRoomCommand(runtime, createRequest("setPassword", { password: null }))).resolves.toBeUndefined();
         await expect(handleRoomCommand(runtime, createRequest("setPassword", { password: "secret" }))).resolves.toBeUndefined();
 
         expect(runtime.room.setPassword).toHaveBeenNthCalledWith(1, null);
         expect(runtime.config.setRoomPassword).toHaveBeenNthCalledWith(1, undefined);
-        expect(runtime.room.setPassword).toHaveBeenNthCalledWith(2, "secret");
-        expect(runtime.config.setRoomPassword).toHaveBeenNthCalledWith(2, "secret");
+        expect(runtime.room.setPassword).toHaveBeenNthCalledWith(2, null);
+        expect(runtime.config.setRoomPassword).toHaveBeenNthCalledWith(2, undefined);
+        expect(runtime.room.setPassword).toHaveBeenNthCalledWith(3, "secret");
+        expect(runtime.config.setRoomPassword).toHaveBeenNthCalledWith(3, "secret");
     });
 
     it("handles getChatFreeze and setChatFreeze", async () => {

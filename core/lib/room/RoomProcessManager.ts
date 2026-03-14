@@ -1,7 +1,7 @@
 import { ChildProcess, fork } from "child_process";
 import path from "path";
-import { v4 as uuid } from "uuid";
 import { Server as SIOserver } from "socket.io";
+import { v4 as uuid } from "uuid";
 import { RoomInitConfig } from "../room.hostconfig";
 import {
     AnyRoomRpcResponse,
@@ -9,6 +9,7 @@ import {
     RoomRpcPayload,
     RoomRpcResult,
     RoomWorkerEvent,
+    isRoomRpcCommandName,
     parseRoomWorkerMessage,
 } from "./RoomProtocol";
 import { RoomRpcClient } from "./RoomRpcClient";
@@ -149,6 +150,7 @@ export class RoomProcessManager {
                 console.warn(
                     `[RoomProcessManager] Ignored invalid IPC message from room '${handle.ruid}': ${parsedMessage.error}`
                 );
+                this.rejectInvalidWorkerResponse(handle, message, parsedMessage.error);
                 return;
             }
 
@@ -219,6 +221,32 @@ export class RoomProcessManager {
 
     private handleWorkerResponse(handle: RoomHandle, response: AnyRoomRpcResponse): void {
         handle.rpcClient.handleResponse(response);
+    }
+
+    private rejectInvalidWorkerResponse(handle: RoomHandle, message: unknown, errorMessage: string): void {
+        if (
+            !message ||
+            typeof message !== "object" ||
+            !("type" in message) ||
+            message.type !== "response" ||
+            !("requestId" in message) ||
+            typeof message.requestId !== "string" ||
+            !("command" in message) ||
+            !isRoomRpcCommandName(message.command)
+        ) {
+            return;
+        }
+
+        handle.rpcClient.handleResponse({
+            type: "response",
+            requestId: message.requestId,
+            command: message.command,
+            success: false,
+            error: {
+                message: `[RoomProcessManager] Invalid worker response for '${message.command}' in room '${handle.ruid}': ${errorMessage}`,
+                code: "INVALID_RPC_RESPONSE",
+            },
+        });
     }
 
     private async request<C extends RoomRpcCommand>(

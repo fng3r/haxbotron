@@ -42,19 +42,20 @@ const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
             return;
         }
 
+        const reason = payload.reason ?? "";
         const banItem = runtime.ban.createTemporaryBan(
             player.conn,
             player.auth,
-            payload.reason,
+            reason,
             Math.floor(Date.now()),
             payload.seconds * 1000
         );
 
         await runtime.ban.upsertBan(banItem);
-        runtime.room.getRoom().kickPlayer(payload.id, payload.reason, payload.ban);
+        runtime.room.getRoom().kickPlayer(payload.id, reason, payload.ban);
         runtime.logger.i(
             "system",
-            `[Kick] #${payload.id} has been ${payload.ban ? "banned" : "kicked"} by operator. (duration: ${payload.seconds}secs, reason: ${payload.reason})`
+            `[Kick] #${payload.id} has been ${payload.ban ? "banned" : "kicked"} by operator. (duration: ${payload.seconds}secs, reason: ${reason})`
         );
     },
     broadcast: (runtime, payload) => {
@@ -73,7 +74,7 @@ const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
     setPassword: (runtime, payload) => {
         const convertedPassword = payload.password === "" ? null : payload.password;
         runtime.room.setPassword(convertedPassword);
-        runtime.config.setRoomPassword(payload.password || undefined);
+        runtime.config.setRoomPassword(convertedPassword ?? undefined);
     },
     getChatFreeze: (runtime) => runtime.chat.isAllMuted(),
     setChatFreeze: (runtime, payload) => {

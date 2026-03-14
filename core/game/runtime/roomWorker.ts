@@ -5,6 +5,8 @@ import { RoomRuntime } from "./RoomRuntime";
 import { sendWorkerMessage } from "./WorkerEventBridge";
 import {
     AnyRoomRpcRequest,
+    AnyRoomRpcResponse,
+    RoomRpcCommand,
     parseRoomRpcRequest,
 } from "../../lib/room/RoomProtocol";
 import { RoomRpcServer } from "../../lib/room/RoomRpcServer";
@@ -49,6 +51,27 @@ process.on("message", (message: unknown) => {
     const parsedRequest = parseRoomRpcRequest(message);
     if (!parsedRequest.success) {
         console.warn(`[roomWorker] Ignored invalid IPC request: ${parsedRequest.error}`);
+        if (
+            message &&
+            typeof message === "object" &&
+            "type" in message &&
+            message.type === "request" &&
+            "requestId" in message &&
+            typeof message.requestId === "string" &&
+            "command" in message &&
+            typeof message.command === "string"
+        ) {
+            sendWorkerMessage({
+                type: "response",
+                requestId: message.requestId,
+                command: message.command as RoomRpcCommand,
+                success: false,
+                error: {
+                    message: parsedRequest.error,
+                    code: "INVALID_RPC_REQUEST",
+                },
+            } as AnyRoomRpcResponse);
+        }
         return;
     }
 
