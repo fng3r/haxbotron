@@ -3,7 +3,7 @@ import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 
 export function cmdTeamChat(runtime: RoomRuntime, byPlayer: PlayerObject, message: string): void {
-    const playerList = runtime.player.getPlayerList();
+    const playerList = runtime.players.getPlayerList();
     
     const player = playerList.get(byPlayer.id)!;
     if (runtime.chat.isMessageBlockedByMute(player)) {

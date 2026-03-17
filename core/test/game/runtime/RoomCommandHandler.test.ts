@@ -17,6 +17,10 @@ const { emitPlayerStatusChange } = jest.requireMock("../../../game/runtime/Worke
 type MockRoomRuntime = RoomRuntime & {
     config: {
         getConfig: jest.Mock;
+        getRoomName: jest.Mock;
+        getRoomConfig: jest.Mock;
+        getSettings: jest.Mock;
+        getRules: jest.Mock;
         getAdminPassword: jest.Mock;
         setRoomPassword: jest.Mock;
     };
@@ -28,11 +32,11 @@ type MockRoomRuntime = RoomRuntime & {
         getTeamColours: jest.Mock;
         sendAnnouncement: jest.Mock;
     };
-    player: {
+    players: {
         getPlayerCount: jest.Mock;
         getPlayerList: jest.Mock;
     };
-    ban: {
+    bans: {
         createTemporaryBan: jest.Mock;
         upsertBan: jest.Mock;
     };
@@ -44,7 +48,7 @@ type MockRoomRuntime = RoomRuntime & {
         getDiscordWebhookConfig: jest.Mock;
         updateDiscordWebhookConfig: jest.Mock;
     };
-    notification: {
+    notifications: {
         getNotice: jest.Mock;
         setNotice: jest.Mock;
     };
@@ -115,6 +119,10 @@ function createRuntime() {
     const runtime = {
         config: {
             getConfig: jest.fn().mockReturnValue(configValue),
+            getRoomName: jest.fn().mockReturnValue("Phase 3 Room"),
+            getRoomConfig: jest.fn().mockReturnValue(configValue._config),
+            getSettings: jest.fn().mockReturnValue(configValue.settings),
+            getRules: jest.fn().mockReturnValue(configValue.rules),
             getAdminPassword: jest.fn().mockReturnValue("admin-secret"),
             setRoomPassword: jest.fn(),
         },
@@ -141,14 +149,14 @@ function createRuntime() {
             }),
             sendAnnouncement: jest.fn(),
         },
-        player: {
+        players: {
             getPlayerCount: jest.fn().mockReturnValue(playerList.size),
             getPlayerList: jest.fn().mockReturnValue(playerList),
         },
-        playerRole: {},
+        playerRoles: {},
         playerOnboarding: {},
         match: {},
-        ban: {
+        bans: {
             createTemporaryBan: jest.fn().mockReturnValue(banItem),
             upsertBan: jest.fn(async () => undefined),
         },
@@ -160,7 +168,7 @@ function createRuntime() {
             getDiscordWebhookConfig: jest.fn().mockReturnValue(webhookConfig),
             updateDiscordWebhookConfig: jest.fn(),
         },
-        notification: {
+        notifications: {
             getNotice: jest.fn().mockReturnValue("notice"),
             setNotice: jest.fn(),
         },
@@ -251,14 +259,14 @@ describe("RoomCommandHandler", () => {
             )
         ).resolves.toBeUndefined();
 
-        expect(runtime.ban.createTemporaryBan).toHaveBeenCalledWith(
+        expect(runtime.bans.createTemporaryBan).toHaveBeenCalledWith(
             player.conn,
             player.auth,
             "spam",
             expect.any(Number),
             30_000
         );
-        expect(runtime.ban.upsertBan).toHaveBeenCalledWith(banItem);
+        expect(runtime.bans.upsertBan).toHaveBeenCalledWith(banItem);
         expect(nativeRoom.kickPlayer).toHaveBeenCalledWith(7, "spam", true);
     });
 
@@ -269,14 +277,14 @@ describe("RoomCommandHandler", () => {
             handleRoomCommand(runtime, createRequest("banPlayerTemporarily", { id: 7, ban: false, seconds: 30 }))
         ).resolves.toBeUndefined();
 
-        expect(runtime.ban.createTemporaryBan).toHaveBeenCalledWith(
+        expect(runtime.bans.createTemporaryBan).toHaveBeenCalledWith(
             player.conn,
             player.auth,
             "",
             expect.any(Number),
             30_000
         );
-        expect(runtime.ban.upsertBan).toHaveBeenCalledWith(banItem);
+        expect(runtime.bans.upsertBan).toHaveBeenCalledWith(banItem);
         expect(nativeRoom.kickPlayer).toHaveBeenCalledWith(7, "", false);
     });
 
@@ -290,8 +298,8 @@ describe("RoomCommandHandler", () => {
             )
         ).resolves.toBeUndefined();
 
-        expect(runtime.ban.createTemporaryBan).not.toHaveBeenCalled();
-        expect(runtime.ban.upsertBan).not.toHaveBeenCalled();
+        expect(runtime.bans.createTemporaryBan).not.toHaveBeenCalled();
+        expect(runtime.bans.upsertBan).not.toHaveBeenCalled();
         expect(nativeRoom.kickPlayer).not.toHaveBeenCalled();
     });
 
@@ -317,7 +325,7 @@ describe("RoomCommandHandler", () => {
         await expect(handleRoomCommand(runtime, createRequest("getNotice", undefined))).resolves.toBe("notice");
         await expect(handleRoomCommand(runtime, createRequest("setNotice", { message: "new notice" }))).resolves.toBeUndefined();
 
-        expect(runtime.notification.setNotice).toHaveBeenCalledWith("new notice");
+        expect(runtime.notifications.setNotice).toHaveBeenCalledWith("new notice");
     });
 
     it("handles setPassword", async () => {

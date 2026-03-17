@@ -1,31 +1,51 @@
 import { GameRoomConfig } from "../model/Configuration/GameRoomConfig";
 
 /**
- * Service for managing configuration, admin password, and banned words
+ * Service for managing configuration and admin password.
  */
 export class ConfigService {
     private config: GameRoomConfig;
     private _adminPassword: string;
-    private bannedWordsPool: {
-        nickname: string[];
-        chat: string[];
-    };
 
     constructor(config: GameRoomConfig, adminPassword: string) {
         this.config = config;
         this._adminPassword = adminPassword;
-        this.bannedWordsPool = {
-            nickname: [],
-            chat: []
-        };
     }
 
-    public getConfig(): GameRoomConfig {
-        return this.config;
+    public getLaunchDate(): Date {
+        return this.config._LaunchDate;
     }
 
     public getRUID(): string {
         return this.config._RUID;
+    }
+
+    public getRoomConfig(): RoomConfigObject {
+        return this.config._config;
+    }
+
+    public getRoomName(): string {
+        return this.config._config.roomName ?? "";
+    }
+
+    public getRoomToken(): string {
+        return this.config._config.token!;
+    }
+
+    public getRoomPassword(): string | undefined {
+        return this.config._config.password;
+    }
+
+    public getMaxPlayers(): number {
+        return this.config._config.maxPlayers ?? 0;
+    }
+
+    public getSettings() {
+        return this.config.settings;
+    }
+
+    public getRules() {
+        return this.config.rules;
     }
 
     public getAdminPassword(): string {
@@ -38,30 +58,5 @@ export class ConfigService {
 
     public setRoomPassword(password?: string): void {
         this.config._config.password = password;
-    }
-
-    public getBannedWords(type: 'nickname' | 'chat'): string[] {
-        return this.bannedWordsPool[type];
-    }
-
-    public setBannedWords(type: 'nickname' | 'chat', words: string[]): void {
-        this.bannedWordsPool[type] = words;
-    }
-
-    public addBannedWord(type: 'nickname' | 'chat', word: string): void {
-        if (!this.bannedWordsPool[type].includes(word)) {
-            this.bannedWordsPool[type].push(word);
-        }
-    }
-
-    public removeBannedWord(type: 'nickname' | 'chat', word: string): void {
-        const index = this.bannedWordsPool[type].indexOf(word);
-        if (index !== -1) {
-            this.bannedWordsPool[type].splice(index, 1);
-        }
-    }
-
-    public isBannedWord(type: 'nickname' | 'chat', word: string): boolean {
-        return this.bannedWordsPool[type].includes(word);
     }
 }

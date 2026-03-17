@@ -10,13 +10,12 @@ export function onPlayerChatListener(runtime: RoomRuntime, commandExecutor: Comm
     // The event function can return false in order to filter the chat message.
     // Then It prevents the chat message from reaching other players in the room.
 
-    const playerList = runtime.player.getPlayerList();
-    const config = runtime.config.getConfig();
-    
+    const playerList = runtime.players.getPlayerList();
+    const settings = runtime.config.getSettings();
     runtime.logger.i('onPlayerChat', `[${player.name}#${player.id}] ${message}`);
 
     const roomPlayer = playerList.get(player.id)!;
-    const playerRole = runtime.playerRole.getRole(player.id)!;
+    const playerRole = runtime.playerRoles.getRole(player.id)!;
     if (isCommandString(message)) {
         const command = parseCommand(message);
         if (command === null) {
@@ -43,15 +42,15 @@ export function onPlayerChatListener(runtime: RoomRuntime, commandExecutor: Comm
     }
 
     // Anti Chat Flood Checking
-    if (config.settings.antiChatFlood) { // if anti chat flood options is enabled
+    if (settings.antiChatFlood) { // if anti chat flood options is enabled
         const isFlood = runtime.chat.detectChatFlood(
             player.id,
             currentTimestamp,
-            config.settings.chatFloodCriterion,
-            config.settings.chatFloodIntervalMillisecs
+            settings.chatFloodCriterion,
+            settings.chatFloodIntervalMillisecs
         );
         if (isFlood && !roomPlayer.permissions.mute) {
-            runtime.chat.applyFloodMute(roomPlayer, currentTimestamp, config.settings.muteDefaultMillisecs); // record mute expiration date by unix timestamp
+            runtime.chat.applyFloodMute(roomPlayer, currentTimestamp, settings.muteDefaultMillisecs); // record mute expiration date by unix timestamp
             const placeholder = {
                 playerID: player.id,
                 playerName: player.name

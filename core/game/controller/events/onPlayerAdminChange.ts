@@ -8,11 +8,11 @@ export function onPlayerAdminChangeListener(runtime: RoomRuntime, changedPlayer:
     
     if (byPlayer) {
         runtime.logger.i('onPlayerAdminChange', `${changedPlayer.name}#${changedPlayer.id} admin rights were taken away by ${byPlayer.name}#${byPlayer.id}`);
-        if (runtime.playerRole.shouldRestoreAdminAfterRemoval(changedPlayer.id, byPlayer.id)) {
+        if (runtime.playerRoles.shouldRestoreAdminAfterRemoval(changedPlayer.id, byPlayer.id)) {
             room.setPlayerAdmin(changedPlayer.id, true);
         }
 
-        if (runtime.playerRole.shouldForceRemoveAdmin(changedPlayer.id) && changedPlayer.admin) {
+        if (runtime.playerRoles.shouldForceRemoveAdmin(changedPlayer.id) && changedPlayer.admin) {
             room.setPlayerAdmin(changedPlayer.id, false);
         }
     }

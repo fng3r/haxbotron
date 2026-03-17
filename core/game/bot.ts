@@ -39,14 +39,14 @@ export async function openRoomRuntime(
 
     runtime.logger.i(
         "initialization",
-        `The game room is opened at ${runtime.config.getConfig()._LaunchDate.toLocaleString()}. RUID: ${runtime.config.getRUID()}`
+        `The game room is opened at ${runtime.config.getLaunchDate().toLocaleString()}. RUID: ${runtime.config.getRUID()}`
     );
 
     setDefaultSettings(runtime);
     setEventHandlers(runtime);
     runBackgroundTasks(runtime);
 
-    console.log(`Haxbotron loaded room runtime. (RUID ${runtime.config.getRUID()}, TOKEN ${runtime.config.getConfig()._config.token})`);
+    console.log(`Haxbotron loaded room runtime. (RUID ${runtime.config.getRUID()}, TOKEN ${runtime.config.getRoomToken()})`);
 
     return runtime;
 }
@@ -75,15 +75,15 @@ function applyGeolocationOverride(initConfig: RoomInitConfig): RoomInitConfig {
 }
 
 function setDefaultSettings(runtime: RoomRuntime): void {
-    const config = runtime.config.getConfig();
-    
-    runtime.room.setDefaultStadium(config.rules.defaultMapName);
+    const rules = runtime.config.getRules();
+
+    runtime.room.setDefaultStadium(rules.defaultMapName);
     if (!runtime.room.loadDefaultStadium()) {
-        throw new Error(`Unknown default stadium '${config.rules.defaultMapName}'`);
+        throw new Error(`Unknown default stadium '${rules.defaultMapName}'`);
     }
-    runtime.room.setScoreLimit(config.rules.scoreLimit);
-    runtime.room.setTimeLimit(config.rules.timeLimit);
-    runtime.room.setTeamsLock(config.rules.teamLock);
+    runtime.room.setScoreLimit(rules.scoreLimit);
+    runtime.room.setTimeLimit(rules.timeLimit);
+    runtime.room.setTeamsLock(rules.teamLock);
     runtime.social.sendPasswordWebhook(runtime.config.getRUID(), runtime.config.getAdminPassword());
 
     runtime.logger.i('initialization', `Room default settings were set according to loaded config`);
@@ -138,7 +138,7 @@ function runBackgroundTasks(runtime: RoomRuntime): void {
             targetName: '',
         }
     
-        runtime.player.getPlayerList().forEach((player: Player) => { // auto unmute system
+        runtime.players.getPlayerList().forEach((player: Player) => { // auto unmute system
             placeholderScheduler.targetID = player.id;
             placeholderScheduler.targetName = player.name;
     

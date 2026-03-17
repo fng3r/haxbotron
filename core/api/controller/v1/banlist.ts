@@ -3,7 +3,7 @@ import { Context } from "koa";
 import { apiDbAdapter as dbClient } from "../../../lib/db/adapters/ApiDbAdapter";
 import { ExternalServiceError, NotFoundError, ValidationError } from "../../../lib/errors";
 
-interface BanList {
+interface BanEntryRecord {
     uid: number
     ruid: string
     conn: string
@@ -13,7 +13,7 @@ interface BanList {
     expire: number
 }
 
-interface BanListItem {
+interface BanEntryItem {
     conn: string;
     auth: string;
     reason: string;
@@ -26,13 +26,13 @@ export async function getAllList(ctx: Context) {
     const { start, count } = ctx.request.query;
     
     try {
-        const banList = await dbClient.getBanList(
+        const banEntries = await dbClient.getBanList(
             ruid,
             start ? parseInt(start as string) : undefined,
             count ? parseInt(count as string) : undefined
         );
         
-        const banListItems: BanListItem[] = banList.map((item: BanList) => ({
+        const banEntryItems: BanEntryItem[] = banEntries.map((item: BanEntryRecord) => ({
             conn: item.conn,
             auth: item.auth,
             reason: item.reason,
@@ -41,7 +41,7 @@ export async function getAllList(ctx: Context) {
         }));
         
         ctx.status = 200;
-        ctx.body = banListItems;
+        ctx.body = banEntryItems;
     } catch (error: any) {
         if (axios.isAxiosError(error) && error.response) {
             if (error.response.status === 404) {
@@ -62,7 +62,7 @@ export async function getBanInfo(ctx: Context) {
     try {
         const ban = await dbClient.getBanByConn(ruid, conn);
         
-        const banInfo: BanListItem = {
+        const banInfo: BanEntryItem = {
             conn: ban.conn,
             auth: ban.auth,
             reason: ban.reason,

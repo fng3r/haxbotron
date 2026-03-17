@@ -12,8 +12,8 @@ export function cmdList(runtime: RoomRuntime, byPlayer: PlayerObject, playerGrou
     }
 
     const players = team === undefined
-        ? runtime.player.getAllPlayers()
-        : runtime.player.getPlayersForTeam(team);
+        ? runtime.players.getAllPlayers()
+        : runtime.players.getPlayersForTeam(team);
     const whoisResult = players.length > 0
         ? players.map(formatListedPlayer).join(", ")
         : LangRes.command.list._ErrorNoOne;

@@ -4,7 +4,7 @@ import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 
 export function cmdFreeze(runtime: RoomRuntime, byPlayer: PlayerObject): void {
-    const playerRole = runtime.playerRole.getRole(byPlayer.id)!;
+    const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
     if(PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
         const isFrozen = runtime.chat.toggleFreeze();
         if (isFrozen) {

@@ -17,14 +17,14 @@ import { RoomDbRepository } from "./RoomDbRepository";
 export interface RoomRuntime {
     config: ConfigService;
     room: RoomService;
-    player: PlayerService;
-    playerRole: PlayerRoleService;
+    players: PlayerService;
+    playerRoles: PlayerRoleService;
     playerOnboarding: PlayerOnboardingService;
     match: MatchService;
-    ban: BanService;
+    bans: BanService;
     chat: ChatService;
     social: SocialService;
-    notification: NotificationService;
+    notifications: NotificationService;
     logger: Logger;
 }
 
@@ -41,14 +41,14 @@ export function createRoomRuntime(
     return {
         config: new ConfigService(config, adminPassword),
         room: new RoomService(room),
-        player: new PlayerService(),
-        playerRole: new PlayerRoleService(),
+        players: new PlayerService(),
+        playerRoles: new PlayerRoleService(),
         playerOnboarding: new PlayerOnboardingService(roomRepository),
         match: new MatchService(),
-        ban: new BanService(roomRepository),
+        bans: new BanService(roomRepository),
         chat: new ChatService(config.settings.chatFloodCriterion),
         social: new SocialService(discordWebhook, discordWebhookService),
-        notification: new NotificationService(),
+        notifications: new NotificationService(),
         logger,
     };
 }

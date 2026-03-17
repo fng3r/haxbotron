@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import { BanList } from "../../game/model/PlayerBan/BanList";
+import { BanEntry } from "../../game/model/PlayerBan/BanEntry";
 import { PlayerStorage } from "../../game/model/GameObject/PlayerState";
 import { PlayerRole } from "../../game/model/PlayerRole/PlayerRole";
 import { getDbConnectionUrl } from "../config";
@@ -74,7 +74,7 @@ export class DbApiGateway {
         return this.client.get(`${this.baseUrl}room/${ruid}/banlist${qs}`);
     }
 
-    public createBan(ruid: string, banList: BanList): Promise<AxiosResponse<any>> {
+    public createBan(ruid: string, banList: BanEntry): Promise<AxiosResponse<any>> {
         return this.client.post(`${this.baseUrl}room/${ruid}/banlist`, banList);
     }
 
@@ -82,7 +82,7 @@ export class DbApiGateway {
         return this.client.get(`${this.baseUrl}room/${ruid}/banlist/${conn}`);
     }
 
-    public updateBan(ruid: string, banList: BanList): Promise<AxiosResponse<any>> {
+    public updateBan(ruid: string, banList: BanEntry): Promise<AxiosResponse<any>> {
         return this.client.put(`${this.baseUrl}room/${ruid}/banlist/${banList.conn}`, banList);
     }
 

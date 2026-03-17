@@ -2,11 +2,11 @@ import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 
 export function cmdStaff(runtime: RoomRuntime, byPlayer: PlayerObject): void {
-    const playerList = runtime.player.getPlayerList();
+    const playerList = runtime.players.getPlayerList();
     
     const entries = []
     for (const player of playerList.values()) {
-        const role = runtime.playerRole.getRole(player.id);
+        const role = runtime.playerRoles.getRole(player.id);
         if (!role) {
             continue;
         }

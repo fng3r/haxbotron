@@ -21,29 +21,29 @@ const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
     },
     getRoomLink: (runtime) => runtime.room.getLink(),
     getRoomInfo: (runtime) => ({
-        roomName: runtime.config.getConfig()._config.roomName ?? "",
-        onlinePlayers: runtime.player.getPlayerCount(),
+        roomName: runtime.config.getRoomName(),
+        onlinePlayers: runtime.players.getPlayerCount(),
     }),
     getRoomDetailInfo: (runtime) => ({
-        roomName: runtime.config.getConfig()._config.roomName ?? "",
-        onlinePlayers: runtime.player.getPlayerCount(),
+        roomName: runtime.config.getRoomName(),
+        onlinePlayers: runtime.players.getPlayerCount(),
         adminPassword: runtime.config.getAdminPassword(),
         link: runtime.room.getLink(),
-        _roomConfig: runtime.config.getConfig()._config,
-        botSettings: runtime.config.getConfig().settings,
-        rules: runtime.config.getConfig().rules,
+        _roomConfig: runtime.config.getRoomConfig(),
+        botSettings: runtime.config.getSettings(),
+        rules: runtime.config.getRules(),
     }),
-    getOnlinePlayersIDList: (runtime) => Array.from(runtime.player.getPlayerList().keys()),
-    checkOnlinePlayer: (runtime, payload) => runtime.player.getPlayerList().has(payload.id),
-    getPlayerInfo: (runtime, payload) => runtime.player.getPlayerList().get(payload.id),
+    getOnlinePlayersIDList: (runtime) => Array.from(runtime.players.getPlayerList().keys()),
+    checkOnlinePlayer: (runtime, payload) => runtime.players.getPlayerList().has(payload.id),
+    getPlayerInfo: (runtime, payload) => runtime.players.getPlayerList().get(payload.id),
     banPlayerTemporarily: async (runtime, payload) => {
-        const player = runtime.player.getPlayerList().get(payload.id);
+        const player = runtime.players.getPlayerList().get(payload.id);
         if (!player) {
             return;
         }
 
         const reason = payload.reason ?? "";
-        const banItem = runtime.ban.createTemporaryBan(
+        const banItem = runtime.bans.createTemporaryBan(
             player.conn,
             player.auth,
             reason,
@@ -51,7 +51,7 @@ const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
             payload.seconds * 1000
         );
 
-        await runtime.ban.upsertBan(banItem);
+        await runtime.bans.upsertBan(banItem);
         runtime.room.getRoom().kickPlayer(payload.id, reason, payload.ban);
         runtime.logger.i(
             "system",
@@ -63,13 +63,13 @@ const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
         runtime.logger.i("system", `[Broadcast] ${payload.message}`);
     },
     whisper: (runtime, payload) => {
-        const player = runtime.player.getPlayerList().get(payload.id);
+        const player = runtime.players.getPlayerList().get(payload.id);
         runtime.room.sendAnnouncement(payload.message, payload.id, 0xffff00, "bold", 2);
         runtime.logger.i("system", `[Whisper][to ${player?.name}#${payload.id}] ${payload.message}`);
     },
-    getNotice: (runtime) => runtime.notification.getNotice() || null,
+    getNotice: (runtime) => runtime.notifications.getNotice() || null,
     setNotice: (runtime, payload) => {
-        runtime.notification.setNotice(payload.message);
+        runtime.notifications.setNotice(payload.message);
     },
     setPassword: (runtime, payload) => {
         const convertedPassword = payload.password === "" ? null : payload.password;
@@ -83,7 +83,7 @@ const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
         emitPlayerStatusChange(0);
     },
     setPlayerMute: (runtime, payload) => {
-        const player = runtime.player.getPlayerList().get(payload.id);
+        const player = runtime.players.getPlayerList().get(payload.id);
         if (!player) {
             return;
         }
@@ -94,7 +94,7 @@ const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
         emitPlayerStatusChange(payload.id);
     },
     setPlayerUnmute: (runtime, payload) => {
-        const player = runtime.player.getPlayerList().get(payload.id);
+        const player = runtime.players.getPlayerList().get(payload.id);
         if (!player) {
             return;
         }

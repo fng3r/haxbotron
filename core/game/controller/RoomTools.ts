@@ -7,16 +7,16 @@ export function setDefaultStadiums(runtime: RoomRuntime): void {
 }
 
 export function setDefaultRoomLimitation(runtime: RoomRuntime): void {
-    const config = runtime.config.getConfig();
-    
-    runtime.room.setScoreLimit(config.rules.scoreLimit);
-    runtime.room.setTimeLimit(config.rules.timeLimit);
-    runtime.room.setTeamsLock(config.rules.teamLock);
+    const rules = runtime.config.getRules();
+
+    runtime.room.setScoreLimit(rules.scoreLimit);
+    runtime.room.setTimeLimit(rules.timeLimit);
+    runtime.room.setTeamsLock(rules.teamLock);
 }
 
 export function updateAdmins(runtime: RoomRuntime): void {
     const room = runtime.room.getRoom();
-    const playerList = runtime.player.getPlayerList();
+    const playerList = runtime.players.getPlayerList();
     
     let placeholderUpdateAdmins = {
         playerID: 0,
@@ -34,9 +34,9 @@ export function updateAdmins(runtime: RoomRuntime): void {
     placeholderUpdateAdmins.playerID = players[0].id;
     placeholderUpdateAdmins.playerName = playerList.get(players[0].id)!.name;
 
-    room.setPlayerAdmin(players[0]!.id, true); // Give admin to the first non admin player in the list
+    room.setPlayerAdmin(players[0].id, true); // Give admin to the first non admin player in the list
     playerList.get(players[0].id)!.admin = true;
-    runtime.logger.i('updateAdmins', `${playerList.get(players[0].id)!.name}#${players[0].id} has been admin(value:${playerList.get(players[0].id)!.admin}), because there were no admin players.`);
+    runtime.logger.i('updateAdmins', `${playerList.get(players[0].id)!.name}#${players[0].id} became an admin(value:${playerList.get(players[0].id)!.admin}), because there were no admin players.`);
     runtime.room.sendAnnouncement(Tst.maketext(LangRes.funcUpdateAdmins.newAdmin, placeholderUpdateAdmins), null, 0xFFFFFF, "normal", 0);
 }
 

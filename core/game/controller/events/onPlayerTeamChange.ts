@@ -8,7 +8,7 @@ export function onPlayerTeamChangeListener(runtime: RoomRuntime, changedPlayer: 
     // Event called when a player team is changed.
     // byPlayer is the player which caused the event (can be null if the event wasn't caused by a player).
     const room = runtime.room.getRoom();
-    const playerList = runtime.player.getPlayerList();
+    const playerList = runtime.players.getPlayerList();
     
     let placeholderTeamChange = {
         targetPlayerID: changedPlayer.id,

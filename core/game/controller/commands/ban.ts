@@ -8,9 +8,9 @@ import * as Tst from "../Translator";
 
 export async function cmdBan(runtime: RoomRuntime, byPlayer: PlayerObject, playerIdentifier: string, banDuration?: number): Promise<void> {
     const room = runtime.room.getRoom();
-    const playerList = runtime.player.getPlayerList();
+    const playerList = runtime.players.getPlayerList();
     
-    const playerRole = runtime.playerRole.getRole(byPlayer.id)!;
+    const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
         runtime.room.sendAnnouncement(LangRes.command.mute._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
@@ -33,14 +33,14 @@ export async function cmdBan(runtime: RoomRuntime, byPlayer: PlayerObject, playe
             const currentTimestamp: number = getUnixTimestamp();
 
             if (banInMinutes === -1) {
-                await runtime.ban.upsertBan(
-                    runtime.ban.createPermanentBan(player.conn, player.auth, '', currentTimestamp)
+                await runtime.bans.upsertBan(
+                    runtime.bans.createPermanentBan(player.conn, player.auth, '', currentTimestamp)
                 );
                 room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.permanentBan, placeholder), false);
                 runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successPermaBan, placeholder), null, 0x479947, "normal", 1);
             } else {
-                await runtime.ban.upsertBan(
-                    runtime.ban.createTemporaryBan(player.conn, player.auth, '', currentTimestamp, banInMinutes * 60 * 1000)
+                await runtime.bans.upsertBan(
+                    runtime.bans.createTemporaryBan(player.conn, player.auth, '', currentTimestamp, banInMinutes * 60 * 1000)
                 );
                 room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.tempBan, placeholder), false);
                 runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successTempBan, placeholder), null, 0x479947, "normal", 1);
@@ -54,7 +54,7 @@ export async function cmdBan(runtime: RoomRuntime, byPlayer: PlayerObject, playe
 }
 
 export async function cmdBans(runtime: RoomRuntime, byPlayer: PlayerObject): Promise<void> {
-    const banEntries = await runtime.ban.getBanDisplayEntries();
+    const banEntries = await runtime.bans.getBanDisplayEntries();
     if (banEntries === undefined) {
         runtime.room.sendAnnouncement(LangRes.command.bans._ErrorFailedToGet, null, 0xFF7777, "normal", 2);
         return;

@@ -1,5 +1,5 @@
-import { BanList } from "../../../game/model/PlayerBan/BanList";
 import { PlayerStorage } from "../../../game/model/GameObject/PlayerState";
+import { BanEntry } from "../../../game/model/PlayerBan/BanEntry";
 import { PlayerRole } from "../../../game/model/PlayerRole/PlayerRole";
 import { winstonLogger } from "../../../winstonLoggerSystem";
 import { DbApiGateway } from "../DbApiGateway";
@@ -11,9 +11,9 @@ type LoggerLike = {
 
 /**
  * Room runtime adapter used by the worker-side repository.
- * Preserves legacy behavior: logs and swallows known errors by returning undefined/void.
+ * Logs and swallows known errors by returning undefined/void.
  */
-export class RoomDbApiAdapter {
+export class RoomDbAdapter {
     constructor(
         private readonly gateway: DbApiGateway = new DbApiGateway(),
         private readonly logger: LoggerLike = winstonLogger
@@ -65,22 +65,22 @@ export class RoomDbApiAdapter {
         }
     }
 
-    public async createBan(ruid: string, banList: BanList): Promise<void> {
+    public async createBan(ruid: string, banEntry: BanEntry): Promise<void> {
         try {
-            const result = await this.gateway.createBan(ruid, banList);
+            const result = await this.gateway.createBan(ruid, banEntry);
             if (result.status === 204 && result.data) {
-                this.logger.info(`${result.status} Succeed on createBanlistDB: Created. conn(${banList.conn})`);
+                this.logger.info(`${result.status} Succeed on createBanDB: Created. conn(${banEntry.conn})`);
             }
         } catch (error: any) {
             if (error.response && error.response.status === 400) {
-                this.logger.info(`${error.response.status} Failed on createBanlistDB: Already exist. conn(${banList.conn})`);
+                this.logger.info(`${error.response.status} Failed on createBanDB: Already exist. conn(${banEntry.conn})`);
             } else {
-                this.logger.error(`Error caught on createBanlistDB: ${error}`);
+                this.logger.error(`Error caught on createBanDB: ${error}`);
             }
         }
     }
 
-    public async getAllBans(ruid: string): Promise<BanList[] | undefined> {
+    public async getAllBans(ruid: string): Promise<BanEntry[] | undefined> {
         try {
             const result = await this.gateway.getBanList(ruid);
             if (result.status === 200 && result.data) {
@@ -92,40 +92,40 @@ export class RoomDbApiAdapter {
         }
     }
 
-    public async readBan(ruid: string, playerConn: string): Promise<BanList | undefined> {
+    public async readBan(ruid: string, playerConn: string): Promise<BanEntry | undefined> {
         try {
             const result = await this.gateway.readBan(ruid, playerConn);
             if (result.status === 200 && result.data) {
-                const banlist: BanList = {
+                const banEntry: BanEntry = {
                     conn: result.data.conn,
                     auth: result.data.auth,
                     reason: result.data.reason,
                     register: result.data.register,
                     expire: result.data.expire
                 };
-                this.logger.info(`200 Succeed on readBanlistDB: Read. onn(${playerConn})`);
-                return banlist;
+                this.logger.info(`200 Succeed on readBanDB: Read. conn(${playerConn})`);
+                return banEntry;
             }
         } catch (error: any) {
             if (error.response && error.response.status === 404) {
-                this.logger.info(`${error.response.status} Failed on readBanlistDB: No exist. conn(${playerConn})`);
+                this.logger.info(`${error.response.status} Failed on readBanDB: No exist. conn(${playerConn})`);
             } else {
-                this.logger.error(`Error caught on readBanlistDB: ${error}`);
+                this.logger.error(`Error caught on readBanDB: ${error}`);
             }
         }
     }
 
-    public async updateBan(ruid: string, banList: BanList): Promise<void> {
+    public async updateBan(ruid: string, banEntry: BanEntry): Promise<void> {
         try {
-            const result = await this.gateway.updateBan(ruid, banList);
+            const result = await this.gateway.updateBan(ruid, banEntry);
             if (result.status === 204 && result.data) {
-                this.logger.info(`${result.status} Succeed on updateBanlistDB: Updated. conn(${banList.conn})`);
+                this.logger.info(`${result.status} Succeed on updateBanDB: Updated. conn(${banEntry.conn})`);
             }
         } catch (error: any) {
             if (error.response && error.response.status === 404) {
-                this.logger.info(`${error.response.status} Failed on updateBanlistDB: No Exist. conn(${banList.conn})`);
+                this.logger.info(`${error.response.status} Failed on updateBanDB: No Exist. conn(${banEntry.conn})`);
             } else {
-                this.logger.error(`Error caught on updateBanlistDB: ${error}`);
+                this.logger.error(`Error caught on updateBanDB: ${error}`);
             }
         }
     }
@@ -134,13 +134,13 @@ export class RoomDbApiAdapter {
         try {
             const result = await this.gateway.deleteBan(ruid, playerConn);
             if (result.status === 204) {
-                this.logger.info(`${result.status} Succeed on deleteBanlistDB: Deleted. conn(${playerConn})`);
+                this.logger.info(`${result.status} Succeed on deleteBanDB: Deleted. conn(${playerConn})`);
             }
         } catch (error: any) {
             if (error.response && error.response.status === 404) {
-                this.logger.info(`${error.response.status} Failed on deleteBanlistDB: No exist. conn(${playerConn})`);
+                this.logger.info(`${error.response.status} Failed on deleteBanDB: No exist. conn(${playerConn})`);
             } else {
-                this.logger.error(`Error caught on deleteBanlistDB: ${error}`);
+                this.logger.error(`Error caught on deleteBanDB: ${error}`);
             }
         }
     }
@@ -284,4 +284,4 @@ export class RoomDbApiAdapter {
     }
 }
 
-export const roomDbApiAdapter = new RoomDbApiAdapter();
+export const roomDbAdapter = new RoomDbAdapter();

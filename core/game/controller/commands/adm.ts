@@ -6,7 +6,7 @@ import { RoomRuntime } from "../../runtime/RoomRuntime";
 export function cmdAdm(runtime: RoomRuntime, byPlayer: PlayerObject): void {
     const room = runtime.room.getRoom();
     
-    const playerRole = runtime.playerRole.getRole(byPlayer.id)!;
+    const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
     if(PlayerRoles.atLeast(playerRole, PlayerRoles.ADM)) {
         room.setPlayerAdmin(byPlayer.id, true);
 

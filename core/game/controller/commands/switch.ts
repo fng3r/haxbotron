@@ -6,14 +6,14 @@ import { RoomRuntime } from "../../runtime/RoomRuntime";
 
 export function cmdSwitch(runtime: RoomRuntime, byPlayer: PlayerObject): void {
     const room = runtime.room.getRoom();
-    const playerList = runtime.player.getPlayerList();
+    const playerList = runtime.players.getPlayerList();
     
     const placeholder = {
         playerID: byPlayer.id
         ,playerName: byPlayer.name
     };
 
-    const playerRole = runtime.playerRole.getRole(byPlayer.id)!;
+    const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
         runtime.room.sendAnnouncement(LangRes.command.switch._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;

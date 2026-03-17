@@ -1,11 +1,11 @@
-import { BanList } from "../model/PlayerBan/BanList";
+import { BanEntry } from "../model/PlayerBan/BanEntry";
 import { RoomDbRepository } from "../runtime/RoomDbRepository";
 
 export type JoinBanStatus = "not_banned" | "permanent_ban" | "temporary_ban_active" | "temporary_ban_expired";
 
 export interface JoinBanCheckResult {
     status: JoinBanStatus;
-    ban?: BanList;
+    ban?: BanEntry;
 }
 
 export interface BanDisplayEntry {
@@ -19,7 +19,7 @@ export interface BanDisplayEntry {
 export class BanService {
     constructor(private readonly repository: RoomDbRepository) {}
 
-    public createPermanentBan(conn: string, auth: string, reason: string, registerTimestamp: number): BanList {
+    public createPermanentBan(conn: string, auth: string, reason: string, registerTimestamp: number): BanEntry {
         return {
             conn,
             auth,
@@ -35,7 +35,7 @@ export class BanService {
         reason: string,
         registerTimestamp: number,
         durationMs: number
-    ): BanList {
+    ): BanEntry {
         return {
             conn,
             auth,
@@ -45,15 +45,15 @@ export class BanService {
         };
     }
 
-    public async upsertBan(ban: BanList): Promise<void> {
+    public async upsertBan(ban: BanEntry): Promise<void> {
         await this.repository.upsertBan(ban);
     }
 
-    public async getBan(conn: string): Promise<BanList | undefined> {
+    public async getBan(conn: string): Promise<BanEntry | undefined> {
         return await this.repository.readBan(conn);
     }
 
-    public async getAllBans(): Promise<BanList[] | undefined> {
+    public async getAllBans(): Promise<BanEntry[] | undefined> {
         return await this.repository.readAllBans();
     }
 

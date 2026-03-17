@@ -1,5 +1,5 @@
 import { ApiDbAdapter } from "../../../lib/db/adapters/ApiDbAdapter";
-import { RoomDbApiAdapter } from "../../../lib/db/adapters/RoomDbApiAdapter";
+import { RoomDbAdapter } from "../../../lib/db/adapters/RoomDbAdapter";
 
 describe("DB adapters", () => {
     it("ApiDbAdapter returns data from gateway responses", async () => {
@@ -18,7 +18,7 @@ describe("DB adapters", () => {
         expect(gateway.getRuidList).toHaveBeenCalled();
     });
 
-    it("RoomDbApiAdapter swallows 404 on read and returns undefined", async () => {
+    it("RoomDbAdapter swallows 404 on read and returns undefined", async () => {
         const gateway = {
             readPlayer: jest.fn().mockRejectedValue({ response: { status: 404 } })
         };
@@ -27,7 +27,7 @@ describe("DB adapters", () => {
             error: jest.fn()
         };
 
-        const adapter = new RoomDbApiAdapter(gateway as any, logger);
+        const adapter = new RoomDbAdapter(gateway as any, logger);
         const player = await adapter.readPlayer("room-1", "auth-1");
 
         expect(player).toBeUndefined();
@@ -35,7 +35,7 @@ describe("DB adapters", () => {
         expect(logger.error).not.toHaveBeenCalled();
     });
 
-    it("RoomDbApiAdapter logs and swallows non-404 read errors", async () => {
+    it("RoomDbAdapter logs and swallows non-404 read errors", async () => {
         const gateway = {
             readBan: jest.fn().mockRejectedValue(new Error("network issue"))
         };
@@ -44,7 +44,7 @@ describe("DB adapters", () => {
             error: jest.fn()
         };
 
-        const adapter = new RoomDbApiAdapter(gateway as any, logger);
+        const adapter = new RoomDbAdapter(gateway as any, logger);
         const ban = await adapter.readBan("room-1", "conn-1");
 
         expect(ban).toBeUndefined();

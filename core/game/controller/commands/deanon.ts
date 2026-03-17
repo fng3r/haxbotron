@@ -3,7 +3,7 @@ import { RoomRuntime } from "../../runtime/RoomRuntime";
 import * as Tst from "../Translator";
 
 export async function cmdDeanon(runtime: RoomRuntime, byPlayer: PlayerObject, playerId: number) {
-    const player = runtime.player.getPlayer(playerId);
+    const player = runtime.players.getPlayer(playerId);
     if (player === undefined) {
         runtime.room.sendAnnouncement(LangRes.command.deanon._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 1);
         return;

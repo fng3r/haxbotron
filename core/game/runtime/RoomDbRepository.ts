@@ -1,13 +1,13 @@
 import { Player } from "../model/GameObject/Player";
 import { PlayerStorage } from "../model/GameObject/PlayerState";
-import { BanList } from "../model/PlayerBan/BanList";
+import { BanEntry } from "../model/PlayerBan/BanEntry";
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";
-import { RoomDbApiAdapter } from "../../lib/db/adapters/RoomDbApiAdapter";
+import { RoomDbAdapter } from "../../lib/db/adapters/RoomDbAdapter";
 
 export class RoomDbRepository {
     constructor(
         private readonly ruid: string,
-        private readonly adapter: RoomDbApiAdapter = new RoomDbApiAdapter()
+        private readonly adapter: RoomDbAdapter = new RoomDbAdapter()
     ) {}
 
     public toPlayerStorage(player: Player): PlayerStorage {
@@ -66,19 +66,19 @@ export class RoomDbRepository {
         await this.adapter.deletePlayerRole(playerRole);
     }
 
-    public async createBan(banList: BanList): Promise<void> {
+    public async createBan(banList: BanEntry): Promise<void> {
         await this.adapter.createBan(this.ruid, banList);
     }
 
-    public async readBan(conn: string): Promise<BanList | undefined> {
+    public async readBan(conn: string): Promise<BanEntry | undefined> {
         return await this.adapter.readBan(this.ruid, conn);
     }
 
-    public async readAllBans(): Promise<BanList[] | undefined> {
+    public async readAllBans(): Promise<BanEntry[] | undefined> {
         return await this.adapter.getAllBans(this.ruid);
     }
 
-    public async updateBan(banList: BanList): Promise<void> {
+    public async updateBan(banList: BanEntry): Promise<void> {
         await this.adapter.updateBan(this.ruid, banList);
     }
 
@@ -86,7 +86,7 @@ export class RoomDbRepository {
         await this.adapter.deleteBan(this.ruid, conn);
     }
 
-    public async upsertBan(banList: BanList): Promise<void> {
+    public async upsertBan(banList: BanEntry): Promise<void> {
         const existing = await this.readBan(banList.conn);
         if (existing !== undefined) {
             await this.updateBan(banList);

@@ -7,9 +7,9 @@ import { getRemainingTimeString, getUnixTimestamp } from "../DateTimeUtils";
 import * as Tst from "../Translator";
 
 export function cmdMute(runtime: RoomRuntime, byPlayer: PlayerObject, playerIdentifier: string, muteDuration?: number): void {
-    const playerList = runtime.player.getPlayerList();
+    const playerList = runtime.players.getPlayerList();
     
-    const playerRole = runtime.playerRole.getRole(byPlayer.id)!;
+    const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
         runtime.room.sendAnnouncement(LangRes.command.mute._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
@@ -45,7 +45,7 @@ export function cmdMute(runtime: RoomRuntime, byPlayer: PlayerObject, playerIden
 }
 
 export function cmdMutes(runtime: RoomRuntime, byPlayer: PlayerObject): void {
-    const playerList = runtime.player.getPlayerList();
+    const playerList = runtime.players.getPlayerList();
     
     const [...players] = playerList.values();
     let mutedPlayersString = players

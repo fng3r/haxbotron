@@ -5,7 +5,7 @@ import * as Tst from "../Translator";
 export function cmdAuth(runtime: RoomRuntime, byPlayer: PlayerObject, playerId?: number): void {
     playerId = playerId || byPlayer.id;
     
-    const player = runtime.player.getPlayer(playerId);
+    const player = runtime.players.getPlayer(playerId);
     if (!player) {
         runtime.room.sendAnnouncement(LangRes.command.auth._ErrorNoPlayer, null, 0xFF7777, "normal", 2);
         return;

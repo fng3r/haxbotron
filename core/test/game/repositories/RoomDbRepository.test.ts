@@ -2,7 +2,7 @@
 
 import { Player } from "../../../game/model/GameObject/Player";
 import { PlayerStorage } from "../../../game/model/GameObject/PlayerState";
-import { BanList } from "../../../game/model/PlayerBan/BanList";
+import { BanEntry } from "../../../game/model/PlayerBan/BanEntry";
 import { PlayerRole } from "../../../game/model/PlayerRole/PlayerRole";
 import { PlayerRoles } from "../../../game/model/PlayerRole/PlayerRoles";
 import { RoomDbRepository } from "../../../game/runtime/RoomDbRepository";
@@ -44,7 +44,7 @@ describe("RoomDbRepository", () => {
         name: "Player One",
         role: PlayerRoles.ADM,
     };
-    const sampleBan: BanList = {
+    const sampleBan: BanEntry = {
         conn: "conn-1",
         auth: "auth-1",
         reason: "spam",

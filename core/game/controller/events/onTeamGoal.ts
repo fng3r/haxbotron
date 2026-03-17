@@ -6,7 +6,7 @@ import * as Tst from "../Translator";
 export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Promise<void> {
     // Event called when a team scores a goal.
     const room = runtime.room.getRoom();
-    const playerList = runtime.player.getPlayerList();
+    const playerList = runtime.players.getPlayerList();
     
     let scores: ScoresObject | null = room.getScores(); //get scores object (it includes time data about seconds elapsed)
     runtime.logger.i('onTeamGoal', `Goal time logger (secs):${Math.round(scores?.time || 0)}`);
