@@ -1,4 +1,4 @@
-import CircularArray from '../../../game/model/CircularArray';
+import CircularArray from '../../../game/shared/collections/CircularArray';
 
 describe('CircularArray', () => {
   let circularArray: CircularArray<number>;

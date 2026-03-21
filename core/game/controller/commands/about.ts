@@ -1,6 +1,6 @@
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
-import * as Tst from "../Translator";
+import * as Tst from "../../shared/Translator";
 
 export function cmdAbout(runtime: RoomRuntime, byPlayer: PlayerObject): void {
     var placeholder = {

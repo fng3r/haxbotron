@@ -2,7 +2,7 @@ import { Player } from "../../model/GameObject/Player";
 import { TeamID } from "../../model/GameObject/TeamID";
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
-import * as Tst from "../Translator";
+import * as Tst from "../../shared/Translator";
 
 export function cmdList(runtime: RoomRuntime, byPlayer: PlayerObject, playerGroup?: string): void {
     const team = resolveTeam(playerGroup);

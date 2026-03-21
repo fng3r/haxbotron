@@ -1,7 +1,7 @@
 import { AttachmentBuilder, EmbedBuilder, WebhookClient } from "discord.js";
 import moment from "moment";
 import { winstonLogger } from "../../winstonLoggerSystem";
-import { DiscordWebhookCredentials } from "../room.interface";
+import { DiscordWebhookCredentials } from "../room/RoomTypes";
 
 type ReplayContent = {
     roomId: string;

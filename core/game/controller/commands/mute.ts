@@ -3,8 +3,8 @@ import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 import * as LangRes from "../../resource/strings";
 import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
-import { getRemainingTimeString, getUnixTimestamp } from "../DateTimeUtils";
-import * as Tst from "../Translator";
+import { getRemainingTimeString, getUnixTimestamp } from "../../shared/DateTime";
+import * as Tst from "../../shared/Translator";
 
 export function cmdMute(runtime: RoomRuntime, byPlayer: PlayerObject, playerIdentifier: string, muteDuration?: number): void {
     const playerList = runtime.players.getPlayerList();

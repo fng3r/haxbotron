@@ -75,7 +75,7 @@ describe("roomWorker pipeline", () => {
             __esModule: true,
             default: mockHaxballJS,
         }));
-        jest.doMock("../../../game/bot", () => ({
+        jest.doMock("../../../game/runtime/RoomBootstrap", () => ({
             openRoomRuntime: mockOpenRoomRuntime,
         }));
         jest.doMock("../../../game/runtime/RoomCommandHandler", () => ({

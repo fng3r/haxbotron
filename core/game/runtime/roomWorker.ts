@@ -1,5 +1,5 @@
 import HaxballJS from "haxball.js";
-import { openRoomRuntime } from "../bot";
+import { openRoomRuntime } from "./RoomBootstrap";
 import { handleRoomCommand } from "./RoomCommandHandler";
 import { RoomRuntime } from "./RoomRuntime";
 import { sendWorkerMessage } from "./WorkerEventBridge";

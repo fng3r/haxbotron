@@ -39,3 +39,19 @@ export interface RoomPlayer {
   leftDate: number;
   malActCount: number;
 }
+
+export type OnlinePlayer = {
+  id: number;
+  name: string;
+  auth: string;
+  conn: string;
+  team: number;
+  admin?: boolean;
+  permissions: {
+    mute: boolean;
+    muteExpire: number;
+  };
+  entrytime: {
+    joinDate: number;
+  };
+};

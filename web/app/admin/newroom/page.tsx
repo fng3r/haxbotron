@@ -19,11 +19,11 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 
-import { BrowserHostRoomSettings } from '@/../core/lib/browser.hostconfig';
+import { RoomSettings } from '@/../core/lib/room/RoomHostConfig';
 import DefaultConfigSet from '@/lib/defaultroomconfig.json';
 import { mutations } from '@/lib/queries/room';
 
-const stringifySettings = (settings: BrowserHostRoomSettings) => {
+const stringifySettings = (settings: RoomSettings) => {
   return JSON.stringify(settings, null, 4);
 };
 

@@ -1,5 +1,5 @@
 import { BanEntry } from "../model/PlayerBan/BanEntry";
-import { RoomDbRepository } from "../runtime/RoomDbRepository";
+import { RoomDbRepository } from "../../lib/db/runtime/RoomDbRepository";
 
 export type JoinBanStatus = "not_banned" | "permanent_ban" | "temporary_ban_active" | "temporary_ban_expired";
 

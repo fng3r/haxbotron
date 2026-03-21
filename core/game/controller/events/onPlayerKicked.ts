@@ -1,4 +1,4 @@
-import { getUnixTimestamp } from "../DateTimeUtils";
+import { getUnixTimestamp } from "../../shared/DateTime";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 

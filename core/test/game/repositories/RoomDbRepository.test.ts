@@ -5,7 +5,7 @@ import { PlayerStorage } from "../../../game/model/GameObject/PlayerState";
 import { BanEntry } from "../../../game/model/PlayerBan/BanEntry";
 import { PlayerRole } from "../../../game/model/PlayerRole/PlayerRole";
 import { PlayerRoles } from "../../../game/model/PlayerRole/PlayerRoles";
-import { RoomDbRepository } from "../../../game/runtime/RoomDbRepository";
+import { RoomDbRepository } from "../../../lib/db/runtime/RoomDbRepository";
 
 function createMockAdapter() {
     return {

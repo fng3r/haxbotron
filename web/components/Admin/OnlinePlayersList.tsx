@@ -15,9 +15,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-import { Player } from '@/../core/game/model/GameObject/Player';
 import { mutations, queries } from '@/lib/queries/player';
-import { BanOptions } from '@/lib/types/player';
+import { BanOptions, OnlinePlayer } from '@/lib/types/player';
 
 const convertDate = (timestamp: number): string => {
   if (timestamp === -1) return 'Permanent';
@@ -64,7 +63,7 @@ const banSchema = z.object({
   duration: z.coerce.number().min(1, { message: 'Ban duration must be positive' }),
 });
 
-function OnlinePlayerRow(props: { ruid: string; row: Player }) {
+function OnlinePlayerRow(props: { ruid: string; row: OnlinePlayer }) {
   const { ruid, row } = props;
   const [open, setOpen] = useState(false);
   const mutePlayerMutation = mutations.mutePlayer();

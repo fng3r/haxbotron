@@ -1,8 +1,7 @@
 import { Pagination } from '../types/common';
-import { BanListItem, RoomPlayer } from '../types/player';
+import { BanListItem, OnlinePlayer, RoomPlayer } from '../types/player';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { Player } from '@/../core/game/model/GameObject/Player';
 import {
   addBan,
   banPlayer,
@@ -31,7 +30,7 @@ const queries = {
     }),
 
   getOnlinePlayersID: (ruid: string) =>
-    useQuery<Player[]>({
+    useQuery<OnlinePlayer[]>({
       queryKey: queryKeys.onlinePlayers(ruid),
       queryFn: () => getOnlinePlayers(ruid),
     }),

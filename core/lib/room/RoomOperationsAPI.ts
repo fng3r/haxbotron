@@ -1,7 +1,7 @@
 import { Player } from "../../game/model/GameObject/Player";
 import { TeamID } from "../../game/model/GameObject/TeamID";
-import { RoomInitConfig } from "../room.hostconfig";
-import { DiscordWebhookConfig } from "../room.interface";
+import { RoomInitConfig } from "./RoomHostConfig";
+import { DiscordWebhookConfig } from "./RoomTypes";
 import { RoomProcessManager } from "./RoomProcessManager";
 import { RoomDetailInfo, RoomInfo, TeamColourInfo } from "./RoomProtocol";
 

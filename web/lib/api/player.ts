@@ -1,7 +1,6 @@
-import { Player } from '@/../core/game/model/GameObject/Player';
 import getApiClient from '@/lib/api-client';
 import { Pagination } from '@/lib/types/common';
-import { BanListItem, BanOptions, NewBanEntry, RoomPlayer } from '@/lib/types/player';
+import { BanListItem, BanOptions, NewBanEntry, OnlinePlayer, RoomPlayer } from '@/lib/types/player';
 
 export const getPlayerAccountList = async (
   ruid: string,
@@ -19,7 +18,7 @@ export const getPlayerAccountList = async (
   }
 };
 
-export const getOnlinePlayers = async (ruid: string): Promise<Player[]> => {
+export const getOnlinePlayers = async (ruid: string): Promise<OnlinePlayer[]> => {
   try {
     const apiClient = getApiClient();
     const result = await apiClient.get(`/api/v1/room/${ruid}/player`);
@@ -27,7 +26,7 @@ export const getOnlinePlayers = async (ruid: string): Promise<Player[]> => {
     const onlinePlayersInfoList = await Promise.all(
       onlinePlayersID.map(async (playerID) => {
         const result = await apiClient.get(`/api/v1/room/${ruid}/player/${playerID}`);
-        return result.data as Player;
+        return result.data as OnlinePlayer;
       }),
     );
 
@@ -48,7 +47,7 @@ export const getPlayersBans = async (ruid: string, { page, pagingCount }: Pagina
   }
 };
 
-export const mutePlayer = async ({ ruid, player }: { ruid: string; player: Player }): Promise<void> => {
+export const mutePlayer = async ({ ruid, player }: { ruid: string; player: OnlinePlayer }): Promise<void> => {
   try {
     const apiClient = getApiClient();
     await apiClient.post(`/api/v1/room/${ruid}/player/${player.id}/permission/mute`, { muteExpire: -1 }); // Permanent
@@ -57,7 +56,7 @@ export const mutePlayer = async ({ ruid, player }: { ruid: string; player: Playe
   }
 };
 
-export const unmutePlayer = async ({ ruid, player }: { ruid: string; player: Player }): Promise<void> => {
+export const unmutePlayer = async ({ ruid, player }: { ruid: string; player: OnlinePlayer }): Promise<void> => {
   try {
     const apiClient = getApiClient();
     await apiClient.delete(`/api/v1/room/${ruid}/player/${player.id}/permission/mute`); // Permanent
@@ -72,7 +71,7 @@ export const kickPlayer = async ({
   reason,
 }: {
   ruid: string;
-  player: Player;
+  player: OnlinePlayer;
   reason?: string;
 }): Promise<void> => {
   try {
@@ -95,7 +94,7 @@ export const banPlayer = async ({
   banOptions,
 }: {
   ruid: string;
-  player: Player;
+  player: OnlinePlayer;
   banOptions: BanOptions;
 }): Promise<void> => {
   try {
@@ -137,7 +136,7 @@ export const sendMessageToPlayer = async ({
   message,
 }: {
   ruid: string;
-  player: Player;
+  player: OnlinePlayer;
   message: string;
 }): Promise<void> => {
   try {

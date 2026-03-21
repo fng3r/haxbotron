@@ -1,8 +1,8 @@
-import * as Tst from "../Translator";
+import * as Tst from "../../shared/Translator";
 import * as LangRes from "../../resource/strings";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
-import {getUnixTimestamp} from "../DateTimeUtils";
-import {updateAdmins} from "../RoomTools";
+import {getUnixTimestamp} from "../../shared/DateTime";
+import {updateAdmins} from "../../runtime/RoomRuntimeHelpers";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge";
 

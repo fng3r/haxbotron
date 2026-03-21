@@ -1,4 +1,4 @@
-import { getUnixTimestamp } from "../controller/DateTimeUtils";
+import { getUnixTimestamp } from "../shared/DateTime";
 import {
     AnyRoomRpcResponse,
     RoomRpcCommand,

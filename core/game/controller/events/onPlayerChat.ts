@@ -1,9 +1,9 @@
 import * as LangRes from "../../resource/strings";
 import { CommandExecutor, isCommandString, isTeamChatCommand, parseCommand } from "../commands/CommandRegistry";
-import { getUnixTimestamp } from "../DateTimeUtils";
+import { getUnixTimestamp } from "../../shared/DateTime";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
-import * as Tst from "../Translator";
+import * as Tst from "../../shared/Translator";
 
 export function onPlayerChatListener(runtime: RoomRuntime, commandExecutor: CommandExecutor, player: PlayerObject, message: string): boolean {
     // Event called when a player sends a chat message.

@@ -1,6 +1,6 @@
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
-import * as Translator from "../Translator";
+import * as Translator from "../../shared/Translator";
 
 export function onGamePauseListener(runtime: RoomRuntime, byPlayer: PlayerObject | null): void {
     runtime.match.setPlaying(false);

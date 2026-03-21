@@ -1,4 +1,4 @@
-import { DiscordWebhookConfig } from "../../lib/room.interface";
+import { DiscordWebhookConfig } from "../../lib/room/RoomTypes";
 import { MatchStats } from "./MatchService";
 import { DiscordWebhookService } from "../../lib/integrations/DiscordWebhookService";
 

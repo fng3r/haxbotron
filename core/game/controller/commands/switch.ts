@@ -1,6 +1,6 @@
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 import {TeamID} from "../../model/GameObject/TeamID";
-import * as Tst from "../Translator";
+import * as Tst from "../../shared/Translator";
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 

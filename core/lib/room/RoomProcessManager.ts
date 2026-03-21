@@ -2,7 +2,7 @@ import { ChildProcess, fork } from "child_process";
 import path from "path";
 import { Server as SIOserver } from "socket.io";
 import { v4 as uuid } from "uuid";
-import { RoomInitConfig } from "../room.hostconfig";
+import { RoomInitConfig } from "./RoomHostConfig";
 import {
     AnyRoomRpcResponse,
     RoomRpcCommand,

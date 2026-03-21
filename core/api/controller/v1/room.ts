@@ -2,7 +2,7 @@ import { Context } from "koa";
 import { Player } from "../../../game/model/GameObject/Player";
 import { TeamID } from "../../../game/model/GameObject/TeamID";
 import { RoomOperationsAPI } from "../../../lib/room";
-import { RoomInitConfig } from "../../../lib/room.hostconfig";
+import { RoomInitConfig } from "../../../lib/room/RoomHostConfig";
 import { ConflictError, PlayerNotFoundError, RoomNotFoundError, ValidationError } from "../../../lib/errors";
 import { formatJoiError } from "../../middleware/errorHandler";
 import { discordWebhookConfigSchema } from "../../schema/discordwebhook.validation";

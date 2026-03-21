@@ -1,5 +1,5 @@
-import { Logger } from "../controller/Logger";
-import { DiscordWebhookConfig } from "../../lib/room.interface";
+import { Logger } from "../logging/Logger";
+import { DiscordWebhookConfig } from "../../lib/room/RoomTypes";
 import { DiscordWebhookService } from "../../lib/integrations/DiscordWebhookService";
 import { GameRoomConfig } from "../model/Configuration/GameRoomConfig";
 import { BanService } from "../services/BanService";
@@ -12,7 +12,7 @@ import { PlayerRoleService } from "../services/PlayerRoleService";
 import { PlayerService } from "../services/PlayerService";
 import { RoomService } from "../services/RoomService";
 import { SocialService } from "../services/SocialService";
-import { RoomDbRepository } from "./RoomDbRepository";
+import { RoomDbRepository } from "../../lib/db/runtime/RoomDbRepository";
 
 export interface RoomRuntime {
     config: ConfigService;

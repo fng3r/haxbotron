@@ -4,6 +4,8 @@ import { RoomOperationsAPI } from "./RoomOperationsAPI";
 export { RoomProcessManager } from "./RoomProcessManager";
 export { RoomOperationsAPI } from "./RoomOperationsAPI";
 export type { RoomDetailInfo, RoomInfo } from "./RoomOperationsAPI";
+export type { RoomInitConfig } from "./RoomHostConfig";
+export type { DiscordWebhookConfig, DiscordWebhookCredentials } from "./RoomTypes";
 
 export function createRoomServices(): {
     roomProcessManager: RoomProcessManager;

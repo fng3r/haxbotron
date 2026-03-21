@@ -1,6 +1,6 @@
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 import * as LangRes from "../../resource/strings";
-import * as Tst from "../Translator";
+import * as Tst from "../../shared/Translator";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 
 export function cmdSetPassword(runtime: RoomRuntime, byPlayer: PlayerObject, password?: string): void {

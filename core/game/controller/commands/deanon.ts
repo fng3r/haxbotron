@@ -1,6 +1,6 @@
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
-import * as Tst from "../Translator";
+import * as Tst from "../../shared/Translator";
 
 export async function cmdDeanon(runtime: RoomRuntime, byPlayer: PlayerObject, playerId: number) {
     const player = runtime.players.getPlayer(playerId);

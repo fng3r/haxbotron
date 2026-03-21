@@ -1,9 +1,9 @@
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge";
-import { getUnixTimestamp } from "../DateTimeUtils";
-import { updateAdmins } from "../RoomTools";
-import * as Tst from "../Translator";
+import { getUnixTimestamp } from "../../shared/DateTime";
+import { updateAdmins } from "../../runtime/RoomRuntimeHelpers";
+import * as Tst from "../../shared/Translator";
 
 export async function onPlayerLeaveListener(runtime: RoomRuntime, player: PlayerObject): Promise<void> {
     // Event called when a player leaves the room.

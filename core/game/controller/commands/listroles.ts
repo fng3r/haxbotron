@@ -1,6 +1,6 @@
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
-import * as Tst from "../Translator";
+import * as Tst from "../../shared/Translator";
 
 export function cmdListRoles(runtime: RoomRuntime, byPlayer: PlayerObject): void {
     const [...playerRoles] = runtime.playerRoles.getRoles().values();

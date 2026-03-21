@@ -2,7 +2,7 @@ import { Player } from "../model/GameObject/Player";
 import { PlayerStorage } from "../model/GameObject/PlayerState";
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";
 import { PlayerRoles } from "../model/PlayerRole/PlayerRoles";
-import { RoomDbRepository } from "../runtime/RoomDbRepository";
+import { RoomDbRepository } from "../../lib/db/runtime/RoomDbRepository";
 
 export interface JoinHydrationResult {
     player: Player;

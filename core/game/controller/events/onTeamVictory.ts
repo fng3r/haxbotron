@@ -1,7 +1,7 @@
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
-import * as Tst from "../Translator";
+import * as Tst from "../../shared/Translator";
 
 export async function onTeamVictoryListener(runtime: RoomRuntime, scores: ScoresObject): Promise<void> {
     // Event called when a team 'wins'. not just when game ended.

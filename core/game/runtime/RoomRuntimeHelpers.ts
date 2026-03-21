@@ -1,6 +1,6 @@
 import * as LangRes from "../resource/strings";
 import { RoomRuntime } from "../runtime/RoomRuntime";
-import * as Tst from "./Translator";
+import * as Tst from "../shared/Translator";
 
 export function setDefaultStadiums(runtime: RoomRuntime): void {
     runtime.room.loadDefaultStadium(); // if game mode is 'ready'
