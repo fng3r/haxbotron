@@ -1,14 +1,13 @@
-import { loadStadiumData } from "../../lib/stadiumLoader";
-import { Room } from "../model/RoomObject/RoomObject";
+import { getStadiumData } from "../../lib/stadiumLoader";
 
 /**
  * Service for managing the Haxball room instance
  * Exposes the native Haxball room API (_room) and manages room-level state
  */
 export class RoomService {
-    private _room: Room;
+    private _room: RoomObject;
     private _link: string = '';
-    private defaultStadium: string = '';
+    private defaultStadiumName: string = '';
     private teamColours: {
         red: {
             angle: number;
@@ -26,7 +25,7 @@ export class RoomService {
         };
     };
 
-    constructor(room: Room) {
+    constructor(room: RoomObject) {
         this._room = room;
         this.teamColours = {
             red: { 
@@ -54,7 +53,7 @@ export class RoomService {
      * - setScoreLimit()
      * - etc.
      */
-    public getRoom(): Room {
+    public getRoom(): RoomObject {
         return this._room;
     }
 
@@ -81,7 +80,7 @@ export class RoomService {
     }
 
     public setStadiumByName(mapName: string): boolean {
-        const loadedStadium = loadStadiumData(mapName);
+        const loadedStadium = getStadiumData(mapName);
         if (!loadedStadium) {
             return false;
         }
@@ -91,15 +90,15 @@ export class RoomService {
     }
 
     public getDefaultStadium(): string {
-        return this.defaultStadium;
+        return this.defaultStadiumName;
     }
 
-    public setDefaultStadium(stadium: string): void {
-        this.defaultStadium = stadium;
+    public setDefaultStadium(stadiumName: string): void {
+        this.defaultStadiumName = stadiumName;
     }
 
-    public loadDefaultStadium(): void {
-        this._room.setCustomStadium(this.defaultStadium);
+    public loadDefaultStadium(): boolean {
+        return this.setStadiumByName(this.defaultStadiumName);
     }
 
     public setScoreLimit(limit: number): void {

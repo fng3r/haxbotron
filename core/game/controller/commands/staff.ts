@@ -1,14 +1,12 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
 
-export function cmdStaff(byPlayer: PlayerObject): void {
-    const services = ServiceContainer.getInstance();
-    const playerList = services.player.getPlayerList();
+export function cmdStaff(runtime: RoomRuntime, byPlayer: PlayerObject): void {
+    const playerList = runtime.players.getPlayerList();
     
     const entries = []
     for (const player of playerList.values()) {
-        const role = services.playerRole.getRole(player.id);
+        const role = runtime.playerRoles.getRole(player.id);
         if (!role) {
             continue;
         }
@@ -19,5 +17,5 @@ export function cmdStaff(byPlayer: PlayerObject): void {
     }
     const staffPlayersString = `👨🏻‍💼 Staff: ${entries.join(', ') || 'No staff players'}`;
 
-    services.room.sendAnnouncement(staffPlayersString, null, 0x479947, "normal", 1);
+    runtime.room.sendAnnouncement(staffPlayersString, null, 0x479947, "normal", 1);
 }

@@ -1,15 +1,13 @@
-import { ScoresObject } from "../../model/GameObject/ScoresObject";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
 import * as LangRes from "../../resource/strings";
-import { ServiceContainer } from "../../services/ServiceContainer";
-import * as Tst from "../Translator";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
+import * as Tst from "../../shared/Translator";
 
-export async function onTeamVictoryListener(scores: ScoresObject): Promise<void> {
+export async function onTeamVictoryListener(runtime: RoomRuntime, scores: ScoresObject): Promise<void> {
     // Event called when a team 'wins'. not just when game ended.
     // records vicotry in stats. total games also counted in this event.
     // Haxball developer Basro said, The game will be stopped automatically after a team victory. (victory -> stop)
-    const services = ServiceContainer.getInstance();
-    const possessionSummary = services.match.getPossessionSummary();
+    const possessionSummary = runtime.match.getPossessionSummary();
 
     let message = '';
     const winnerTeam = scores.red > scores.blue ? TeamID.Red : TeamID.Blue;
@@ -21,8 +19,8 @@ export async function onTeamVictoryListener(scores: ScoresObject): Promise<void>
         possTeamBlue: possessionSummary.possTeamBlue
     });
 
-    services.match.setPlaying(false);
+    runtime.match.setPlaying(false);
 
-    services.logger.i('onTeamVictory', `The game has ended. Score: ${scores.red}-${scores.blue}.`);
-    services.room.sendAnnouncement(message, null, 0xFFFFFF, "bold", 1);
+    runtime.logger.i('onTeamVictory', `The game has ended. Score: ${scores.red}-${scores.blue}.`);
+    runtime.room.sendAnnouncement(message, null, 0xFFFFFF, "bold", 1);
 }

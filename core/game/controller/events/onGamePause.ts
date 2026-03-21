@@ -1,15 +1,12 @@
 import * as LangRes from "../../resource/strings";
-import * as Translator from "../Translator";
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
+import * as Translator from "../../shared/Translator";
 
-export function onGamePauseListener(byPlayer: PlayerObject | null): void {
-    const services = ServiceContainer.getInstance();
-    
-    services.match.setPlaying(false);
+export function onGamePauseListener(runtime: RoomRuntime, byPlayer: PlayerObject | null): void {
+    runtime.match.setPlaying(false);
     const announcementText = Translator.maketext(
         LangRes.onGamePause.pausedByPlayer,
         {player: byPlayer?.name});
 
-    services.room.sendAnnouncement(announcementText, null, 0xFFFFFF, "normal", 2);
+    runtime.room.sendAnnouncement(announcementText, null, 0xFFFFFF, "normal", 2);
 }

@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import { BanList } from "../../game/model/PlayerBan/BanList";
-import { PlayerStorage } from "../../game/model/GameObject/PlayerObject";
+import { BanEntry } from "../../game/model/PlayerBan/BanEntry";
+import { PlayerStorage } from "../../game/model/GameObject/PlayerState";
 import { PlayerRole } from "../../game/model/PlayerRole/PlayerRole";
 import { getDbConnectionUrl } from "../config";
 
@@ -24,7 +24,7 @@ export class DbApiGateway {
     }
 
     // -------------------------------------------------------------------
-    // Superadmin operations (injected runtime only)
+    // Superadmin operations used by the room runtime
     // -------------------------------------------------------------------
     public createSuperadmin(ruid: string, key: string, description: string): Promise<AxiosResponse<any>> {
         return this.client.post(`${this.baseUrl}room/${ruid}/superadmin`, { key, description });
@@ -74,7 +74,7 @@ export class DbApiGateway {
         return this.client.get(`${this.baseUrl}room/${ruid}/banlist${qs}`);
     }
 
-    public createBan(ruid: string, banList: BanList): Promise<AxiosResponse<any>> {
+    public createBan(ruid: string, banList: BanEntry): Promise<AxiosResponse<any>> {
         return this.client.post(`${this.baseUrl}room/${ruid}/banlist`, banList);
     }
 
@@ -82,7 +82,7 @@ export class DbApiGateway {
         return this.client.get(`${this.baseUrl}room/${ruid}/banlist/${conn}`);
     }
 
-    public updateBan(ruid: string, banList: BanList): Promise<AxiosResponse<any>> {
+    public updateBan(ruid: string, banList: BanEntry): Promise<AxiosResponse<any>> {
         return this.client.put(`${this.baseUrl}room/${ruid}/banlist/${banList.conn}`, banList);
     }
 
@@ -129,18 +129,18 @@ export class DbApiGateway {
         return this.client.delete(`${this.baseUrl}player-roles/${auth}${qs}`);
     }
 
-    // Legacy injected-runtime style (query payload)
-    public createPlayerRoleLegacy(playerRole: PlayerRole): Promise<AxiosResponse<any>> {
+    // Query-payload variant used by the room runtime repository
+    public createPlayerRoleQueryPayload(playerRole: PlayerRole): Promise<AxiosResponse<any>> {
         const qs = this.buildQuery({ name: playerRole.name, role: playerRole.role });
         return this.client.post(`${this.baseUrl}player-roles/${playerRole.auth}${qs}`);
     }
 
-    public updatePlayerRoleLegacy(playerRole: PlayerRole): Promise<AxiosResponse<any>> {
+    public updatePlayerRoleQueryPayload(playerRole: PlayerRole): Promise<AxiosResponse<any>> {
         const qs = this.buildQuery({ name: playerRole.name, role: playerRole.role });
         return this.client.put(`${this.baseUrl}player-roles/${playerRole.auth}${qs}`);
     }
 
-    public deletePlayerRoleLegacy(playerRole: PlayerRole): Promise<AxiosResponse<any>> {
+    public deletePlayerRoleQueryPayload(playerRole: PlayerRole): Promise<AxiosResponse<any>> {
         const qs = this.buildQuery({ name: playerRole.name });
         return this.client.delete(`${this.baseUrl}player-roles/${playerRole.auth}${qs}`);
     }

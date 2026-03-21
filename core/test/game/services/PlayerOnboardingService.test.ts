@@ -33,7 +33,7 @@ describe("PlayerOnboardingService", () => {
         const { service, repository } = createService();
         repository.readPlayer.mockResolvedValue(undefined);
 
-        const result = await service.hydratePlayer(mockPlayerObject() as any, 1000);
+        const result = await service.hydratePlayer(mockPlayerObject() as any, "auth-1", 1000);
 
         expect(result.previousName).toBeUndefined();
         expect(result.player.name).toBe("Player One");
@@ -55,7 +55,7 @@ describe("PlayerOnboardingService", () => {
             malActCount: 1
         });
 
-        const result = await service.hydratePlayer(mockPlayerObject() as any, 1000);
+        const result = await service.hydratePlayer(mockPlayerObject() as any, "auth-1", 1000);
 
         expect(result.previousName).toBe("Old Name");
         expect(result.player.permissions.mute).toBe(true);

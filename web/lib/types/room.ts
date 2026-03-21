@@ -1,8 +1,8 @@
 import {
-  BrowserHostRoomConfig,
-  BrowserHostRoomGameRules,
-  BrowserHostRoomSettings,
-} from '@/../core/lib/browser.hostconfig';
+  RoomHostConfig,
+  RoomRules,
+  RoomSettings,
+} from '@/../core/lib/room/RoomHostConfig';
 
 export type RoomInfoItem = {
   ruid: string;
@@ -27,9 +27,9 @@ export type RoomInfo = {
   onlinePlayers: number;
   adminPassword: string;
   link: string;
-  _roomConfig: BrowserHostRoomConfig;
-  botSettings: BrowserHostRoomSettings;
-  rules: BrowserHostRoomGameRules;
+  _roomConfig: RoomHostConfig;
+  botSettings: RoomSettings;
+  rules: RoomRules;
 };
 
 export type DiscordWebhookConfig = {

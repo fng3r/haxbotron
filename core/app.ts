@@ -13,8 +13,8 @@ import { Server as SIOserver, Socket as SIOsocket } from "socket.io";
 import { authenticationMiddleware } from "./api/middleware/authenticationMiddleware";
 import { errorHandler } from "./api/middleware/errorHandler";
 import { wsAuthenticationMiddleware } from "./api/middleware/wsAuthenticationMiddleware";
-import { indexAPIRouter } from "./api/router/v1";
-import { createBrowserServices } from "./lib/browser/";
+import { createIndexAPIRouter } from "./api/router/v1";
+import { createRoomServices } from "./lib/room";
 import { getApiKeys, getServerConfig } from "./lib/config";
 import { winstonLogger } from "./winstonLoggerSystem";
 
@@ -29,29 +29,28 @@ const allowedApiKeys = getApiKeys();
 
 nodeStorage.init();
 
-// ========================================================
-router
-    .use('/api/v1', indexAPIRouter.routes());
-
-app
-    .use(errorHandler)
-    .use(logger())
-    .use(bodyParser())
-    .use(authenticationMiddleware(allowedApiKeys))
-    .use(router.routes())
-    .use(router.allowedMethods());
-
 sio.on('connection', (socket: SIOsocket) => {
 
 })
 sio.use(wsAuthenticationMiddleware);
 
-// Start server after browser services are initialized
+// Start server after room services are initialized
 (async () => {
-    // Initialize browser services first
-    const { browserManager } = await createBrowserServices();
-    browserManager.attachSocketIOServer(sio);
-    winstonLogger.info('[core] Browser services initialized');
+    const { roomProcessManager, roomOperations } = createRoomServices();
+    const indexAPIRouter = createIndexAPIRouter(roomOperations);
+
+    router.use('/api/v1', indexAPIRouter.routes());
+
+    app
+        .use(errorHandler)
+        .use(logger())
+        .use(bodyParser())
+        .use(authenticationMiddleware(allowedApiKeys))
+        .use(router.routes())
+        .use(router.allowedMethods());
+
+    roomProcessManager.attachSocketIOServer(sio);
+    winstonLogger.info("[core] Room services initialized");
 
     // Now start the server
     server.listen(coreServerSettings.port, () => {

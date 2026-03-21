@@ -1,26 +1,21 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
-import { getInjectedDBRepository } from "../../repositories/InjectedDBRepository";
 import * as LangRes from "../../resource/strings";
-import { ServiceContainer } from "../../services/ServiceContainer";
-import { getUnixTimestamp } from "../DateTimeUtils";
-import { updateAdmins } from "../RoomTools";
-import * as Tst from "../Translator";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge";
+import { getUnixTimestamp } from "../../shared/DateTime";
+import { updateAdmins } from "../../runtime/RoomRuntimeHelpers";
+import * as Tst from "../../shared/Translator";
 
-export async function onPlayerLeaveListener(player: PlayerObject): Promise<void> {
+export async function onPlayerLeaveListener(runtime: RoomRuntime, player: PlayerObject): Promise<void> {
     // Event called when a player leaves the room.
-    const services = ServiceContainer.getInstance();
-    const repository = getInjectedDBRepository();
-    const room = services.room.getRoom();
-    const playerList = services.player.getPlayerList();
-    const config = services.config.getConfig();
+    const room = runtime.room.getRoom();
+    const playerList = runtime.players.getPlayerList();
     
     let leftTimeStamp: number = getUnixTimestamp();
 
-    if (!playerList.has(player.id)) { // if the player wasn't registered in playerList
+    const existingPlayer = playerList.get(player.id);
+    if (!existingPlayer) {
         return;
     }
-
-    const existingPlayer = playerList.get(player.id)!;
 
     let placeholderLeft = {
         playerID: player.id,
@@ -28,24 +23,25 @@ export async function onPlayerLeaveListener(player: PlayerObject): Promise<void>
         playerAuth: existingPlayer.auth,
     };
 
-    services.logger.i('onPlayerLeave', `${player.name}#${player.id} has left.`);
-    services.room.sendAnnouncement(Tst.maketext(LangRes.onLeft.playerLeft, placeholderLeft), null, 0xFFFFFF, "small", 0);
+    runtime.logger.i('onPlayerLeave', `${player.name}#${player.id} has left.`);
+    runtime.room.sendAnnouncement(Tst.maketext(LangRes.onLeft.playerLeft, placeholderLeft), null, 0xFFFFFF, "small", 0);
 
-    playerList.get(player.id)!.entrytime.leftDate = leftTimeStamp;
-    await repository.upsertPlayer(repository.toPlayerStorage(playerList.get(player.id)!));
-    services.player.removePlayer(player.id);
-    services.playerRole.removeRole(player.id);
+    const playerEntry = playerList.get(player.id)!;
+    playerEntry.entrytime.leftDate = leftTimeStamp;
+    await runtime.playerOnboarding.persistPlayer(playerEntry);
+    runtime.players.removePlayer(player.id);
+    runtime.playerRoles.removeRole(player.id);
 
-    if(config.rules.autoAdmin) {
-        updateAdmins();
+    if(runtime.config.getRules().autoAdmin) {
+        updateAdmins(runtime);
     }
 
     const playersCount = room.getPlayerList().length;
     // reset password to default one when more than one slot become available
-    if (playersCount === config._config.maxPlayers! - 2) {
-        room.setPassword(config._config.password || null);
+    if (playersCount === runtime.config.getMaxPlayers() - 2) {
+        room.setPassword(runtime.config.getRoomPassword() || null);
     }
 
     // emit websocket event
-    window._emitSIOPlayerInOutEvent(player.id);
+    emitPlayerJoinLeave(player.id);
 }

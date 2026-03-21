@@ -36,11 +36,11 @@ describe("DbApiGateway", () => {
         );
     });
 
-    it("builds legacy player-role update URL used by injected runtime", async () => {
+    it("builds query-payload player-role update URL used by the room runtime", async () => {
         const { gateway, client } = createGateway();
         client.put.mockResolvedValue({ data: null });
 
-        await gateway.updatePlayerRoleLegacy({
+        await gateway.updatePlayerRoleQueryPayload({
             auth: "auth-1",
             name: "Player One",
             role: PlayerRoles.ADM

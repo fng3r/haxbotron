@@ -1,9 +1,8 @@
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
 
-export function onGameTickListener(): void {
-    const services = ServiceContainer.getInstance();
-    const room = services.room.getRoom();
+export function onGameTickListener(runtime: RoomRuntime): void {
+    const room = runtime.room.getRoom();
     
     const scores = room.getScores()!;
-    services.match.updateScores(scores.red, scores.blue, scores.time);
+    runtime.match.updateScores(scores.red, scores.blue, scores.time);
 }

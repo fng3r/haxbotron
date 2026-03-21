@@ -1,5 +1,4 @@
 import { KickStack } from "../model/GameObject/BallTrace";
-import { PlayerObject } from "../model/GameObject/PlayerObject";
 import { PlayersSet } from "../model/GameObject/PlayersSet";
 import { TeamID } from "../model/GameObject/TeamID";
 
@@ -30,7 +29,7 @@ export class MatchService {
     private matchStats: MatchStats;
 
     constructor() {
-        this.ballStack = KickStack.getInstance();
+        this.ballStack = new KickStack();
         this.matchStats = {
             startedAt: Date.now(),
             startingLineup: {

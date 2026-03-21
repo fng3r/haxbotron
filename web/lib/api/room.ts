@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 
-import { ReactHostRoomInfo } from '@/../core/lib/browser.hostconfig';
+import { ReactHostRoomInfo } from '@/../core/lib/room/RoomHostConfig';
 import getApiClient from '@/lib/api-client';
 import {
   AllRoomListItem,

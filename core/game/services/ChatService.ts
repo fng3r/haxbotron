@@ -1,4 +1,4 @@
-import ChatActivityMap from "../model/ChatActivityMap";
+import ChatActivityMap from "../shared/collections/ChatActivityMap";
 import { Player } from "../model/GameObject/Player";
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";
 import { PlayerRoles } from "../model/PlayerRole/PlayerRoles";

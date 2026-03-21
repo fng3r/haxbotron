@@ -1,15 +1,14 @@
-import * as Tst from "../Translator";
+import * as Tst from "../../shared/Translator";
 import * as LangRes from "../../resource/strings";
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
-import { ServiceContainer } from "../../services/ServiceContainer";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
 
-export function onPlayerTeamChangeListener(changedPlayer: PlayerObject, byPlayer: PlayerObject): void {
+export function onPlayerTeamChangeListener(runtime: RoomRuntime, changedPlayer: PlayerObject, byPlayer: PlayerObject | null): void {
     // Event called when a player team is changed.
     // byPlayer is the player which caused the event (can be null if the event wasn't caused by a player).
-    const services = ServiceContainer.getInstance();
-    const room = services.room.getRoom();
-    const playerList = services.player.getPlayerList();
+    const room = runtime.room.getRoom();
+    const playerList = runtime.players.getPlayerList();
     
     let placeholderTeamChange = {
         targetPlayerID: changedPlayer.id,
@@ -19,11 +18,11 @@ export function onPlayerTeamChangeListener(changedPlayer: PlayerObject, byPlayer
 
     if (changedPlayer.id === 0) { // if the player changed into other team is host player(always id 0),
         room.setPlayerTeam(0, TeamID.Spec); // stay host player in Spectators team.
-        services.logger.i('onPlayerTeamChange', `Bot host is moved team but it is rejected.`);
+        runtime.logger.i('onPlayerTeamChange', `Bot host is moved team but it is rejected.`);
     } else {
         playerList.get(changedPlayer.id)!.team = changedPlayer.team;
-        services.logger.i('onPlayerTeamChange', `${changedPlayer.name}#${changedPlayer.id} is moved team to ${convertTeamID2Name(changedPlayer.team)}.`);
+        runtime.logger.i('onPlayerTeamChange', `${changedPlayer.name}#${changedPlayer.id} is moved team to ${convertTeamID2Name(changedPlayer.team)}.`);
     }
 
-    window._emitSIOPlayerStatusChangeEvent(changedPlayer.id);
+    emitPlayerStatusChange(changedPlayer.id);
 }

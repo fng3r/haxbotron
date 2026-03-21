@@ -49,8 +49,8 @@ export const DB_TIMEOUT = {
   LONG: TIME_CONSTANTS.TEN_SECONDS,
 } as const;
 
-// Browser/Puppeteer constants
-export const BROWSER_CONSTANTS = {
+// Haxball worker runtime constants
+export const HAXBALL_RUNTIME_CONSTANTS = {
   HAXBALL_URL: 'https://www.haxball.com/headless',
   PAGE_LOAD_TIMEOUT: TIME_CONSTANTS.THIRTY_SECONDS,
   NAVIGATION_TIMEOUT: TIME_CONSTANTS.TEN_SECONDS,

@@ -1,5 +1,5 @@
-import { BanList } from "../../../game/model/PlayerBan/BanList";
-import { PlayerStorage } from "../../../game/model/GameObject/PlayerObject";
+import { BanEntry } from "../../../game/model/PlayerBan/BanEntry";
+import { PlayerStorage } from "../../../game/model/GameObject/PlayerState";
 import { DbApiGateway } from "../DbApiGateway";
 
 /**
@@ -51,7 +51,7 @@ export class ApiDbAdapter {
         return response.data;
     }
 
-    public async createBan(ruid: string, banData: BanList): Promise<void> {
+    public async createBan(ruid: string, banData: BanEntry): Promise<void> {
         await this.gateway.createBan(ruid, banData);
     }
 
@@ -64,7 +64,7 @@ export class ApiDbAdapter {
         return response.data;
     }
 
-    // Methods currently used by injected workflows too, if needed.
+    // Methods shared with the room runtime adapter when both paths use the same DB API.
     public async createPlayer(ruid: string, player: PlayerStorage): Promise<void> {
         await this.gateway.createPlayer(ruid, player);
     }

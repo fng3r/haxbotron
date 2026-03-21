@@ -1,4 +1,4 @@
-import { getUnixTimestamp, getRemainingTimeString } from '../../../game/controller/DateTimeUtils';
+import { getUnixTimestamp, getRemainingTimeString } from '../../../game/shared/DateTime';
 
 describe('DateTimeUtils', () => {
   describe('getUnixTimestamp', () => {

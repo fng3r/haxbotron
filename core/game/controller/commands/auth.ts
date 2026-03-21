@@ -1,16 +1,13 @@
-import { PlayerObject } from "../../model/GameObject/PlayerObject";
 import * as LangRes from "../../resource/strings";
-import { ServiceContainer } from "../../services/ServiceContainer";
-import * as Tst from "../Translator";
+import { RoomRuntime } from "../../runtime/RoomRuntime";
+import * as Tst from "../../shared/Translator";
 
-export function cmdAuth(byPlayer: PlayerObject, playerId?: number): void {
-    const services = ServiceContainer.getInstance();
-    
+export function cmdAuth(runtime: RoomRuntime, byPlayer: PlayerObject, playerId?: number): void {
     playerId = playerId || byPlayer.id;
     
-    const player = services.player.getPlayer(playerId);
+    const player = runtime.players.getPlayer(playerId);
     if (!player) {
-        services.room.sendAnnouncement(LangRes.command.auth._ErrorNoPlayer, null, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command.auth._ErrorNoPlayer, null, 0xFF7777, "normal", 2);
         return;
     }
 
@@ -20,5 +17,5 @@ export function cmdAuth(byPlayer: PlayerObject, playerId?: number): void {
         ,playerAuth: player.auth
     };
 
-    services.room.sendAnnouncement(Tst.maketext(LangRes.command.auth.playerAuth, placeholder), null, 0x479947, "normal", 1);
+    runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.auth.playerAuth, placeholder), null, 0x479947, "normal", 1);
 }
