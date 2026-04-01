@@ -25,6 +25,7 @@ export default function RoomList() {
               <TableRow>
                 <TableHead className="text-left font-bold">RUID</TableHead>
                 <TableHead className="font-bold">Title</TableHead>
+                <TableHead className="font-bold">Host</TableHead>
                 <TableHead className="text-right font-bold">Link</TableHead>
                 <TableHead className="text-right font-bold">Online Players</TableHead>
               </TableRow>
@@ -41,6 +42,11 @@ export default function RoomList() {
                     <TableCell>
                       <Link href={`/admin/room/${item.ruid}`} className="block w-full">
                         {item.roomName}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/admin/room/${item.ruid}`} className="block w-full">
+                        {item.hostName || item.hostId || 'unassigned'}
                       </Link>
                     </TableCell>
                     <TableCell className="text-right">
@@ -71,6 +77,7 @@ export default function RoomList() {
             <TableHeader>
               <TableRow>
                 <TableHead className="text-left font-bold">RUID</TableHead>
+                <TableHead className="text-left font-bold">Host</TableHead>
                 <TableHead className="text-right font-bold">Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -81,6 +88,11 @@ export default function RoomList() {
                     <TableCell className="text-left">
                       <Link href={`/admin/room/${item.ruid}`} className="block w-full">
                         {item.ruid}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-left">
+                      <Link href={`/admin/room/${item.ruid}`} className="block w-full">
+                        {item.hostName || item.hostId || 'unassigned'}
                       </Link>
                     </TableCell>
                     <TableCell className="text-right">

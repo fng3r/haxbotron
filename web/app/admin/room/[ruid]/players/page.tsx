@@ -3,8 +3,8 @@ import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query
 import OnlinePlayerList from '@/components/Admin/OnlinePlayersList';
 import RoomPlayersList from '@/components/Admin/RoomPlayersList';
 
-import { getOnlinePlayers, getPlayerAccountList } from '@/lib/api/player';
 import { queryKeys } from '@/lib/queries/player';
+import { getServerOnlinePlayers, getServerPlayerAccountList } from '@/lib/server/control-plane';
 
 export default async function RoomPlayerList({ params }: { params: Promise<{ ruid: string }> }) {
   const { ruid } = await params;
@@ -13,12 +13,12 @@ export default async function RoomPlayerList({ params }: { params: Promise<{ rui
   await Promise.all([
     queryClient.prefetchQuery({
       queryKey: [...queryKeys.players(ruid), { page: 1, pagingCount: 10, searchQuery: '' }],
-      queryFn: () => getPlayerAccountList(ruid, { page: 1, pagingCount: 10 }),
+      queryFn: () => getServerPlayerAccountList(ruid, { page: 1, pagingCount: 10 }),
     }),
 
     queryClient.prefetchQuery({
       queryKey: queryKeys.onlinePlayers(ruid),
-      queryFn: () => getOnlinePlayers(ruid),
+      queryFn: () => getServerOnlinePlayers(ruid),
     }),
   ]);
 

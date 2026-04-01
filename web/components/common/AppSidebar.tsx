@@ -11,6 +11,7 @@ import {
   List,
   PlusCircle,
   Server,
+  Settings2,
   Share2,
   Shirt,
   User,
@@ -54,7 +55,7 @@ export default function AppSidebar() {
         </SidebarGroup>
         <SidebarSeparator />
         <SidebarGroup>
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupLabel>Room Management</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -78,6 +79,38 @@ export default function AppSidebar() {
                   <Link href="/admin/roleslist">
                     <Users2 className="size-5" />
                     <span>Player Roles</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarSeparator />
+        <SidebarGroup>
+          <SidebarGroupLabel>Host Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathName === '/admin/control'}>
+                  <Link href="/admin/control">
+                    <Settings2 className="size-5" />
+                    <span>Overview</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathName === '/admin/control/hosts'}>
+                  <Link href="/admin/control/hosts">
+                    <Server className="size-5" />
+                    <span>Hosts</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathName === '/admin/control/mappings'}>
+                  <Link href="/admin/control/mappings">
+                    <Gamepad2 className="size-5" />
+                    <span>RUID Mappings</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

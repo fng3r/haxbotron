@@ -101,6 +101,10 @@ export default function RoomInfo({ ruid }: { ruid: string }) {
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
           <div className="flex flex-col gap-4 max-w-80">
+            <div className="flex flex-col gap-2 flex-1">
+              <Label htmlFor="host-id">Assigned host</Label>
+              <Input value={roomInfo?.hostName || roomInfo?.hostId || ''} id="host-id" name="host-id" readOnly />
+            </div>
             <Button
               type="button"
               variant="default"

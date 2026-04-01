@@ -22,6 +22,7 @@ export default function RoomWidget() {
             <TableRow>
               <TableHead className="font-bold">RUID</TableHead>
               <TableHead className="font-bold">Title</TableHead>
+              <TableHead className="font-bold">Host</TableHead>
               <TableHead className="text-right font-bold">Online Players</TableHead>
             </TableRow>
           </TableHeader>
@@ -37,6 +38,11 @@ export default function RoomWidget() {
                   <TableCell>
                     <Link href={`/admin/room/${item.ruid}`} className="block w-full">
                       {item.roomName}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/admin/room/${item.ruid}`} className="block w-full">
+                      {item.hostName || item.hostId || 'unassigned'}
                     </Link>
                   </TableCell>
                   <TableCell className="text-right">

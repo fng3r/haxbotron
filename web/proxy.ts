@@ -14,17 +14,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (request.nextUrl.pathname.startsWith('/api')) {
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-api-key', process.env.CORE_API_KEY!);
-
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
-  }
-
   return NextResponse.next();
 }
 

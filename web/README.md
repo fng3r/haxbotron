@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Architecture
+
+The web app now contains the multi-host room-management control plane. Detailed implementation notes live in [docs/control-plane-architecture.md](/home/fng3r/dev/haxbotron/web/docs/control-plane-architecture.md).
+
 ## Getting Started
 
 First, run the development server:

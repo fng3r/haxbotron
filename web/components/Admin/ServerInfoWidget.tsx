@@ -8,17 +8,23 @@ import { queries } from '@/lib/queries/server';
 
 export default function ServerInfoWidget() {
   const { data: serverInfo } = queries.getInfo();
+  const { data: serverHosts } = queries.getHosts();
 
   return (
-    <Card className="py-4 w-60">
+    <Card className="py-4 w-72">
       <CardHeader>
-        <CardTitle className="text-xl">Server Info</CardTitle>
+        <CardTitle className="text-xl">Cluster Info</CardTitle>
       </CardHeader>
       <CardContent>
         {serverInfo && (
           <>
-            <p className="text-3xl font-semibold">{serverInfo.usedMemoryMB}MB</p>
-            <p className="text-sm text-muted-foreground">uptime {Math.round(serverInfo.upTimeSecs / 60)} minutes.</p>
+            <p className="text-3xl font-semibold">
+              {serverInfo.onlineRoomCount}/{serverInfo.configuredRoomCount}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              rooms online across {serverInfo.healthyHostCount}/{serverInfo.hostCount} healthy hosts
+            </p>
+            <p className="mt-3 text-sm text-muted-foreground">tracked hosts: {serverHosts?.length || 0}</p>
           </>
         )}
       </CardContent>

@@ -21,6 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 import { RoomSettings } from '@/../core/lib/room/RoomHostConfig';
 import DefaultConfigSet from '@/lib/defaultroomconfig.json';
+import { queries as controlQueries } from '@/lib/queries/control';
 import { mutations } from '@/lib/queries/room';
 
 const stringifySettings = (settings: RoomSettings) => {
@@ -104,8 +105,16 @@ export default function RoomCreate() {
   }, [form]);
 
   const createRoomMutation = mutations.createRoom();
+  const { data: mappings } = controlQueries.getMappings();
+
+  const assignedMapping = mappings?.find((mapping) => mapping.ruid === form.watch('ruid'));
 
   const onSubmit = (values: RoomFormValues) => {
+    if (mappings && !assignedMapping) {
+      SnackBarNotification.error(`RUID '${values.ruid}' is not assigned to any host.`);
+      return;
+    }
+
     const roomConfigComplex = {
       ruid: values.ruid,
       _config: {
@@ -223,6 +232,14 @@ export default function RoomCreate() {
                   </div>
                 </div>
               </div>
+
+              {assignedMapping ? (
+                <p className="text-sm text-muted-foreground">
+                  This room will be launched on host: <span className="font-medium">{assignedMapping.hostName || assignedMapping.hostId}</span>
+                </p>
+              ) : mappings ? (
+                <p className="text-sm text-red-500">This RUID has no configured host mapping yet.</p>
+              ) : null}
 
               <div className="flex flex-col md:flex-row gap-4">
                 <FormField

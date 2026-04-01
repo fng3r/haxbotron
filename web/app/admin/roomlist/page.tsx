@@ -4,8 +4,8 @@ import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query
 
 import RoomList from '@/components/Admin/RoomList';
 
-import { getAllRoomsList, getRoomsInfoList } from '@/lib/api/room';
 import { queryKeys } from '@/lib/queries/room';
+import { getServerAllRoomsList, getServerRoomsInfoList } from '@/lib/server/control-plane';
 
 export default async function RoomListPage() {
   await connection();
@@ -14,12 +14,12 @@ export default async function RoomListPage() {
   await Promise.all([
     queryClient.prefetchQuery({
       queryKey: queryKeys.rooms,
-      queryFn: getRoomsInfoList,
+      queryFn: getServerRoomsInfoList,
     }),
 
     queryClient.prefetchQuery({
       queryKey: queryKeys.allRooms,
-      queryFn: getAllRoomsList,
+      queryFn: getServerAllRoomsList,
     }),
   ]);
 
