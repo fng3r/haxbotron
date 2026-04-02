@@ -86,6 +86,74 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarSeparator />
+        {ruid && (
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel>{ruid}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}`}>
+                      <Link href={`/admin/room/${ruid}`}>
+                        <Server className="size-5" />
+                        <span>Information</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/logs`}>
+                      <Link href={`/admin/room/${ruid}/logs`}>
+                        <List className="size-5" />
+                        <span>Log Messages</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/social`}>
+                      <Link href={`/admin/room/${ruid}/social`}>
+                        <Share2 className="size-5" />
+                        <span>Social</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/players`}>
+                      <Link href={`/admin/room/${ruid}/players`}>
+                        <User className="size-5" />
+                        <span>Player List</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/bans`}>
+                      <Link href={`/admin/room/${ruid}/bans`}>
+                        <Ban className="size-5" />
+                        <span>Ban List</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/kits`}>
+                      <Link href={`/admin/room/${ruid}/kits`}>
+                        <Shirt className="size-5" />
+                        <span>Kits</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/shutdown`}>
+                      <Link href={`/admin/room/${ruid}/shutdown`}>
+                        <XOctagon className="size-5" />
+                        <span>Close room</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <SidebarSeparator />
+          </>
+        )}
         <SidebarGroup>
           <SidebarGroupLabel>Host Management</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -117,72 +185,6 @@ export default function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarSeparator />
-        {ruid && (
-          <SidebarGroup>
-            <SidebarGroupLabel>{ruid}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}`}>
-                    <Link href={`/admin/room/${ruid}`}>
-                      <Server className="size-5" />
-                      <span>Information</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/logs`}>
-                    <Link href={`/admin/room/${ruid}/logs`}>
-                      <List className="size-5" />
-                      <span>Log Messages</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/social`}>
-                    <Link href={`/admin/room/${ruid}/social`}>
-                      <Share2 className="size-5" />
-                      <span>Social</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/players`}>
-                    <Link href={`/admin/room/${ruid}/players`}>
-                      <User className="size-5" />
-                      <span>Player List</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/bans`}>
-                    <Link href={`/admin/room/${ruid}/bans`}>
-                      <Ban className="size-5" />
-                      <span>Ban List</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/kits`}>
-                    <Link href={`/admin/room/${ruid}/kits`}>
-                      <Shirt className="size-5" />
-                      <span>Kits</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/shutdown`}>
-                    <Link href={`/admin/room/${ruid}/shutdown`}>
-                      <XOctagon className="size-5" />
-                      <span>Close room</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
       </SidebarContent>
       <SidebarFooter className="px-0">
         <SidebarSeparator />
