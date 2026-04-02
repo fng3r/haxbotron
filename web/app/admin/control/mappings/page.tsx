@@ -1,30 +1,15 @@
-import { connection } from 'next/server';
-
-import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
-
 import ControlMappings from '@/components/Admin/ControlMappings';
+import ControlPlaneAutoRefresh from '@/components/Admin/ControlPlaneAutoRefresh';
 
-import { queryKeys } from '@/lib/queries/control';
 import { getServerControlHosts, getServerControlMappings } from '@/lib/server/control-plane';
 
 export default async function ControlMappingsPage() {
-  await connection();
-
-  const queryClient = new QueryClient();
-  await Promise.all([
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.hosts,
-      queryFn: getServerControlHosts,
-    }),
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.mappings,
-      queryFn: getServerControlMappings,
-    }),
-  ]);
+  const [hosts, mappings] = await Promise.all([getServerControlHosts(), getServerControlMappings()]);
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <ControlMappings />
-    </HydrationBoundary>
+    <>
+      <ControlPlaneAutoRefresh />
+      <ControlMappings hosts={hosts} mappings={mappings} />
+    </>
   );
 }

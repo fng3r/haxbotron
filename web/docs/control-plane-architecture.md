@@ -59,7 +59,7 @@ These modules must never enter the browser bundle:
 Client components only talk to the `web` app’s own API routes through:
 
 - [api-client.ts](/home/fng3r/dev/haxbotron/web/lib/api-client.ts)
-- [control.ts](/home/fng3r/dev/haxbotron/web/lib/api/control.ts)
+- [control.ts](/home/fng3r/dev/haxbotron/web/lib/actions/control.ts)
 - [room.ts](/home/fng3r/dev/haxbotron/web/lib/api/room.ts)
 - [player.ts](/home/fng3r/dev/haxbotron/web/lib/api/player.ts)
 - [roles.ts](/home/fng3r/dev/haxbotron/web/lib/api/roles.ts)
@@ -274,31 +274,23 @@ Error mapping:
 - duplicate conditions map to `409`
 - everything else maps to `400`
 
-### Control-plane admin routes
+### Control-plane server actions
 
-Sources:
+Source:
 
-- [summary](/home/fng3r/dev/haxbotron/web/app/api/v1/control/summary/route.ts)
-- [hosts](/home/fng3r/dev/haxbotron/web/app/api/v1/control/hosts/route.ts)
-- [hostId](/home/fng3r/dev/haxbotron/web/app/api/v1/control/hosts/[hostId]/route.ts)
-- [mappings](/home/fng3r/dev/haxbotron/web/app/api/v1/control/mappings/route.ts)
-- [ruid](/home/fng3r/dev/haxbotron/web/app/api/v1/control/mappings/[ruid]/route.ts)
-- [rooms](/home/fng3r/dev/haxbotron/web/app/api/v1/control/rooms/route.ts)
-- [location](/home/fng3r/dev/haxbotron/web/app/api/v1/control/rooms/[ruid]/location/route.ts)
+- [control.ts](/home/fng3r/dev/haxbotron/web/lib/actions/control.ts)
 
-Supported operations:
+The control-plane UI now uses Next server actions instead of dedicated `/api/v1/control/*` handlers for reads and mutations.
 
-- `GET /api/v1/control/summary`
-- `GET /api/v1/control/hosts`
-- `POST /api/v1/control/hosts`
-- `PUT /api/v1/control/hosts/:hostId`
-- `DELETE /api/v1/control/hosts/:hostId`
-- `GET /api/v1/control/mappings`
-- `POST /api/v1/control/mappings`
-- `PUT /api/v1/control/mappings/:ruid`
-- `DELETE /api/v1/control/mappings/:ruid`
-- `GET /api/v1/control/rooms`
-- `GET /api/v1/control/rooms/:ruid/location`
+Covered operations:
+
+- summary reads
+- host list reads
+- mapping list reads
+- managed room list reads
+- room location reads
+- create, update, and delete host
+- create, update, and delete mapping
 
 Mutation guard rules enforced by the service:
 
@@ -368,12 +360,13 @@ The browser uses a `ControlPlaneSocket` abstraction backed by `EventSource`. It 
 - `on(event, handler)`
 - `off(event, handler)`
 
-React Query invalidation currently happens on:
+Control-plane pages use a small SSE listener that refreshes the current route on:
 
 - `roomct`
 - `joinleft`
+- `statuschange`
 
-Those events invalidate room and control-plane queries so dashboards and room lists refresh after runtime changes.
+That keeps the server-rendered control pages fresh without React Query on those screens.
 
 ## Admin UI
 
@@ -418,6 +411,7 @@ Capabilities:
 - edit host name, base URL, and enabled flag
 - delete unused hosts
 - display health, mapped-room counts, and blocking reasons
+- call server actions directly and refresh the route after mutation
 
 ### Mapping management
 
@@ -432,6 +426,7 @@ Capabilities:
 - delete mappings while the room is offline
 - display room online state and integrity status
 - display blocking reasons from the backend
+- call server actions directly and refresh the route after mutation
 
 ### Existing room/admin pages made cluster-aware
 
@@ -449,17 +444,15 @@ Behavior changes:
 - room creation validates that the entered `ruid` has a configured mapping
 - the create-room page shows which host the room will launch on
 
-## Query Layer
+## Control-Page Rendering
 
-Control-plane queries and mutations live in:
+The control-plane pages themselves now use a Next-native flow:
 
-- [control.ts](/home/fng3r/dev/haxbotron/web/lib/queries/control.ts)
+- reads happen in server page entrypoints
+- writes are executed through server actions
+- client-side updates use `router.refresh()`
 
-This layer:
-
-- fetches summary, host records, mappings, and managed room lists
-- performs CRUD mutations for hosts and mappings
-- invalidates both control-plane queries and room-list queries after mutations
+React Query remains in other areas of the app, but not for the control-plane pages.
 
 ## Authentication and Access Control
 
@@ -501,7 +494,7 @@ There are two distinct auth paths:
 2. The control-plane Socket.IO client receives the event and tags it with `hostId`.
 3. The event is emitted into the in-memory control-plane event bus.
 4. The SSE route forwards it to connected browsers.
-5. The browser invalidates relevant React Query caches and fetches fresh room and control-plane data.
+5. Control-plane pages call `router.refresh()` and re-render from fresh server data.
 
 ## Operational Notes and Limitations
 
@@ -523,26 +516,23 @@ Backend/control-plane pieces:
 - [event-bus.ts](/home/fng3r/dev/haxbotron/web/lib/control-plane/event-bus.ts)
 - [control-plane.ts](/home/fng3r/dev/haxbotron/web/lib/server/control-plane.ts)
 
-API routes:
+HTTP routes:
 
 - [route.ts](/home/fng3r/dev/haxbotron/web/app/api/v1/[...path]/route.ts)
-- [route.ts](/home/fng3r/dev/haxbotron/web/app/api/v1/control/summary/route.ts)
-- [route.ts](/home/fng3r/dev/haxbotron/web/app/api/v1/control/hosts/route.ts)
-- [route.ts](/home/fng3r/dev/haxbotron/web/app/api/v1/control/hosts/[hostId]/route.ts)
-- [route.ts](/home/fng3r/dev/haxbotron/web/app/api/v1/control/mappings/route.ts)
-- [route.ts](/home/fng3r/dev/haxbotron/web/app/api/v1/control/mappings/[ruid]/route.ts)
-- [route.ts](/home/fng3r/dev/haxbotron/web/app/api/v1/control/rooms/route.ts)
-- [route.ts](/home/fng3r/dev/haxbotron/web/app/api/v1/control/rooms/[ruid]/location/route.ts)
 - [route.ts](/home/fng3r/dev/haxbotron/web/app/api/v1/control/events/route.ts)
+
+Server actions:
+
+- [control.ts](/home/fng3r/dev/haxbotron/web/lib/actions/control.ts)
 
 Frontend integration:
 
 - [api-client.ts](/home/fng3r/dev/haxbotron/web/lib/api-client.ts)
-- [control.ts](/home/fng3r/dev/haxbotron/web/lib/api/control.ts)
-- [control.ts](/home/fng3r/dev/haxbotron/web/lib/queries/control.ts)
+- [control.ts](/home/fng3r/dev/haxbotron/web/lib/actions/control.ts)
 - [ws.tsx](/home/fng3r/dev/haxbotron/web/context/ws.tsx)
 - [AppSidebar.tsx](/home/fng3r/dev/haxbotron/web/components/common/AppSidebar.tsx)
 - [ControlOverview.tsx](/home/fng3r/dev/haxbotron/web/components/Admin/ControlOverview.tsx)
+- [ControlPlaneAutoRefresh.tsx](/home/fng3r/dev/haxbotron/web/components/Admin/ControlPlaneAutoRefresh.tsx)
 - [ControlHosts.tsx](/home/fng3r/dev/haxbotron/web/components/Admin/ControlHosts.tsx)
 - [ControlMappings.tsx](/home/fng3r/dev/haxbotron/web/components/Admin/ControlMappings.tsx)
 

@@ -1,34 +1,19 @@
-import { connection } from 'next/server';
-
-import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
-
 import ControlOverview from '@/components/Admin/ControlOverview';
+import ControlPlaneAutoRefresh from '@/components/Admin/ControlPlaneAutoRefresh';
 
-import { queryKeys } from '@/lib/queries/control';
 import { getServerControlHosts, getServerControlSummary, getServerManagedRooms } from '@/lib/server/control-plane';
 
 export default async function ControlOverviewPage() {
-  await connection();
-
-  const queryClient = new QueryClient();
-  await Promise.all([
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.summary,
-      queryFn: getServerControlSummary,
-    }),
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.hosts,
-      queryFn: getServerControlHosts,
-    }),
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.rooms,
-      queryFn: getServerManagedRooms,
-    }),
+  const [summary, hosts, rooms] = await Promise.all([
+    getServerControlSummary(),
+    getServerControlHosts(),
+    getServerManagedRooms(),
   ]);
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <ControlOverview />
-    </HydrationBoundary>
+    <>
+      <ControlPlaneAutoRefresh />
+      <ControlOverview summary={summary} hosts={hosts} rooms={rooms} />
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 
 import { ReactHostRoomInfo } from '@/../core/lib/room/RoomHostConfig';
+import { getAllRoomsListAction, getRoomsInfoListAction } from '@/lib/actions/control';
 import getApiClient from '@/lib/api-client';
 import {
   AllRoomListItem,
@@ -20,37 +21,11 @@ function toErrorMessage(error: unknown, fallback: string): string {
 }
 
 export const getRoomsInfoList = async (): Promise<RoomInfoItem[]> => {
-  const apiClient = getApiClient();
-  const result = await apiClient.get('/api/v1/control/rooms');
-  return (result.data as Array<{
-    ruid: string;
-    roomName?: string;
-    roomLink?: string;
-    onlinePlayers?: number;
-    hostId?: string;
-    hostName?: string;
-    online: boolean;
-  }>)
-    .filter((room) => room.online)
-    .map((room) => ({
-      ruid: room.ruid,
-      roomName: room.roomName || room.ruid,
-      roomLink: room.roomLink || '',
-      onlinePlayers: room.onlinePlayers || 0,
-      hostId: room.hostId,
-      hostName: room.hostName,
-    }));
+  return await getRoomsInfoListAction();
 };
 
 export const getAllRoomsList = async (): Promise<AllRoomListItem[]> => {
-  const apiClient = getApiClient();
-  const result = await apiClient.get('/api/v1/control/rooms');
-  return result.data.map((room: { ruid: string; online: boolean; hostId?: string; hostName?: string }) => ({
-    ruid: room.ruid,
-    online: room.online,
-    hostId: room.hostId,
-    hostName: room.hostName,
-  }));
+  return await getAllRoomsListAction();
 };
 
 export const getRoomInfo = async (ruid: string): Promise<RoomInfo> => {

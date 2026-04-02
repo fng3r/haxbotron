@@ -4,7 +4,6 @@ import { ReactNode, createContext, useContext, useEffect, useMemo, useRef } from
 
 import { useQueryClient } from '@tanstack/react-query';
 
-import { queryKeys as controlQueryKeys } from '@/lib/queries/control';
 import { queryKeys as roomQueryKeys } from '@/lib/queries/room';
 
 type EventHandler<T = any> = (payload: T) => void;
@@ -71,10 +70,6 @@ export const WSocketProvider = ({ children }: WSocketProviderProps) => {
     const invalidateRooms = () => {
       queryClient.invalidateQueries({ queryKey: roomQueryKeys.rooms });
       queryClient.invalidateQueries({ queryKey: roomQueryKeys.allRooms });
-      queryClient.invalidateQueries({ queryKey: controlQueryKeys.summary });
-      queryClient.invalidateQueries({ queryKey: controlQueryKeys.hosts });
-      queryClient.invalidateQueries({ queryKey: controlQueryKeys.rooms });
-      queryClient.invalidateQueries({ queryKey: controlQueryKeys.mappings });
     };
 
     socket.connect();
