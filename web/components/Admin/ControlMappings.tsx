@@ -121,13 +121,15 @@ function CreateMappingCard({ hosts }: { hosts: HostStatusInfo[] }) {
   const onSubmit = (values: MappingFormValues) => {
     startTransition(() => {
       void createMappingAction(values)
-        .then(() => {
-          SnackBarNotification.success(`Mapping '${values.ruid}' created.`);
+        .then((result) => {
+          if (!result.ok) {
+            SnackBarNotification.error(result.message);
+            return;
+          }
+
+          SnackBarNotification.success(result.message);
           form.reset(emptyMappingForm);
           router.refresh();
-        })
-        .catch((error) => {
-          SnackBarNotification.error(error instanceof Error ? error.message : 'Failed to create mapping.');
         });
     });
   };
@@ -212,13 +214,15 @@ function EditingMappingRow({
   const onSubmit = (values: Pick<MappingFormValues, 'hostId'>) => {
     startTransition(() => {
       void updateMappingAction({ ruid: mapping.ruid, hostId: values.hostId })
-        .then(() => {
-          SnackBarNotification.success(`Mapping '${mapping.ruid}' updated.`);
+        .then((result) => {
+          if (!result.ok) {
+            SnackBarNotification.error(result.message);
+            return;
+          }
+
+          SnackBarNotification.success(result.message);
           onSaved();
           router.refresh();
-        })
-        .catch((error) => {
-          SnackBarNotification.error(error instanceof Error ? error.message : 'Failed to update mapping.');
         });
     });
   };
@@ -270,12 +274,14 @@ function DeleteMappingButton({ mapping }: { mapping: RoomMapping & ManagedRoomIn
   const onDelete = () => {
     startTransition(() => {
       void deleteMappingAction(mapping.ruid)
-        .then(() => {
-          SnackBarNotification.success(`Mapping '${mapping.ruid}' deleted.`);
+        .then((result) => {
+          if (!result.ok) {
+            SnackBarNotification.error(result.message);
+            return;
+          }
+
+          SnackBarNotification.success(result.message);
           router.refresh();
-        })
-        .catch((error) => {
-          SnackBarNotification.error(error instanceof Error ? error.message : 'Failed to delete mapping.');
         });
     });
   };

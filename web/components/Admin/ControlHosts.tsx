@@ -119,13 +119,15 @@ function CreateHostCard() {
   const onSubmit = (values: HostFormValues) => {
     startTransition(() => {
       void createHostAction(values)
-        .then(() => {
-          SnackBarNotification.success(`Host '${values.name}' created.`);
+        .then((result) => {
+          if (!result.ok) {
+            SnackBarNotification.error(result.message);
+            return;
+          }
+
+          SnackBarNotification.success(result.message);
           form.reset(emptyHostForm);
           router.refresh();
-        })
-        .catch((error) => {
-          SnackBarNotification.error(error instanceof Error ? error.message : 'Failed to create host.');
         });
     });
   };
@@ -227,13 +229,15 @@ function EditingHostRow({
   const onSubmit = (values: HostUpdateValues) => {
     startTransition(() => {
       void updateHostAction({ hostId: host.id, payload: values })
-        .then(() => {
-          SnackBarNotification.success(`Host '${values.name}' updated.`);
+        .then((result) => {
+          if (!result.ok) {
+            SnackBarNotification.error(result.message);
+            return;
+          }
+
+          SnackBarNotification.success(result.message);
           onSaved();
           router.refresh();
-        })
-        .catch((error) => {
-          SnackBarNotification.error(error instanceof Error ? error.message : 'Failed to update host.');
         });
     });
   };
@@ -299,12 +303,14 @@ function DeleteHostButton({ host }: { host: HostStatusInfo }) {
   const onDelete = () => {
     startTransition(() => {
       void deleteHostAction(host.id)
-        .then(() => {
-          SnackBarNotification.success(`Host '${host.id}' deleted.`);
+        .then((result) => {
+          if (!result.ok) {
+            SnackBarNotification.error(result.message);
+            return;
+          }
+
+          SnackBarNotification.success(result.message);
           router.refresh();
-        })
-        .catch((error) => {
-          SnackBarNotification.error(error instanceof Error ? error.message : 'Failed to delete host.');
         });
     });
   };
