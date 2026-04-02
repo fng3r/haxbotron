@@ -3,6 +3,8 @@ import ControlPlaneAutoRefresh from '@/components/Admin/ControlPlaneAutoRefresh'
 
 import { getServerControlHosts, getServerControlSummary, getServerManagedRooms } from '@/lib/server/control-plane';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ControlOverviewPage() {
   const [summary, hosts, rooms] = await Promise.all([
     getServerControlSummary(),
