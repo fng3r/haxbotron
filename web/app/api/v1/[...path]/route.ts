@@ -1,6 +1,8 @@
+import axios from 'axios';
+
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getControlPlaneService } from '@/lib/control-plane/service';
+import { getControlPlaneService, isControlPlaneError } from '@/lib/control-plane/service';
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
@@ -21,15 +23,27 @@ async function handle(method: 'GET' | 'POST' | 'PUT' | 'DELETE', request: NextRe
 
     return NextResponse.json(data);
   } catch (error) {
+    if (isControlPlaneError(error)) {
+      return NextResponse.json({ message: error.message, code: error.code }, { status: error.status });
+    }
+
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status ?? 502;
+      const data = error.response?.data;
+
+      if (data == null) {
+        return NextResponse.json({ message: error.message || 'Upstream request failed.' }, { status });
+      }
+
+      if (typeof data === 'object') {
+        return NextResponse.json(data, { status });
+      }
+
+      return NextResponse.json({ message: String(data) }, { status });
+    }
+
     const message = error instanceof Error ? error.message : 'Request failed.';
-    const status = /not assigned|not found|unknown host|was not found/i.test(message)
-      ? 404
-      : /unavailable|disabled/i.test(message)
-        ? 503
-        : /already exists|already has a mapping/i.test(message)
-          ? 409
-          : 400;
-    return NextResponse.json({ message }, { status });
+    return NextResponse.json({ message }, { status: 500 });
   }
 }
 

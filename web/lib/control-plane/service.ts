@@ -30,6 +30,21 @@ type HostSocketHandle = {
 const HEALTH_TTL_MS = 15_000;
 const ROOM_TTL_MS = 5_000;
 
+export class ControlPlaneError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly code: 'VALIDATION' | 'NOT_FOUND' | 'CONFLICT' | 'UNAVAILABLE' | 'UNSUPPORTED',
+  ) {
+    super(message);
+    this.name = 'ControlPlaneError';
+  }
+}
+
+export function isControlPlaneError(error: unknown): error is ControlPlaneError {
+  return error instanceof ControlPlaneError;
+}
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -68,13 +83,24 @@ function isServerError(error: unknown): error is AxiosError {
   return axios.isAxiosError(error);
 }
 
-function extractErrorMessage(error: unknown, fallback: string): string {
-  if (isServerError(error)) {
-    const errorData = error.response?.data as { message?: string } | undefined;
-    return errorData?.message || error.message || fallback;
-  }
-  if (error instanceof Error) return error.message;
-  return fallback;
+function validationError(message: string): ControlPlaneError {
+  return new ControlPlaneError(message, 400, 'VALIDATION');
+}
+
+function notFoundError(message: string): ControlPlaneError {
+  return new ControlPlaneError(message, 404, 'NOT_FOUND');
+}
+
+function conflictError(message: string): ControlPlaneError {
+  return new ControlPlaneError(message, 409, 'CONFLICT');
+}
+
+function unavailableError(message: string): ControlPlaneError {
+  return new ControlPlaneError(message, 503, 'UNAVAILABLE');
+}
+
+function unsupportedError(message: string): ControlPlaneError {
+  return new ControlPlaneError(message, 404, 'UNSUPPORTED');
 }
 
 class ControlPlaneService {
@@ -118,18 +144,18 @@ class ControlPlaneService {
     const baseUrls = new Set<string>();
 
     for (const host of state.hosts) {
-      if (!host.id.trim()) throw new Error('Host id is required.');
-      if (!host.name.trim()) throw new Error('Host name is required.');
-      if (!host.baseUrl.trim()) throw new Error('Host base URL is required.');
+      if (!host.id.trim()) throw validationError('Host id is required.');
+      if (!host.name.trim()) throw validationError('Host name is required.');
+      if (!host.baseUrl.trim()) throw validationError('Host base URL is required.');
       const normalized = normalizeBaseUrl(host.baseUrl);
       try {
         new URL(normalized);
       } catch {
-        throw new Error(`Host '${host.name}' has an invalid base URL.`);
+        throw validationError(`Host '${host.name}' has an invalid base URL.`);
       }
-      if (hostIds.has(host.id)) throw new Error(`Host id '${host.id}' already exists.`);
-      if (names.has(host.name)) throw new Error(`Host name '${host.name}' already exists.`);
-      if (baseUrls.has(normalized)) throw new Error(`Host base URL '${normalized}' already exists.`);
+      if (hostIds.has(host.id)) throw conflictError(`Host id '${host.id}' already exists.`);
+      if (names.has(host.name)) throw conflictError(`Host name '${host.name}' already exists.`);
+      if (baseUrls.has(normalized)) throw conflictError(`Host base URL '${normalized}' already exists.`);
       hostIds.add(host.id);
       names.add(host.name);
       baseUrls.add(normalized);
@@ -137,10 +163,10 @@ class ControlPlaneService {
 
     const ruids = new Set<string>();
     for (const mapping of state.mappings) {
-      if (!mapping.ruid.trim()) throw new Error('RUID is required.');
-      if (ruids.has(mapping.ruid)) throw new Error(`RUID '${mapping.ruid}' already has a mapping.`);
+      if (!mapping.ruid.trim()) throw validationError('RUID is required.');
+      if (ruids.has(mapping.ruid)) throw conflictError(`RUID '${mapping.ruid}' already has a mapping.`);
       if (!hostIds.has(mapping.hostId)) {
-        throw new Error(`RUID '${mapping.ruid}' points to unknown host '${mapping.hostId}'.`);
+        throw validationError(`RUID '${mapping.ruid}' points to unknown host '${mapping.hostId}'.`);
       }
       ruids.add(mapping.ruid);
     }
@@ -149,7 +175,7 @@ class ControlPlaneService {
   private async getSharedApiKey(): Promise<string> {
     const apiKey = process.env.CORE_API_KEY;
     if (!apiKey) {
-      throw new Error('CORE_API_KEY environment variable is required for control-plane requests.');
+      throw unavailableError('CORE_API_KEY environment variable is required for control-plane requests.');
     }
     return apiKey;
   }
@@ -168,7 +194,7 @@ class ControlPlaneService {
   private async getAnyHost(): Promise<HostNode> {
     const state = await this.loadState();
     const enabled = state.hosts.filter((host) => host.enabled);
-    if (enabled.length === 0) throw new Error('No enabled hosts are configured.');
+    if (enabled.length === 0) throw unavailableError('No enabled hosts are configured.');
 
     const snapshot = await this.refreshSnapshot();
     const healthy = enabled.find((host) => snapshot.hosts.get(host.id)?.healthy);
@@ -479,7 +505,7 @@ class ControlPlaneService {
     const state = await this.loadState();
     const mapping = state.mappings.find((item) => item.ruid === ruid);
     if (!mapping) {
-      throw new Error(`Room '${ruid}' has no configured mapping.`);
+      throw notFoundError(`Room '${ruid}' has no configured mapping.`);
     }
     const host = state.hosts.find((item) => item.id === mapping.hostId);
     const room = (await this.listManagedRooms()).find((item) => item.ruid === ruid);
@@ -497,7 +523,7 @@ class ControlPlaneService {
   private async getMapping(ruid: string): Promise<RoomMapping> {
     const state = await this.loadState();
     const mapping = state.mappings.find((item) => item.ruid === ruid);
-    if (!mapping) throw new Error(`Room '${ruid}' is not assigned to any host.`);
+    if (!mapping) throw notFoundError(`Room '${ruid}' is not assigned to any host.`);
     return mapping;
   }
 
@@ -505,8 +531,8 @@ class ControlPlaneService {
     const state = await this.loadState();
     const mapping = await this.getMapping(ruid);
     const host = state.hosts.find((item) => item.id === mapping.hostId);
-    if (!host) throw new Error(`Room '${ruid}' points to missing host '${mapping.hostId}'.`);
-    if (!host.enabled) throw new Error(`Assigned host '${host.name}' is disabled.`);
+    if (!host) throw unavailableError(`Room '${ruid}' points to missing host '${mapping.hostId}'.`);
+    if (!host.enabled) throw unavailableError(`Assigned host '${host.name}' is disabled.`);
     return host;
   }
 
@@ -518,7 +544,7 @@ class ControlPlaneService {
       return snapshot.rooms.get(mapping.ruid)?.online;
     });
     if (onlineMappedRooms.length > 0) {
-      throw new Error('Cannot change the host URL while one of its mapped rooms is online.');
+      throw conflictError('Cannot change the host URL while one of its mapped rooms is online.');
     }
   }
 
@@ -543,7 +569,7 @@ class ControlPlaneService {
   public async updateHost(hostId: string, input: Pick<HostNode, 'name' | 'baseUrl' | 'enabled'>): Promise<HostNode> {
     const state = await this.loadState();
     const target = state.hosts.find((host) => host.id === hostId);
-    if (!target) throw new Error(`Host '${hostId}' was not found.`);
+    if (!target) throw notFoundError(`Host '${hostId}' was not found.`);
     if (normalizeBaseUrl(target.baseUrl) !== normalizeBaseUrl(input.baseUrl)) {
       await this.assertHostCanChangeAddress(hostId);
     }
@@ -551,7 +577,7 @@ class ControlPlaneService {
       const rooms = await this.listManagedRooms();
       const onlineMapped = rooms.filter((room) => room.hostId === hostId && room.online);
       if (onlineMapped.length > 0) {
-        throw new Error('Cannot disable a host while one of its mapped rooms is online.');
+        throw conflictError('Cannot disable a host while one of its mapped rooms is online.');
       }
     }
 
@@ -574,10 +600,10 @@ class ControlPlaneService {
   public async deleteHost(hostId: string): Promise<void> {
     const state = await this.loadState();
     const target = state.hosts.find((host) => host.id === hostId);
-    if (!target) throw new Error(`Host '${hostId}' was not found.`);
+    if (!target) throw notFoundError(`Host '${hostId}' was not found.`);
     const mappingCount = state.mappings.filter((mapping) => mapping.hostId === hostId).length;
     if (mappingCount > 0) {
-      throw new Error('Cannot delete a host while room mappings still reference it.');
+      throw conflictError('Cannot delete a host while room mappings still reference it.');
     }
     const nextState = {
       ...state,
@@ -606,10 +632,10 @@ class ControlPlaneService {
   public async updateMapping(ruid: string, hostId: string): Promise<RoomMapping> {
     const state = await this.loadState();
     const target = state.mappings.find((mapping) => mapping.ruid === ruid);
-    if (!target) throw new Error(`RUID '${ruid}' was not found.`);
+    if (!target) throw notFoundError(`RUID '${ruid}' was not found.`);
     const room = (await this.listManagedRooms()).find((item) => item.ruid === ruid);
     if (room?.online) {
-      throw new Error('Cannot move a mapping while the room is currently online.');
+      throw conflictError('Cannot move a mapping while the room is currently online.');
     }
     const updated: RoomMapping = {
       ...target,
@@ -628,10 +654,10 @@ class ControlPlaneService {
   public async deleteMapping(ruid: string): Promise<void> {
     const state = await this.loadState();
     const target = state.mappings.find((mapping) => mapping.ruid === ruid);
-    if (!target) throw new Error(`RUID '${ruid}' was not found.`);
+    if (!target) throw notFoundError(`RUID '${ruid}' was not found.`);
     const room = (await this.listManagedRooms()).find((item) => item.ruid === ruid);
     if (room?.online) {
-      throw new Error('Cannot delete the mapping while the room is currently online.');
+      throw conflictError('Cannot delete the mapping while the room is currently online.');
     }
     const nextState = {
       ...state,
@@ -686,7 +712,7 @@ class ControlPlaneService {
           hostName: roomLocation.hostName,
         } as RoomInfo;
       }
-      throw new Error(extractErrorMessage(error, 'Unexpected error occured. Please try again.'));
+      throw error;
     }
   }
 
@@ -703,7 +729,7 @@ class ControlPlaneService {
     const snapshot = await this.refreshSnapshot();
     const hostState = snapshot.hosts.get(host.id);
     if (!host.enabled || hostState?.healthy === false) {
-      throw new Error(`Assigned host '${host.name}' is unavailable.`);
+      throw unavailableError(`Assigned host '${host.name}' is unavailable.`);
     }
 
     const client = await this.getClient(host);
@@ -718,7 +744,7 @@ class ControlPlaneService {
         if (method === 'GET') return await this.listManagedRooms().then((rooms) => rooms.filter((room) => room.online).map((room) => room.ruid));
         if (method === 'POST') {
           const payload = body as { ruid?: string };
-          if (!payload?.ruid) throw new Error('RUID is required.');
+          if (!payload?.ruid) throw validationError('RUID is required.');
           return await this.requestRoom(payload.ruid, {
             url: '/api/v1/room',
             method,
@@ -728,7 +754,7 @@ class ControlPlaneService {
       }
 
       const ruid = pathSegments[1];
-      if (!ruid) throw new Error('RUID is required.');
+      if (!ruid) throw validationError('RUID is required.');
 
       if (method === 'GET' && pathSegments.length === 3 && pathSegments[2] === 'info') {
         return await this.getRoomInfo(ruid);
@@ -749,7 +775,7 @@ class ControlPlaneService {
       });
     }
 
-    throw new Error(`Unsupported API path '/api/v1/${pathSegments.join('/')}'.`);
+    throw unsupportedError(`Unsupported API path '/api/v1/${pathSegments.join('/')}'.`);
   }
 }
 
@@ -758,7 +784,7 @@ const globalForControlPlane = globalThis as typeof globalThis & {
   __controlPlaneServiceVersion?: string;
 };
 
-const CONTROL_PLANE_SERVICE_VERSION = 'hosts-v2';
+const CONTROL_PLANE_SERVICE_VERSION = 'hosts-v3';
 
 export function getControlPlaneService(): ControlPlaneService {
   const existing = globalForControlPlane.__controlPlaneService as ControlPlaneService | undefined;

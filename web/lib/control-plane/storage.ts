@@ -28,16 +28,16 @@ export async function loadControlPlaneState(): Promise<ControlPlaneState> {
   try {
     const parsed = JSON.parse(raw) as {
       hosts?: HostNode[];
-      mappings?: Array<{ ruid: string; hostId?: string; coreId?: string; createdAt: string; updatedAt: string }>;
+      mappings?: Array<{ ruid: string; hostId: string; createdAt: string; updatedAt: string }>;
     };
     return {
-      hosts: Array.isArray(parsed.hosts) ? parsed.hosts : Array.isArray(parsed.hosts) ? parsed.hosts : [],
+      hosts: Array.isArray(parsed.hosts) ? parsed.hosts : [],
       mappings: Array.isArray(parsed.mappings)
         ? parsed.mappings.map((mapping) => ({
             ruid: mapping.ruid,
             createdAt: mapping.createdAt,
             updatedAt: mapping.updatedAt,
-            hostId: mapping.hostId || mapping.coreId || '',
+            hostId: mapping.hostId,
           }))
         : [],
     };
