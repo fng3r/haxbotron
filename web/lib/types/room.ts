@@ -3,12 +3,15 @@ import {
   RoomRules,
   RoomSettings,
 } from '@/../core/lib/room/RoomHostConfig';
+import { ManagedRoomIntegrity } from '@/lib/types/control';
 
 export type RoomInfoItem = {
   ruid: string;
   roomName: string;
   roomLink: string;
   onlinePlayers: number;
+  hostId?: string;
+  hostName?: string;
 };
 
 export type RuidListItem = {
@@ -18,6 +21,8 @@ export type RuidListItem = {
 export type AllRoomListItem = {
   ruid: string;
   online: boolean;
+  hostId?: string;
+  hostName?: string;
 };
 
 export type RoomInfo = {
@@ -30,6 +35,9 @@ export type RoomInfo = {
   _roomConfig: RoomHostConfig;
   botSettings: RoomSettings;
   rules: RoomRules;
+  hostId?: string;
+  hostName?: string;
+  integrity?: ManagedRoomIntegrity;
 };
 
 export type DiscordWebhookConfig = {

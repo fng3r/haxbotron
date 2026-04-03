@@ -109,9 +109,7 @@ export default function RoomLogs() {
             {logMessages.map((message: LogMessage) => (
               <li key={message.id} className="flex items-center gap-2 text-sm">
                 <Bell className="size-4 shrink-0 font-semibold" />
-                <span>
-                  [{message.origin}] {message.message}
-                </span>
+                <span>{message.message}</span>
               </li>
             ))}
           </ul>

@@ -2,8 +2,8 @@ import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query
 
 import TeamKits from '@/components/Admin/TeamKits';
 
-import { getTeamColours } from '@/lib/api/room';
 import { queryKeys } from '@/lib/queries/room';
+import { getServerTeamColours } from '@/lib/server/control-plane';
 
 export default async function RoomKitsPage({ params }: { params: Promise<{ ruid: string }> }) {
   const { ruid } = await params;
@@ -11,7 +11,7 @@ export default async function RoomKitsPage({ params }: { params: Promise<{ ruid:
   const queryClient = new QueryClient();
   await queryClient.prefetchQuery({
     queryKey: queryKeys.roomTeamColours(ruid),
-    queryFn: () => getTeamColours(ruid),
+    queryFn: () => getServerTeamColours(ruid),
   });
 
   return (
