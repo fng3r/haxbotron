@@ -1,10 +1,10 @@
-import * as Tst from "../../shared/Translator";
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 import * as LangRes from "../../resource/strings";
-import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
-import {getUnixTimestamp} from "../../shared/DateTime";
-import {updateAdmins} from "../../runtime/RoomRuntimeHelpers";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { updateAdmins } from "../../runtime/RoomRuntimeHelpers";
 import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge";
+import { getUnixTimestamp } from "../../shared/DateTime";
+import * as Tst from "../../shared/Translator";
 
 export async function onPlayerJoinListener(runtime: RoomRuntime, player: PlayerJoinObject): Promise<void> {
     const room = runtime.room.getRoom();
@@ -78,8 +78,8 @@ export async function onPlayerJoinListener(runtime: RoomRuntime, player: PlayerJ
 
     const roleResolution = await runtime.playerOnboarding.resolveRole(playerAuth, player.name, rules.whitelistEnabled);
 
-    // kick player without role or with wrong nickname when whitelist enabled
-    if (roleResolution.shouldRejectUnknown) {
+    // kick player without role or with wrong nickname when whitelist enabled or playerAuth is invalid
+    if (roleResolution.shouldRejectUnknown || !playerAuth) {
         room.kickPlayer(player.id, `Unknown public id: ${playerAuth}`, false);
         // emit websocket event
         emitPlayerJoinLeave(player.id);

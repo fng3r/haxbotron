@@ -162,6 +162,9 @@ export class RoomDbAdapter {
 
     public async readPlayer(ruid: string, playerAuth: string): Promise<PlayerStorage | undefined> {
         try {
+            if (!playerAuth) {
+                return undefined;
+            }
             const result = await this.gateway.readPlayer(ruid, playerAuth);
             if (result.status === 200 && result.data) {
                 const player: PlayerStorage = {
