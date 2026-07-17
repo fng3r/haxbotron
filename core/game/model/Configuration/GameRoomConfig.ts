@@ -1,3 +1,4 @@
+import type { RoomConfigObject } from "haxball.js";
 import { GameRoomRules } from "./GameRoomRules";
 import { GameRoomSettings } from "./GameRoomSettings";
 

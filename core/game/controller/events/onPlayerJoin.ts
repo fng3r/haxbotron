@@ -1,3 +1,4 @@
+import type { PlayerJoinObject } from "haxball.js";
 import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";

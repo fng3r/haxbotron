@@ -1,3 +1,4 @@
+import type { PlayerJoinObject, PlayerObject } from "haxball.js";
 import { PlayerEntryTime, PlayerMatchRecord, PlayerPermissions } from "./PlayerState";
 
 export class Player {

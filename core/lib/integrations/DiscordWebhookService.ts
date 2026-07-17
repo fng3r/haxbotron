@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import { AttachmentBuilder, EmbedBuilder, WebhookClient } from "discord.js";
 import moment from "moment";
 import { winstonLogger } from "../../winstonLoggerSystem";

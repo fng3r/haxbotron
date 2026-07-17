@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import { TeamID } from "../../model/GameObject/TeamID";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 

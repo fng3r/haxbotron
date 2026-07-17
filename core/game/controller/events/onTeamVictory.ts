@@ -1,3 +1,4 @@
+import type { ScoresObject } from "haxball.js";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";

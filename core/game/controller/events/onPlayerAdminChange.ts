@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 
