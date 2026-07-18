@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import * as Tst from "../../shared/Translator";
 import * as LangRes from "../../resource/strings";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";

@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import * as P from "parsimmon";
 import { Parser } from "parsimmon";
 import * as LangRes from "../../resource/strings";

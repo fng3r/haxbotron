@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import * as Translator from "../../shared/Translator";
 import * as LangRes from "../../resource/strings";
 import { RoomRuntime } from "../../runtime/RoomRuntime";

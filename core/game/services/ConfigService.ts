@@ -1,3 +1,4 @@
+import type { RoomConfigObject } from "haxball.js";
 import { GameRoomConfig } from "../model/Configuration/GameRoomConfig";
 
 /**

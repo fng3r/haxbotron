@@ -1,3 +1,4 @@
+import type { RoomObject } from "haxball.js";
 import { Logger } from "../logging/Logger";
 import { DiscordWebhookConfig } from "../../lib/room/RoomTypes";
 import { DiscordWebhookService } from "../../lib/integrations/DiscordWebhookService";

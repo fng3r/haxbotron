@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 import * as LangRes from "../../resource/strings";
 import * as Tst from "../../shared/Translator";
