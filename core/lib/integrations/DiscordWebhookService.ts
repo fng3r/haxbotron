@@ -1,4 +1,5 @@
 import { AttachmentBuilder, EmbedBuilder, WebhookClient } from "discord.js";
+import type { PlayerObject } from "haxball.js";
 import moment from "moment";
 import { winstonLogger } from "../../winstonLoggerSystem";
 import { DiscordWebhookCredentials } from "../room/RoomTypes";
@@ -63,7 +64,7 @@ export class DiscordWebhookService {
             await webhookClient.send({ embeds: [embed] });
             await webhookClient.send({ files: [attachment] });
         } catch (error) {
-            winstonLogger.error(`[Discord] Error sending replay to webhook: ${error}`);
+            winstonLogger.error(`[discord] Error sending replay to webhook: ${error}`);
         }
     }
 
@@ -77,7 +78,7 @@ export class DiscordWebhookService {
         try {
             await webhookClient.send(message);
         } catch (error) {
-            winstonLogger.error(`[Discord] Error sending password to webhook: ${error}`);
+            winstonLogger.error(`[discord] Error sending password to webhook: ${error}`);
         }
     }
 
@@ -85,7 +86,7 @@ export class DiscordWebhookService {
         try {
             return new WebhookClient({ id: credentials.webhookId, token: credentials.webhookToken });
         } catch (e) {
-            winstonLogger.error(`[Discord] Failed to create webhook client: ${e}`);
+            winstonLogger.error(`[discord] Failed to create webhook client: ${e}`);
             return null;
         }
     }

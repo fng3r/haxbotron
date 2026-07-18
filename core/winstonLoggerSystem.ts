@@ -1,4 +1,4 @@
-import winston, { transports } from 'winston';
+import winston from 'winston';
 import winstonDaily from 'winston-daily-rotate-file';
 
 const winstonLogDir = '.logs';  // where log files saved
@@ -55,49 +55,6 @@ export const winstonLogger = winston.createLogger({
             filename: `%DATE%.warn.log`,
             maxFiles: 30, // 30days
             zippedArchive: true,
-        })
-        /*,
-        // setting for file includes 'http' level logs
-        new winstonDaily({
-            level: 'http',
-            datePattern: 'YYYY-MM-DD',
-            dirname: winstonLogDir + '/http',  // 'http' log file saved under /http directory
-            filename: `%DATE%.http.log`,
-            maxFiles: 30, // 30days
-            zippedArchive: true,
         }),
-        // setting for file includes 'verbose' level logs
-        new winstonDaily({
-            level: 'verbose',
-            datePattern: 'YYYY-MM-DD',
-            dirname: winstonLogDir + '/verbose',  // 'verbose' log file saved under /verbose directory
-            filename: `%DATE%.verbose.log`,
-            maxFiles: 30, // 30days
-            zippedArchive: true,
-        }),
-        // setting for file includes 'debug' level logs
-        new winstonDaily({
-            level: 'debug',
-            datePattern: 'YYYY-MM-DD',
-            dirname: winstonLogDir + '/debug',  // 'debug' log file saved under /debug directory
-            filename: `%DATE%.debug.log`,
-            maxFiles: 30, // 30days
-            zippedArchive: true,
-        }),
-        // setting for file includes 'silly' level logs
-        new winstonDaily({
-            level: 'silly',
-            datePattern: 'YYYY-MM-DD',
-            dirname: winstonLogDir + '/silly',  // 'silly' log file saved under /silly directory
-            filename: `%DATE%.silly.log`,
-            maxFiles: 30, // 30days
-            zippedArchive: true,
-        })
-        */
     ]
 });
-
-
-// USAGE
-// import { winstonLogger } from 'winstonLoggerSystem';
-// winstonLogger.info('log!');
