@@ -238,6 +238,7 @@ export class RoomProcessManager {
                 this.emitSocketIOEvent("roomct", { ruid: handle.ruid });
                 return;
             case "log":
+                winstonLogger.log(event.payload.level, event.payload.message);
                 this.emitSocketIOEvent("log", {
                     id: uuid(),
                     ruid: handle.ruid,
