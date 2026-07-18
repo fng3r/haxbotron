@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import { KickStack } from "../model/GameObject/BallTrace";
 import { PlayersSet } from "../model/GameObject/PlayersSet";
 import { TeamID } from "../model/GameObject/TeamID";

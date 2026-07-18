@@ -1,3 +1,4 @@
+import type { PlayerJoinObject } from "haxball.js";
 import { Player } from "../model/GameObject/Player";
 import { PlayerStorage } from "../model/GameObject/PlayerState";
 import { PlayerRole } from "../model/PlayerRole/PlayerRole";

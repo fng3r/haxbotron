@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 

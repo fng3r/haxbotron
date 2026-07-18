@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import { getUnixTimestamp } from "../../shared/DateTime";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 import { RoomRuntime } from "../../runtime/RoomRuntime";

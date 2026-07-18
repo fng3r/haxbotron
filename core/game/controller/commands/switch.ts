@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
 import {TeamID} from "../../model/GameObject/TeamID";
 import * as Tst from "../../shared/Translator";

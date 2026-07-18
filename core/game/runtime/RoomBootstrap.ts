@@ -1,3 +1,4 @@
+import type { PlayerJoinObject, PlayerObject, RoomConfigObject, RoomObject, ScoresObject } from "haxball.js";
 import { generateRandomString } from "../../lib/utils";
 import { getUnixTimestamp } from "../shared/DateTime";
 import * as eventListener from "../controller/events/eventListeners";

@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import * as LangRes from "../../resource/strings";
 import { CommandExecutor, isCommandString, isTeamChatCommand, parseCommand } from "../commands/CommandRegistry";
 import { getUnixTimestamp } from "../../shared/DateTime";

@@ -1,3 +1,4 @@
+import type { PlayerObject } from "haxball.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime";
 
 export function cmdBb(runtime: RoomRuntime, byPlayer: PlayerObject): void {

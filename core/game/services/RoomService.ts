@@ -1,3 +1,4 @@
+import type { RoomObject } from "haxball.js";
 import { getStadiumData } from "../../lib/stadiumLoader";
 
 /**
