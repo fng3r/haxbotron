@@ -2,6 +2,7 @@
 
 import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
 import { EventEmitter } from "events";
+import { PassThrough } from "stream";
 import { AnyRoomRpcRequest } from "../../../lib/room/RoomProtocol";
 
 const mockFork = jest.fn() as jest.Mock;
@@ -23,6 +24,7 @@ jest.mock("../../../winstonLoggerSystem", () => ({
 class MockChildProcess extends EventEmitter {
     public send = jest.fn();
     public kill = jest.fn();
+    public stderr = new PassThrough();
 }
 
 describe("RoomProcessManager", () => {
@@ -88,6 +90,12 @@ describe("RoomProcessManager", () => {
         });
 
         await openRoomPromise;
+
+        child.stderr.write("TypeError: worker crashed\n    at roomWorker.js:1:1\n");
+
+        expect(mockWinstonLogger.error).toHaveBeenCalledWith(
+            "[RoomProcessManager] [room-1] Worker stderr:\nTypeError: worker crashed\n    at roomWorker.js:1:1"
+        );
 
         child.emit("message", {
             type: "event",

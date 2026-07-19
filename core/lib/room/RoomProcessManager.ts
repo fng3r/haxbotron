@@ -63,7 +63,7 @@ export class RoomProcessManager {
         winstonLogger.info(`[RoomProcessManager] [${ruid}] Starting room worker`);
         const workerPath = path.resolve(__dirname, "../../game/runtime/roomWorker.js");
         const child = fork(workerPath, [], {
-            stdio: ["ignore", "inherit", "inherit", "ipc"],
+            stdio: ["ignore", "inherit", "pipe", "ipc"],
             env: process.env,
             serialization: "advanced",
         });
@@ -167,6 +167,16 @@ export class RoomProcessManager {
             );
             handle.startupReject(new Error(`[RoomProcessManager] Timed out while starting room '${handle.ruid}'`));
         }, ROOM_STARTUP_TIMEOUT_MS);
+
+        handle.child.stderr?.setEncoding("utf8");
+        handle.child.stderr?.on("data", (output: string | Buffer) => {
+            const message = output.toString().replace(/\s+$/, "");
+            if (message) {
+                winstonLogger.error(
+                    `[RoomProcessManager] [${handle.ruid}] Worker stderr:\n${message}`
+                );
+            }
+        });
 
         handle.child.on("message", (message: unknown) => {
             const parsedMessage = parseRoomWorkerMessage(message);
