@@ -2,6 +2,7 @@
 .node-persist/
 node_modules/
 out/
+*.tsbuildinfo
 public/out/
 !webpack.config.js
 .env

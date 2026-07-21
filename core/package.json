@@ -5,11 +5,13 @@
   "main": "out/app.js",
   "scripts": {
     "start": "node out/app.js",
-    "build": "npm run build:ts",
-    "build:ts": "tsc",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit --incremental false",
+    "typecheck:test": "tsc -p tsconfig.test.json",
+    "check": "npm run typecheck && npm run typecheck:test && npm test",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
   },
   "author": "dapucita",
   "license": "MIT",
@@ -53,15 +55,17 @@
     "winston-daily-rotate-file": "^4.5.0"
   },
   "devDependencies": {
+    "@swc/core": "^1.15.46",
+    "@swc/jest": "^0.2.39",
     "@types/jest": "^29.5.14",
     "@types/koa": "^2.11.6",
     "@types/koa-bodyparser": "^4.3.0",
     "@types/koa-router": "^7.4.1",
+    "@types/node": "^22.0.0",
     "@types/node-persist": "^3.1.0",
     "@types/supertest": "^2.0.12",
     "jest": "^29.5.0",
     "supertest": "^6.3.3",
-    "ts-jest": "^29.1.0",
     "typescript": "^5.7.3"
   }
 }

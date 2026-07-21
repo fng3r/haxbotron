@@ -24,7 +24,9 @@ describe("RoomProcessManager", () => {
         jest.clearAllMocks();
         child = new MockChildProcess();
         mockFork.mockReturnValue(child);
-        ({ RoomProcessManager } = await import("../../../lib/room/RoomProcessManager"));
+        ({ RoomProcessManager } = require("../../../lib/room/RoomProcessManager") as {
+            RoomProcessManager: typeof RoomProcessManager;
+        });
     });
 
     afterEach(() => {

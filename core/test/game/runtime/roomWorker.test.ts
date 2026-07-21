@@ -85,7 +85,7 @@ describe("roomWorker pipeline", () => {
             sendWorkerMessage: mockSendWorkerMessage,
         }));
 
-        roomWorkerModule = await import("../../../game/runtime/roomWorker");
+        roomWorkerModule = require("../../../game/runtime/roomWorker") as typeof roomWorkerModule;
         expect(roomWorkerModule).toBeDefined();
         expect(messageHandler).toBeDefined();
     });

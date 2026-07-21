@@ -13,7 +13,7 @@ export function createTestServer(app: Koa): Server {
  * Create a supertest request agent with authentication
  */
 export function createAuthenticatedRequest(server: Server, apiKey: string = 'test-api-key') {
-  return request(server).set('x-api-key', apiKey);
+  return request.agent(server).set('x-api-key', apiKey);
 }
 
 /**

@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "jest"],
+    "noEmit": true,
+    "incremental": false
+  },
+  "include": [
+    "api/**/*.ts",
+    "game/**/*.ts",
+    "lib/**/*.ts",
+    "test/**/*.ts",
+    "typings/**/*.d.ts",
+    "app.ts",
+    "winstonLoggerSystem.ts"
+  ],
+  "exclude": ["node_modules", "out"]
+}

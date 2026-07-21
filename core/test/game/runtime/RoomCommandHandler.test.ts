@@ -2,7 +2,6 @@
 
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
 import { TeamID } from "../../../game/model/GameObject/TeamID";
-import { handleRoomCommand } from "../../../game/runtime/RoomCommandHandler";
 import { RoomRuntime } from "../../../game/runtime/RoomRuntime";
 import { RuntimeRoomRpcCommand, RuntimeRoomRpcRequest } from "../../../lib/room/RoomProtocol";
 
@@ -10,6 +9,7 @@ jest.mock("../../../game/runtime/WorkerEventBridge", () => ({
     emitPlayerStatusChange: jest.fn(),
 }));
 
+const { handleRoomCommand } = require("../../../game/runtime/RoomCommandHandler") as typeof import("../../../game/runtime/RoomCommandHandler");
 const { emitPlayerStatusChange } = jest.requireMock("../../../game/runtime/WorkerEventBridge") as {
     emitPlayerStatusChange: jest.Mock;
 };
