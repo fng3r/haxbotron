@@ -1,6 +1,6 @@
 import Koa from 'koa';
-import bodyParser from 'koa-bodyparser';
-import Router from 'koa-router';
+import bodyParser from '@koa/bodyparser';
+import Router from '@koa/router';
 import request from 'supertest';
 import * as playerRolesController from '../../../api/controller/v1/playerrolelist';
 import { errorHandler } from '../../../api/middleware/errorHandler';

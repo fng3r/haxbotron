@@ -8,6 +8,25 @@ import { formatJoiError } from "../../middleware/errorHandler";
 import { discordWebhookConfigSchema } from "../../schema/discordwebhook.validation";
 import { nestedHostRoomConfigSchema } from "../../schema/hostroomconfig.validation";
 import { teamColourSchema } from "../../schema/teamcolour.validation";
+import { getRequestBody } from "../requestBody";
+
+interface KickPlayerBody {
+    ban: boolean;
+    seconds: number;
+    reason?: string;
+}
+
+interface MessageBody {
+    message: string;
+}
+
+interface PasswordBody {
+    password: string;
+}
+
+interface MutePlayerBody {
+    muteExpire: number;
+}
 
 export type RoomController = ReturnType<typeof createRoomController>;
 
@@ -35,12 +54,14 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
                 throw new ValidationError(formatted.message, formatted.details);
             }
 
+            const body = validationResult.value;
+
             const newRoomConfig: RoomInitConfig = {
                 _LaunchDate: new Date(),
-                _RUID: ctx.request.body.ruid,
-                _config: ctx.request.body._config,
-                settings: ctx.request.body.settings,
-                rules: ctx.request.body.rules,
+                _RUID: body.ruid,
+                _config: body._config,
+                settings: body.settings,
+                rules: body.rules,
             };
 
             if (newRoomConfig._config.password == "") {
@@ -102,20 +123,20 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
 
         async kickOnlinePlayer(ctx: Context) {
             const { ruid, id } = ctx.params;
-            const { ban, seconds, reason } = ctx.request.body;
+            const { ban, seconds, reason } = getRequestBody<KickPlayerBody>(ctx);
             if (ban === undefined || !seconds) {
                 throw new ValidationError("Missing required fields: ban and seconds");
             }
 
             ensureRoomExists(ruid);
             const playerId = await ensurePlayerExists(ruid, id);
-            await roomOperations.banPlayerTemporarily(ruid, playerId, ban, reason, seconds);
+            await roomOperations.banPlayerTemporarily(ruid, playerId, ban, reason ?? "", seconds);
             ctx.status = 204;
         },
 
         async broadcast(ctx: Context) {
             const { ruid } = ctx.params;
-            const message: string | undefined = ctx.request.body.message;
+            const { message } = getRequestBody<MessageBody>(ctx);
             ensureRoomExists(ruid);
             if (!message) {
                 throw new ValidationError("Message is required");
@@ -126,7 +147,7 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
 
         async whisper(ctx: Context) {
             const { ruid, id } = ctx.params;
-            const message: string | undefined = ctx.request.body.message;
+            const { message } = getRequestBody<MessageBody>(ctx);
             ensureRoomExists(ruid);
             const playerID = await ensurePlayerExists(ruid, id);
             if (!message) {
@@ -138,7 +159,7 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
 
         async setNotice(ctx: Context) {
             const { ruid } = ctx.params;
-            const message: string | undefined = ctx.request.body.message;
+            const { message } = getRequestBody<MessageBody>(ctx);
             ensureRoomExists(ruid);
             if (!message) {
                 throw new ValidationError("Message is required");
@@ -164,7 +185,7 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
 
         async setPassword(ctx: Context) {
             const { ruid } = ctx.params;
-            const password: string = ctx.request.body.password;
+            const { password } = getRequestBody<PasswordBody>(ctx);
 
             if (!password) {
                 throw new ValidationError("Password is required");
@@ -198,7 +219,7 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
 
         async mutePlayer(ctx: Context) {
             const { ruid, id } = ctx.params;
-            const { muteExpire } = ctx.request.body;
+            const { muteExpire } = getRequestBody<MutePlayerBody>(ctx);
             if (!muteExpire) {
                 throw new ValidationError("muteExpire is required");
             }
@@ -250,13 +271,14 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
 
         async setTeamColours(ctx: Context) {
             const { ruid } = ctx.params;
-            const { team, angle, textColour, teamColour1, teamColour2, teamColour3 } = ctx.request.body;
             const validationResult = teamColourSchema.validate(ctx.request.body);
 
             if (validationResult.error) {
                 const formatted = formatJoiError(validationResult.error);
                 throw new ValidationError(formatted.message, formatted.details);
             }
+
+            const { team, angle, textColour, teamColour1, teamColour2, teamColour3 } = validationResult.value;
 
             if (team !== TeamID.Red && team !== TeamID.Blue) {
                 throw new ValidationError("Team must be 1 (Red) or 2 (Blue)");
@@ -284,13 +306,14 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
 
         async setDiscordWebhookConfig(ctx: Context) {
             const { ruid } = ctx.params;
-            const { feed, replaysWebhookId, replaysWebhookToken, replayUpload, passwordWebhookId, passwordWebhookToken } = ctx.request.body;
             const validationResult = discordWebhookConfigSchema.validate(ctx.request.body);
 
             if (validationResult.error) {
                 const formatted = formatJoiError(validationResult.error);
                 throw new ValidationError(formatted.message, formatted.details);
             }
+
+            const { feed, replaysWebhookId, replaysWebhookToken, replayUpload, passwordWebhookId, passwordWebhookToken } = validationResult.value;
 
             ensureRoomExists(ruid);
             await roomOperations.setDiscordWebhookConfig(ruid, {

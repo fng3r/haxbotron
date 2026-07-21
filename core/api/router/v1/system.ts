@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Context, Next } from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 
 export const systemRouter = new Router();
 

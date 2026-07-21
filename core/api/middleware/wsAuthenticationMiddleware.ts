@@ -1,10 +1,9 @@
-import { parse as parseCookie } from "cookie";
-import { Socket } from "socket.io";
+import { ExtendedError, Socket } from "socket.io";
 
 /**
  * JWT validation middleware for Socket.IO Websocket
  */
-export async function wsAuthenticationMiddleware(socket: Socket, next: any) {
+export async function wsAuthenticationMiddleware(socket: Socket, next: (error?: ExtendedError) => void) {
     const cookie = socket.request.headers.cookie;
     
     if (!cookie) {
@@ -14,8 +13,8 @@ export async function wsAuthenticationMiddleware(socket: Socket, next: any) {
     }
 
     try {
-        // jose is ESM-only. Keep this boundary dynamic while core emits CommonJS.
-        const { jwtVerify } = await import("jose");
+        // cookie and jose are ESM-only. Keep this boundary dynamic while core emits CommonJS.
+        const [{ parseCookie }, { jwtVerify }] = await Promise.all([import("cookie"), import("jose")]);
         const tokenCookie = parseCookie(cookie);
         const token = tokenCookie['access_token'];
         

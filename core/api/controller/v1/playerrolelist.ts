@@ -2,9 +2,15 @@ import axios from "axios";
 import { Context } from "koa";
 import { apiDbAdapter as dbClient } from "../../../lib/db/adapters/ApiDbAdapter";
 import { ConflictError, ExternalServiceError, NotFoundError, ValidationError } from "../../../lib/errors";
+import { getRequestBody } from "../requestBody";
 
 interface PlayerRole {
     auth: string;
+    name: string;
+    role: string;
+}
+
+interface PlayerRoleBody {
     name: string;
     role: string;
 }
@@ -47,7 +53,7 @@ export async function getAllList(ctx: Context) {
 
 export async function addPlayerRole(ctx: Context) {
     const { auth } = ctx.params;
-    const { name, role } = ctx.request.body;
+    const { name, role } = getRequestBody<PlayerRoleBody>(ctx);
 
     if (!name || !role) {
         throw new ValidationError('Missing required fields: name and role are required');
@@ -71,7 +77,7 @@ export async function addPlayerRole(ctx: Context) {
 
 export async function updatePlayerRole(ctx: Context) {
     const { auth } = ctx.params;
-    const { name, role } = ctx.request.body;
+    const { name, role } = getRequestBody<PlayerRoleBody>(ctx);
 
     if (!name || !role) {
         throw new ValidationError('Missing required fields: name and role are required');

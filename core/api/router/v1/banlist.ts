@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import * as banlistController from '../../controller/v1/banlist';
 
 export const banlistRouter = new Router();

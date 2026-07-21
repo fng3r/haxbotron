@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import cors from "@koa/cors";
 import { RoomOperationsAPI } from "../../../lib/room";
 import { createRoomRouter } from "./room";

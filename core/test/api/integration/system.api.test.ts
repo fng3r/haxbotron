@@ -1,6 +1,6 @@
 import Koa from 'koa';
 import request from 'supertest';
-import bodyParser from 'koa-bodyparser';
+import bodyParser from '@koa/bodyparser';
 import { authenticationMiddleware } from '../../../api/middleware/authenticationMiddleware';
 import { errorHandler } from '../../../api/middleware/errorHandler';
 import { systemRouter } from '../../../api/router/v1/system';

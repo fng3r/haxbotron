@@ -2,6 +2,7 @@ import axios from "axios";
 import { Context } from "koa";
 import { apiDbAdapter as dbClient } from "../../../lib/db/adapters/ApiDbAdapter";
 import { ExternalServiceError, NotFoundError, ValidationError } from "../../../lib/errors";
+import { getRequestBody } from "../requestBody";
 
 interface BanEntryRecord {
     uid: number
@@ -19,6 +20,13 @@ interface BanEntryItem {
     reason: string;
     register: number;
     expire: number;
+}
+
+interface BanPlayerBody {
+    conn: string;
+    auth: string;
+    reason: string;
+    seconds: number;
 }
 
 export async function getAllList(ctx: Context) {
@@ -87,7 +95,7 @@ export async function getBanInfo(ctx: Context) {
 
 export async function banPlayer(ctx: Context) {
     const { ruid } = ctx.params;
-    const { conn, auth, reason, seconds } = ctx.request.body;
+    const { conn, auth, reason, seconds } = getRequestBody<BanPlayerBody>(ctx);
 
     if (!conn || !auth || !reason || !seconds) {
         throw new ValidationError('Missing required fields: conn, auth, reason, and seconds are required');

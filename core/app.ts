@@ -5,9 +5,9 @@
 import "dotenv/config";
 import { createServer as HTTPcreateServer } from "http";
 import Koa from "koa";
-import bodyParser from "koa-bodyparser";
+import bodyParser from "@koa/bodyparser";
 import logger from "koa-logger";
-import Router from "koa-router";
+import Router from "@koa/router";
 import nodeStorage from "node-persist";
 import { Server as SIOserver, Socket as SIOsocket } from "socket.io";
 import { authenticationMiddleware } from "./api/middleware/authenticationMiddleware";

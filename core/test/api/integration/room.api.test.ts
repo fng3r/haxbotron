@@ -1,6 +1,6 @@
 import Koa from 'koa';
-import bodyParser from 'koa-bodyparser';
-import Router from 'koa-router';
+import bodyParser from '@koa/bodyparser';
+import Router from '@koa/router';
 import request from 'supertest';
 import { createRoomController } from '../../../api/controller/v1/room';
 import { authenticationMiddleware } from '../../../api/middleware/authenticationMiddleware';
