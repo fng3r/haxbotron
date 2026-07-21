@@ -2,6 +2,7 @@
 .node-persist/
 node_modules/
 out/
+coverage/
 *.tsbuildinfo
 public/out/
 !webpack.config.js

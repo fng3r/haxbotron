@@ -73,6 +73,8 @@ describe("MatchService lifecycle helpers", () => {
 
         expect(current.matchRecord.balltouch).toBe(1);
         expect(previous.matchRecord.passed).toBe(1);
-        expect(submitTouchSpy).toHaveBeenCalledWith(current);
+        expect(submitTouchSpy).toHaveBeenCalledWith(
+            current as unknown as Parameters<typeof stack.submitTouch>[0]
+        );
     });
 });
