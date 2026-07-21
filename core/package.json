@@ -34,7 +34,7 @@
     "discord.js": "^14.18.0",
     "dotenv": "^17.4.2",
     "haxball.js": "^5.0.7",
-    "joi": "^17.3.0",
+    "joi": "^18.2.3",
     "jose": "^6.2.3",
     "koa": "^3.2.1",
     "koa-logger": "^4.0.0",
@@ -43,8 +43,8 @@
     "parsimmon": "^1.18.1",
     "socket.io": "^4.8.3",
     "uuid": "^11.1.0",
-    "winston": "^3.3.3",
-    "winston-daily-rotate-file": "^4.5.0"
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@swc/core": "^1.15.46",
