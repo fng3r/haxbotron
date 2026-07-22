@@ -1,9 +1,9 @@
 import type { PlayerObject } from "haxball.js";
-import * as Tst from "../../shared/Translator";
-import * as LangRes from "../../resource/strings";
-import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
-import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
+import * as Tst from "../../shared/Translator.js";
+import * as LangRes from "../../resource/strings.js";
+import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge.js";
 
 export function onPlayerTeamChangeListener(runtime: RoomRuntime, changedPlayer: PlayerObject, byPlayer: PlayerObject | null): void {
     // Event called when a player team is changed.

@@ -1,6 +1,6 @@
 import type { PlayerObject } from "haxball.js";
-import * as LangRes from "../../resource/strings";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import * as LangRes from "../../resource/strings.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function buildHelpCommand(helpMessages: Map<string, string>) {
     return function cmdHelp(runtime: RoomRuntime, byPlayer: PlayerObject, command?: string): void {

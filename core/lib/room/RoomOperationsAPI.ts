@@ -1,9 +1,9 @@
-import { Player } from "../../game/model/GameObject/Player";
-import { TeamID } from "../../game/model/GameObject/TeamID";
-import { RoomInitConfig } from "./RoomHostConfig";
-import { DiscordWebhookConfig } from "./RoomTypes";
-import { RoomProcessManager } from "./RoomProcessManager";
-import { RoomDetailInfo, RoomInfo, TeamColourInfo } from "./RoomProtocol";
+import { Player } from "../../game/model/GameObject/Player.js";
+import { TeamID } from "../../game/model/GameObject/TeamID.js";
+import { RoomInitConfig } from "./RoomHostConfig.js";
+import { DiscordWebhookConfig } from "./RoomTypes.js";
+import { RoomProcessManager } from "./RoomProcessManager.js";
+import { RoomDetailInfo, RoomInfo, TeamColourInfo } from "./RoomProtocol.js";
 
 export class RoomOperationsAPI {
     constructor(private readonly roomProcessManager: RoomProcessManager) {}
@@ -130,4 +130,4 @@ export class RoomOperationsAPI {
     }
 }
 
-export type { RoomDetailInfo, RoomInfo } from "./RoomProtocol";
+export type { RoomDetailInfo, RoomInfo } from "./RoomProtocol.js";

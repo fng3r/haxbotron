@@ -1,14 +1,14 @@
-import * as mapBig from "./stadium/big.hbs";
-import * as mapBigEasy from "./stadium/bigeasy.hbs";
-import * as mapClassic from "./stadium/classic.hbs";
-import * as mapGBHotBig from "./stadium/gbhotbig.hbs";
-import * as mapGBHotClassic from "./stadium/gbhotclassic.hbs";
-import * as mapRealSoccer from "./stadium/realsoccer.hbs";
-import * as mapFutsal1v1 from "./stadium/futsal_1v1.hbs";
-import * as mapFutsal4v4 from "./stadium/futsal_4v4.hbs";
-import * as mapIceBear from "./stadium/icebearslow.hbs";
-import * as mapBff4v4 from "./stadium/bff_4v4.hbs";
-import * as map6man from "./stadium/6man.hbs";
+import * as mapBig from "./stadium/big.hbs.js";
+import * as mapBigEasy from "./stadium/bigeasy.hbs.js";
+import * as mapClassic from "./stadium/classic.hbs.js";
+import * as mapGBHotBig from "./stadium/gbhotbig.hbs.js";
+import * as mapGBHotClassic from "./stadium/gbhotclassic.hbs.js";
+import * as mapRealSoccer from "./stadium/realsoccer.hbs.js";
+import * as mapFutsal1v1 from "./stadium/futsal_1v1.hbs.js";
+import * as mapFutsal4v4 from "./stadium/futsal_4v4.hbs.js";
+import * as mapIceBear from "./stadium/icebearslow.hbs.js";
+import * as mapBff4v4 from "./stadium/bff_4v4.hbs.js";
+import * as map6man from "./stadium/6man.hbs.js";
 
 /**
  * Resolve bundled stadium data by map name.

@@ -1,5 +1,5 @@
-import { PlayerRole } from "../model/PlayerRole/PlayerRole";
-import { PlayerRoles } from "../model/PlayerRole/PlayerRoles";
+import { PlayerRole } from "../model/PlayerRole/PlayerRole.js";
+import { PlayerRoles } from "../model/PlayerRole/PlayerRoles.js";
 
 /**
  * Service for managing player roles (admin, staff, etc.)

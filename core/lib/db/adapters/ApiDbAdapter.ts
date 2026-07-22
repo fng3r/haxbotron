@@ -1,6 +1,6 @@
-import { BanEntry } from "../../../game/model/PlayerBan/BanEntry";
-import { PlayerStorage } from "../../../game/model/GameObject/PlayerState";
-import { DbApiGateway } from "../DbApiGateway";
+import { BanEntry } from "../../../game/model/PlayerBan/BanEntry.js";
+import { PlayerStorage } from "../../../game/model/GameObject/PlayerState.js";
+import { DbApiGateway } from "../DbApiGateway.js";
 
 /**
  * API-facing adapter.

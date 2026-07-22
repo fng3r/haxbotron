@@ -1,12 +1,13 @@
+import { jest as esmJest } from "@jest/globals";
 import Koa from 'koa';
 import bodyParser from '@koa/bodyparser';
 import Router from '@koa/router';
 import request from 'supertest';
-import * as playerRolesController from '../../../api/controller/v1/playerrolelist';
-import { errorHandler } from '../../../api/middleware/errorHandler';
+import { errorHandler } from '../../../api/middleware/errorHandler.js';
+import { ConflictError } from '../../../lib/errors.js';
 
 // Mock API DB adapter
-jest.mock('../../../lib/db/adapters/ApiDbAdapter', () => ({
+esmJest.unstable_mockModule('../../../lib/db/adapters/ApiDbAdapter.js', () => ({
     apiDbAdapter: {
         searchPlayerRoles: jest.fn(),
         createPlayerRole: jest.fn(),
@@ -16,7 +17,8 @@ jest.mock('../../../lib/db/adapters/ApiDbAdapter', () => ({
     }
 }));
 
-const { apiDbAdapter: dbClient } = require('../../../lib/db/adapters/ApiDbAdapter');
+const playerRolesController = await import('../../../api/controller/v1/playerrolelist.js');
+const { apiDbAdapter: dbClient } = await import('../../../lib/db/adapters/ApiDbAdapter.js');
 
 describe('Player Roles API Integration Tests', () => {
     let app: Koa;
@@ -90,7 +92,6 @@ describe('Player Roles API Integration Tests', () => {
         });
 
         it('should return 409 when player already exists', async () => {
-            const ConflictError = require('../../../lib/errors').ConflictError;
             const mockError = new ConflictError(`Player with auth 'auth123' is already added`);
             (dbClient.createPlayerRole as jest.Mock).mockRejectedValue(mockError);
 

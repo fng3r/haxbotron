@@ -1,11 +1,11 @@
 import type { PlayerObject } from "haxball.js";
-import { extractPlayerIdentifier, isPlayerId, PlayerId } from "../../model/PlayerIdentifier/PlayerIdentifier";
-import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
-import * as LangRes from "../../resource/strings";
-import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
-import { getRemainingTimeString, getUnixTimestamp } from "../../shared/DateTime";
-import * as Tst from "../../shared/Translator";
+import { extractPlayerIdentifier, isPlayerId, PlayerId } from "../../model/PlayerIdentifier/PlayerIdentifier.js";
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles.js";
+import * as LangRes from "../../resource/strings.js";
+import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import { getRemainingTimeString, getUnixTimestamp } from "../../shared/DateTime.js";
+import * as Tst from "../../shared/Translator.js";
 
 export async function cmdBan(runtime: RoomRuntime, byPlayer: PlayerObject, playerIdentifier: string, banDuration?: number): Promise<void> {
     const room = runtime.room.getRoom();

@@ -1,6 +1,6 @@
-import { DiscordWebhookConfig } from "../../lib/room/RoomTypes";
-import { MatchStats } from "./MatchService";
-import { DiscordWebhookService } from "../../lib/integrations/DiscordWebhookService";
+import { DiscordWebhookConfig } from "../../lib/room/RoomTypes.js";
+import { MatchStats } from "./MatchService.js";
+import { DiscordWebhookService } from "../../lib/integrations/DiscordWebhookService.js";
 
 /**
  * Service for managing social integrations (Discord webhooks, etc.)

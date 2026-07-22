@@ -1,5 +1,5 @@
-import { ApiDbAdapter } from "../../../lib/db/adapters/ApiDbAdapter";
-import { RoomDbAdapter } from "../../../lib/db/adapters/RoomDbAdapter";
+import { ApiDbAdapter } from "../../../lib/db/adapters/ApiDbAdapter.js";
+import { RoomDbAdapter } from "../../../lib/db/adapters/RoomDbAdapter.js";
 
 describe("DB adapters", () => {
     it("ApiDbAdapter returns data from gateway responses", async () => {

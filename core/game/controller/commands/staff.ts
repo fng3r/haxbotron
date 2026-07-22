@@ -1,6 +1,6 @@
 import type { PlayerObject } from "haxball.js";
-import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function cmdStaff(runtime: RoomRuntime, byPlayer: PlayerObject): void {
     const playerList = runtime.players.getPlayerList();

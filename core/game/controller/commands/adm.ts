@@ -1,8 +1,8 @@
 import type { PlayerObject } from "haxball.js";
-import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
-import * as LangRes from "../../resource/strings";
-import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles.js";
+import * as LangRes from "../../resource/strings.js";
+import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function cmdAdm(runtime: RoomRuntime, byPlayer: PlayerObject): void {
     const room = runtime.room.getRoom();

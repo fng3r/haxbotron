@@ -1,18 +1,18 @@
 import type { PlayerJoinObject, PlayerObject, RoomConfigObject, RoomObject, ScoresObject } from "haxball.js";
-import { generateRandomString } from "../../lib/utils";
-import { getUnixTimestamp } from "../shared/DateTime";
-import * as eventListener from "../controller/events/eventListeners";
-import { Logger } from "../logging/Logger";
-import * as Tst from "../shared/Translator";
-import { emitPlayerStatusChange, emitRoomReady } from "./WorkerEventBridge";
-import { DiscordWebhookService } from "../../lib/integrations/DiscordWebhookService";
-import { RoomInitConfig } from "../../lib/room/RoomHostConfig";
-import { DiscordWebhookConfig } from "../../lib/room/RoomTypes";
-import { Player } from "../model/GameObject/Player";
-import { TeamID } from "../model/GameObject/TeamID";
-import * as LangRes from "../resource/strings";
-import { createCommandExecutor } from "../controller/commands/CommandRegistry";
-import { createRoomRuntime, RoomRuntime } from "./RoomRuntime";
+import { generateRandomString } from "../../lib/utils.js";
+import { getUnixTimestamp } from "../shared/DateTime.js";
+import * as eventListener from "../controller/events/eventListeners.js";
+import { Logger } from "../logging/Logger.js";
+import * as Tst from "../shared/Translator.js";
+import { emitPlayerStatusChange, emitRoomReady } from "./WorkerEventBridge.js";
+import { DiscordWebhookService } from "../../lib/integrations/DiscordWebhookService.js";
+import { RoomInitConfig } from "../../lib/room/RoomHostConfig.js";
+import { DiscordWebhookConfig } from "../../lib/room/RoomTypes.js";
+import { Player } from "../model/GameObject/Player.js";
+import { TeamID } from "../model/GameObject/TeamID.js";
+import * as LangRes from "../resource/strings.js";
+import { createCommandExecutor } from "../controller/commands/CommandRegistry.js";
+import { createRoomRuntime, RoomRuntime } from "./RoomRuntime.js";
 
 type HBInitFunction = (config: RoomConfigObject) => RoomObject;
 

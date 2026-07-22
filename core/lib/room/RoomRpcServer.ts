@@ -3,7 +3,7 @@ import {
     RoomRpcCommand,
     RoomRpcRequest,
     RoomRpcResult,
-} from "./RoomProtocol";
+} from "./RoomProtocol.js";
 
 export class RoomRpcServer {
     constructor(private readonly sendResponse: (response: AnyRoomRpcResponse) => void) {}

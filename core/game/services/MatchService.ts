@@ -1,7 +1,7 @@
 import type { PlayerObject } from "haxball.js";
-import { KickStack } from "../model/GameObject/BallTrace";
-import { PlayersSet } from "../model/GameObject/PlayersSet";
-import { TeamID } from "../model/GameObject/TeamID";
+import { KickStack } from "../model/GameObject/BallTrace.js";
+import { PlayersSet } from "../model/GameObject/PlayersSet.js";
+import { TeamID } from "../model/GameObject/TeamID.js";
 
 export interface MatchStats {
     startedAt: number;

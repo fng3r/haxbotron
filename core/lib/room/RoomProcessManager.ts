@@ -1,8 +1,8 @@
 import { ChildProcess, fork } from "child_process";
-import path from "path";
+import { fileURLToPath } from "url";
 import { Server as SIOserver } from "socket.io";
 import { v4 as uuid } from "uuid";
-import { RoomInitConfig } from "./RoomHostConfig";
+import { RoomInitConfig } from "./RoomHostConfig.js";
 import {
     AnyRoomRpcResponse,
     RoomRpcCommand,
@@ -11,8 +11,8 @@ import {
     RoomWorkerEvent,
     isRoomRpcCommandName,
     parseRoomWorkerMessage,
-} from "./RoomProtocol";
-import { RoomRpcClient } from "./RoomRpcClient";
+} from "./RoomProtocol.js";
+import { RoomRpcClient } from "./RoomRpcClient.js";
 
 type RoomHandle = {
     ruid: string;
@@ -57,7 +57,7 @@ export class RoomProcessManager {
             throw new Error(`[RoomProcessManager] Room '${ruid}' already exists`);
         }
 
-        const workerPath = path.resolve(__dirname, "../../game/runtime/roomWorker.js");
+        const workerPath = fileURLToPath(new URL("../../game/runtime/roomWorker.js", import.meta.url));
         const child = fork(workerPath, [], {
             stdio: ["ignore", "inherit", "inherit", "ipc"],
             env: process.env,

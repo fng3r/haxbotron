@@ -1,4 +1,4 @@
-import { emitRoomLog } from "../runtime/WorkerEventBridge";
+import { emitRoomLog } from "../runtime/WorkerEventBridge.js";
 
 export class Logger {
     constructor(private readonly roomId: string) {}

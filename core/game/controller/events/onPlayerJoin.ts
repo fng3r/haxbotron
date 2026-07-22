@@ -1,11 +1,11 @@
 import type { PlayerJoinObject } from "haxball.js";
-import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
-import * as LangRes from "../../resource/strings";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
-import { updateAdmins } from "../../runtime/RoomRuntimeHelpers";
-import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge";
-import { getUnixTimestamp } from "../../shared/DateTime";
-import * as Tst from "../../shared/Translator";
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles.js";
+import * as LangRes from "../../resource/strings.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import { updateAdmins } from "../../runtime/RoomRuntimeHelpers.js";
+import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge.js";
+import { getUnixTimestamp } from "../../shared/DateTime.js";
+import * as Tst from "../../shared/Translator.js";
 
 export async function onPlayerJoinListener(runtime: RoomRuntime, player: PlayerJoinObject): Promise<void> {
     const room = runtime.room.getRoom();

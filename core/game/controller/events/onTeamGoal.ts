@@ -1,8 +1,8 @@
 import type { ScoresObject } from "haxball.js";
-import { TeamID } from "../../model/GameObject/TeamID";
-import * as LangRes from "../../resource/strings";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
-import * as Tst from "../../shared/Translator";
+import { TeamID } from "../../model/GameObject/TeamID.js";
+import * as LangRes from "../../resource/strings.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import * as Tst from "../../shared/Translator.js";
 
 export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Promise<void> {
     // Event called when a team scores a goal.

@@ -1,4 +1,4 @@
-import {Player} from "./Player";
+import {Player} from "./Player.js";
 
 export class PlayersSet {
     private _players: Map<number, Player> = new Map<number, Player>();

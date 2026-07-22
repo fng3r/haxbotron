@@ -1,6 +1,6 @@
 import type { PlayerObject } from "haxball.js";
-import { TeamID } from "../../model/GameObject/TeamID";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { TeamID } from "../../model/GameObject/TeamID.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 const DEFAULT_KICKRATE = {
     min: 6,

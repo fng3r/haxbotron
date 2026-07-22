@@ -1,14 +1,14 @@
 import { Context } from "koa";
-import { Player } from "../../../game/model/GameObject/Player";
-import { TeamID } from "../../../game/model/GameObject/TeamID";
-import { RoomOperationsAPI } from "../../../lib/room";
-import { RoomInitConfig } from "../../../lib/room/RoomHostConfig";
-import { ConflictError, PlayerNotFoundError, RoomNotFoundError, ValidationError } from "../../../lib/errors";
-import { formatJoiError } from "../../middleware/errorHandler";
-import { discordWebhookConfigSchema } from "../../schema/discordwebhook.validation";
-import { nestedHostRoomConfigSchema } from "../../schema/hostroomconfig.validation";
-import { teamColourSchema } from "../../schema/teamcolour.validation";
-import { getRequestBody } from "../requestBody";
+import { Player } from "../../../game/model/GameObject/Player.js";
+import { TeamID } from "../../../game/model/GameObject/TeamID.js";
+import { RoomOperationsAPI } from "../../../lib/room/index.js";
+import { RoomInitConfig } from "../../../lib/room/RoomHostConfig.js";
+import { ConflictError, PlayerNotFoundError, RoomNotFoundError, ValidationError } from "../../../lib/errors.js";
+import { formatJoiError } from "../../middleware/errorHandler.js";
+import { discordWebhookConfigSchema } from "../../schema/discordwebhook.validation.js";
+import { nestedHostRoomConfigSchema } from "../../schema/hostroomconfig.validation.js";
+import { teamColourSchema } from "../../schema/teamcolour.validation.js";
+import { getRequestBody } from "../requestBody.js";
 
 interface KickPlayerBody {
     ban: boolean;

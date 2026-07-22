@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import type { Socket } from "socket.io";
-import { wsAuthenticationMiddleware } from "../../../api/middleware/wsAuthenticationMiddleware";
+import { wsAuthenticationMiddleware } from "../../../api/middleware/wsAuthenticationMiddleware.js";
 
 function createSocket(cookie?: string): { socket: Socket; disconnect: jest.Mock } {
     const disconnect = jest.fn();

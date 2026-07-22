@@ -1,7 +1,7 @@
 import type { PlayerObject } from "haxball.js";
-import { TeamID } from "../../model/GameObject/TeamID";
-import * as LangRes from "../../resource/strings";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { TeamID } from "../../model/GameObject/TeamID.js";
+import * as LangRes from "../../resource/strings.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function cmdTeamChat(runtime: RoomRuntime, byPlayer: PlayerObject, message: string): void {
     const playerList = runtime.players.getPlayerList();

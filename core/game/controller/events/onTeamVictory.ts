@@ -1,8 +1,8 @@
 import type { ScoresObject } from "haxball.js";
-import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID";
-import * as LangRes from "../../resource/strings";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
-import * as Tst from "../../shared/Translator";
+import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID.js";
+import * as LangRes from "../../resource/strings.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import * as Tst from "../../shared/Translator.js";
 
 export async function onTeamVictoryListener(runtime: RoomRuntime, scores: ScoresObject): Promise<void> {
     // Event called when a team 'wins'. not just when game ended.

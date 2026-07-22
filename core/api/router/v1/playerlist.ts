@@ -1,5 +1,5 @@
 import Router from "@koa/router";
-import * as playerlistController from '../../controller/v1/playerlist';
+import * as playerlistController from '../../controller/v1/playerlist.js';
 
 export const playerlistRouter = new Router();
 

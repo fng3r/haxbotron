@@ -1,4 +1,4 @@
-import {PlayerRoles} from "./PlayerRoles";
+import {PlayerRoles} from "./PlayerRoles.js";
 
 export interface PlayerRole {
     auth: string,

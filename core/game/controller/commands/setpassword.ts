@@ -1,8 +1,8 @@
 import type { PlayerObject } from "haxball.js";
-import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
-import * as LangRes from "../../resource/strings";
-import * as Tst from "../../shared/Translator";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles.js";
+import * as LangRes from "../../resource/strings.js";
+import * as Tst from "../../shared/Translator.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function cmdSetPassword(runtime: RoomRuntime, byPlayer: PlayerObject, password?: string): void {
     const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;

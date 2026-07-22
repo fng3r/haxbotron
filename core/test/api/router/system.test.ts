@@ -2,8 +2,13 @@ import Koa from 'koa';
 import Router from '@koa/router';
 import request from 'supertest';
 import bodyParser from '@koa/bodyparser';
-import { authenticationMiddleware } from '../../../api/middleware/authenticationMiddleware';
-import { errorHandler } from '../../../api/middleware/errorHandler';
+import { readFileSync } from 'node:fs';
+import { authenticationMiddleware } from '../../../api/middleware/authenticationMiddleware.js';
+import { errorHandler } from '../../../api/middleware/errorHandler.js';
+
+const packageVersion = JSON.parse(
+  readFileSync(new URL('../../../package.json', import.meta.url), 'utf8')
+).version as string;
 
 describe('System API Endpoints', () => {
   let app: Koa;
@@ -24,7 +29,7 @@ describe('System API Endpoints', () => {
       ctx.body = {
         memory: process.memoryUsage(),
         uptime: process.uptime(),
-        version: require('../../../package.json').version,
+        version: packageVersion,
       };
     });
     

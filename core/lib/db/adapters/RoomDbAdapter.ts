@@ -1,8 +1,8 @@
-import { PlayerStorage } from "../../../game/model/GameObject/PlayerState";
-import { BanEntry } from "../../../game/model/PlayerBan/BanEntry";
-import { PlayerRole } from "../../../game/model/PlayerRole/PlayerRole";
-import { winstonLogger } from "../../../winstonLoggerSystem";
-import { DbApiGateway } from "../DbApiGateway";
+import { PlayerStorage } from "../../../game/model/GameObject/PlayerState.js";
+import { BanEntry } from "../../../game/model/PlayerBan/BanEntry.js";
+import { PlayerRole } from "../../../game/model/PlayerRole/PlayerRole.js";
+import { winstonLogger } from "../../../winstonLoggerSystem.js";
+import { DbApiGateway } from "../DbApiGateway.js";
 
 type LoggerLike = {
     info: (message: string) => void;

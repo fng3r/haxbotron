@@ -1,6 +1,6 @@
 import { Context, Next } from 'koa';
-import { AppError, isAppError, toAppError } from '../../lib/errors';
-import { winstonLogger } from '../../winstonLoggerSystem';
+import { AppError, isAppError, toAppError } from '../../lib/errors.js';
+import { winstonLogger } from '../../winstonLoggerSystem.js';
 
 /**
  * Centralized error handling middleware for Koa

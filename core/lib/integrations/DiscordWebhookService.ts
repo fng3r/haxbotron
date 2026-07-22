@@ -1,8 +1,8 @@
 import type { PlayerObject } from "haxball.js";
 import { AttachmentBuilder, EmbedBuilder, WebhookClient } from "discord.js";
 import moment from "moment";
-import { winstonLogger } from "../../winstonLoggerSystem";
-import { DiscordWebhookCredentials } from "../room/RoomTypes";
+import { winstonLogger } from "../../winstonLoggerSystem.js";
+import { DiscordWebhookCredentials } from "../room/RoomTypes.js";
 
 type ReplayContent = {
     roomId: string;

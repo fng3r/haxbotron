@@ -3,7 +3,7 @@ import { AddressInfo } from "node:net";
 import { afterEach, describe, expect, it } from "@jest/globals";
 import { Server as SocketIOServer } from "socket.io";
 import { io as createSocketIOClient, Socket as SocketIOClient } from "socket.io-client";
-import { wsAuthenticationMiddleware } from "../../../api/middleware/wsAuthenticationMiddleware";
+import { wsAuthenticationMiddleware } from "../../../api/middleware/wsAuthenticationMiddleware.js";
 
 describe("Socket.IO authentication", () => {
     let httpServer: HttpServer | undefined;

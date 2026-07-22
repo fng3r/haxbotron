@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Context } from "koa";
-import { apiDbAdapter as dbClient } from "../../../lib/db/adapters/ApiDbAdapter";
-import { ExternalServiceError, NotFoundError } from "../../../lib/errors";
+import { apiDbAdapter as dbClient } from "../../../lib/db/adapters/ApiDbAdapter.js";
+import { ExternalServiceError, NotFoundError } from "../../../lib/errors.js";
 
 interface PlayerStorageList {
     uid: number;

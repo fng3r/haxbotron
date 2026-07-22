@@ -1,5 +1,5 @@
 import type { PlayerJoinObject, PlayerObject } from "haxball.js";
-import { PlayerEntryTime, PlayerMatchRecord, PlayerPermissions } from "./PlayerState";
+import { PlayerEntryTime, PlayerMatchRecord, PlayerPermissions } from "./PlayerState.js";
 
 export class Player {
     id: number;

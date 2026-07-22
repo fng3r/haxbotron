@@ -1,5 +1,5 @@
 import Router from "@koa/router";
-import * as ruidlistController from '../../controller/v1/ruidlist';
+import * as ruidlistController from '../../controller/v1/ruidlist.js';
 
 export const ruidlistRouter = new Router();
 

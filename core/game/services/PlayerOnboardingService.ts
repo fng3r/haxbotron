@@ -1,9 +1,9 @@
 import type { PlayerJoinObject } from "haxball.js";
-import { Player } from "../model/GameObject/Player";
-import { PlayerStorage } from "../model/GameObject/PlayerState";
-import { PlayerRole } from "../model/PlayerRole/PlayerRole";
-import { PlayerRoles } from "../model/PlayerRole/PlayerRoles";
-import { RoomDbRepository } from "../../lib/db/runtime/RoomDbRepository";
+import { Player } from "../model/GameObject/Player.js";
+import { PlayerStorage } from "../model/GameObject/PlayerState.js";
+import { PlayerRole } from "../model/PlayerRole/PlayerRole.js";
+import { PlayerRoles } from "../model/PlayerRole/PlayerRoles.js";
+import { RoomDbRepository } from "../../lib/db/runtime/RoomDbRepository.js";
 
 export interface JoinHydrationResult {
     player: Player;

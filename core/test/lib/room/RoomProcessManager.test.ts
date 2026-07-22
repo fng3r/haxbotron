@@ -2,11 +2,11 @@
 
 import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
 import { EventEmitter } from "events";
-import { AnyRoomRpcRequest } from "../../../lib/room/RoomProtocol";
+import { AnyRoomRpcRequest } from "../../../lib/room/RoomProtocol.js";
 
 const mockFork = jest.fn() as jest.Mock;
 
-jest.mock("child_process", () => ({
+jest.unstable_mockModule("child_process", () => ({
     fork: mockFork,
 }));
 
@@ -17,16 +17,14 @@ class MockChildProcess extends EventEmitter {
 
 describe("RoomProcessManager", () => {
     let child: MockChildProcess;
-    let RoomProcessManager: typeof import("../../../lib/room/RoomProcessManager").RoomProcessManager;
+    let RoomProcessManager: typeof import("../../../lib/room/RoomProcessManager.js").RoomProcessManager;
 
     beforeEach(async () => {
         jest.resetModules();
         jest.clearAllMocks();
         child = new MockChildProcess();
         mockFork.mockReturnValue(child);
-        ({ RoomProcessManager } = require("../../../lib/room/RoomProcessManager") as {
-            RoomProcessManager: typeof RoomProcessManager;
-        });
+        ({ RoomProcessManager } = await import("../../../lib/room/RoomProcessManager.js"));
     });
 
     afterEach(() => {

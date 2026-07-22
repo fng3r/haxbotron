@@ -1,7 +1,7 @@
 import type { PlayerObject } from "haxball.js";
-import { getUnixTimestamp } from "../../shared/DateTime";
-import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { getUnixTimestamp } from "../../shared/DateTime.js";
+import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export async function onPlayerKickedListener(runtime: RoomRuntime, kickedPlayer: PlayerObject, reason: string, ban: boolean, byPlayer: PlayerObject | null): Promise<void> {
     /* Event called when a player has been kicked from the room. This is always called after the onPlayerLeave event.

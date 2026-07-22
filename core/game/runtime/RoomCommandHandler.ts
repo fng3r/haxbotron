@@ -4,9 +4,9 @@ import {
     RuntimeRoomRpcCommand,
     RuntimeRoomRpcRequest,
     TeamColourInfo,
-} from "../../lib/room/RoomProtocol";
-import { RoomRuntime } from "./RoomRuntime";
-import { emitPlayerStatusChange } from "./WorkerEventBridge";
+} from "../../lib/room/RoomProtocol.js";
+import { RoomRuntime } from "./RoomRuntime.js";
+import { emitPlayerStatusChange } from "./WorkerEventBridge.js";
 
 type RuntimeRoomCommandHandlerMap = {
     [C in RuntimeRoomRpcCommand]: (

@@ -1,4 +1,4 @@
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function onGameTickListener(runtime: RoomRuntime): void {
     const room = runtime.room.getRoom();

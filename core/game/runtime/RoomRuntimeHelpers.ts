@@ -1,7 +1,7 @@
 import type { PlayerObject } from "haxball.js";
-import * as LangRes from "../resource/strings";
-import { RoomRuntime } from "../runtime/RoomRuntime";
-import * as Tst from "../shared/Translator";
+import * as LangRes from "../resource/strings.js";
+import { RoomRuntime } from "../runtime/RoomRuntime.js";
+import * as Tst from "../shared/Translator.js";
 
 export function setDefaultStadiums(runtime: RoomRuntime): void {
     runtime.room.loadDefaultStadium(); // if game mode is 'ready'

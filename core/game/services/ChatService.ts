@@ -1,7 +1,7 @@
-import ChatActivityMap from "../shared/collections/ChatActivityMap";
-import { Player } from "../model/GameObject/Player";
-import { PlayerRole } from "../model/PlayerRole/PlayerRole";
-import { PlayerRoles } from "../model/PlayerRole/PlayerRoles";
+import ChatActivityMap from "../shared/collections/ChatActivityMap.js";
+import { Player } from "../model/GameObject/Player.js";
+import { PlayerRole } from "../model/PlayerRole/PlayerRole.js";
+import { PlayerRoles } from "../model/PlayerRole/PlayerRoles.js";
 
 export type MuteActionResult = "unmuted" | "muted_permanently" | "muted_temporarily";
 

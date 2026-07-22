@@ -1,6 +1,6 @@
 import Router from "@koa/router";
-import { RoomOperationsAPI } from "../../../lib/room";
-import { createRoomController } from "../../controller/v1/room";
+import { RoomOperationsAPI } from "../../../lib/room/index.js";
+import { createRoomController } from "../../controller/v1/room.js";
 
 export function createRoomRouter(roomOperations: RoomOperationsAPI): Router {
     const roomController = createRoomController(roomOperations);

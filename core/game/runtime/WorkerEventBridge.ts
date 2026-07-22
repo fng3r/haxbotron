@@ -1,10 +1,10 @@
-import { getUnixTimestamp } from "../shared/DateTime";
+import { getUnixTimestamp } from "../shared/DateTime.js";
 import {
     AnyRoomRpcResponse,
     RoomRpcCommand,
     RoomRpcResponse,
     RoomWorkerEvent,
-} from "../../lib/room/RoomProtocol";
+} from "../../lib/room/RoomProtocol.js";
 
 export function sendWorkerMessage<C extends RoomRpcCommand>(message: RoomRpcResponse<C>): void;
 export function sendWorkerMessage(message: RoomWorkerEvent): void;

@@ -1,7 +1,7 @@
 import type { PlayerObject } from "haxball.js";
-import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles";
-import * as LangRes from "../../resource/strings";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles.js";
+import * as LangRes from "../../resource/strings.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function cmdMap(runtime: RoomRuntime, byPlayer: PlayerObject, mapName: string): void {
     const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;

@@ -1,5 +1,5 @@
-import { Player } from "./Player";
-import { TeamID } from "./TeamID";
+import { Player } from "./Player.js";
+import { TeamID } from "./TeamID.js";
 
 export class KickStack {
     /*

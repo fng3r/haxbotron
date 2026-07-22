@@ -1,4 +1,4 @@
-import {PlayerRole} from "./PlayerRole";
+import {PlayerRole} from "./PlayerRole.js";
 
 export enum PlayerRoles {
     CO_HOST = 'co-host',

@@ -1,3 +1,7 @@
+import { jest } from '@jest/globals';
+
+Object.assign(globalThis, { jest });
+
 // Global test setup
 process.env.NODE_ENV = 'test';
 process.env.SERVER_PORT = '12099';

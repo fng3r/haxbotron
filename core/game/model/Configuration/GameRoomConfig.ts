@@ -1,6 +1,6 @@
 import type { RoomConfigObject } from "haxball.js";
-import { GameRoomRules } from "./GameRoomRules";
-import { GameRoomSettings } from "./GameRoomSettings";
+import { GameRoomRules } from "./GameRoomRules.js";
+import { GameRoomSettings } from "./GameRoomSettings.js";
 
 export interface GameRoomConfig {
     _LaunchDate: Date; // date of this room created

@@ -1,9 +1,9 @@
 import type { PlayerObject } from "haxball.js";
-import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles";
-import {TeamID} from "../../model/GameObject/TeamID";
-import * as Tst from "../../shared/Translator";
-import * as LangRes from "../../resource/strings";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles.js";
+import {TeamID} from "../../model/GameObject/TeamID.js";
+import * as Tst from "../../shared/Translator.js";
+import * as LangRes from "../../resource/strings.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function cmdSwitch(runtime: RoomRuntime, byPlayer: PlayerObject): void {
     const room = runtime.room.getRoom();

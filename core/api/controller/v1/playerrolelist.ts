@@ -1,8 +1,8 @@
 import axios from "axios";
 import { Context } from "koa";
-import { apiDbAdapter as dbClient } from "../../../lib/db/adapters/ApiDbAdapter";
-import { ConflictError, ExternalServiceError, NotFoundError, ValidationError } from "../../../lib/errors";
-import { getRequestBody } from "../requestBody";
+import { apiDbAdapter as dbClient } from "../../../lib/db/adapters/ApiDbAdapter.js";
+import { ConflictError, ExternalServiceError, NotFoundError, ValidationError } from "../../../lib/errors.js";
+import { getRequestBody } from "../requestBody.js";
 
 interface PlayerRole {
     auth: string;

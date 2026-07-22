@@ -1,8 +1,8 @@
-import { Player } from "../../../game/model/GameObject/Player";
-import { PlayerStorage } from "../../../game/model/GameObject/PlayerState";
-import { BanEntry } from "../../../game/model/PlayerBan/BanEntry";
-import { PlayerRole } from "../../../game/model/PlayerRole/PlayerRole";
-import { RoomDbAdapter } from "../adapters/RoomDbAdapter";
+import { Player } from "../../../game/model/GameObject/Player.js";
+import { PlayerStorage } from "../../../game/model/GameObject/PlayerState.js";
+import { BanEntry } from "../../../game/model/PlayerBan/BanEntry.js";
+import { PlayerRole } from "../../../game/model/PlayerRole/PlayerRole.js";
+import { RoomDbAdapter } from "../adapters/RoomDbAdapter.js";
 
 export class RoomDbRepository {
     constructor(

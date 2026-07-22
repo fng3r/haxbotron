@@ -1,5 +1,5 @@
 import { Context, Next } from "koa";
-import { AuthenticationError } from "../../lib/errors";
+import { AuthenticationError } from "../../lib/errors.js";
 
 const API_KEY_HEADER = 'x-api-key';
 

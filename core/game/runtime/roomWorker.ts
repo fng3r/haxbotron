@@ -1,15 +1,15 @@
 import HaxballJS from "haxball.js";
-import { openRoomRuntime } from "./RoomBootstrap";
-import { handleRoomCommand } from "./RoomCommandHandler";
-import { RoomRuntime } from "./RoomRuntime";
-import { sendWorkerMessage } from "./WorkerEventBridge";
+import { openRoomRuntime } from "./RoomBootstrap.js";
+import { handleRoomCommand } from "./RoomCommandHandler.js";
+import { RoomRuntime } from "./RoomRuntime.js";
+import { sendWorkerMessage } from "./WorkerEventBridge.js";
 import {
     AnyRoomRpcRequest,
     AnyRoomRpcResponse,
     RoomRpcCommand,
     parseRoomRpcRequest,
-} from "../../lib/room/RoomProtocol";
-import { RoomRpcServer } from "../../lib/room/RoomRpcServer";
+} from "../../lib/room/RoomProtocol.js";
+import { RoomRpcServer } from "../../lib/room/RoomRpcServer.js";
 
 let roomOpen = false;
 let roomRuntime: RoomRuntime | null = null;

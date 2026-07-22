@@ -1,10 +1,10 @@
 import type { PlayerObject } from "haxball.js";
-import * as LangRes from "../../resource/strings";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
-import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge";
-import { getUnixTimestamp } from "../../shared/DateTime";
-import { updateAdmins } from "../../runtime/RoomRuntimeHelpers";
-import * as Tst from "../../shared/Translator";
+import * as LangRes from "../../resource/strings.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge.js";
+import { getUnixTimestamp } from "../../shared/DateTime.js";
+import { updateAdmins } from "../../runtime/RoomRuntimeHelpers.js";
+import * as Tst from "../../shared/Translator.js";
 
 export async function onPlayerLeaveListener(runtime: RoomRuntime, player: PlayerObject): Promise<void> {
     // Event called when a player leaves the room.

@@ -1,4 +1,4 @@
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function onRoomLinkListener(runtime: RoomRuntime, url: string): void {
     runtime.room.setLink(url);

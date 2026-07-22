@@ -1,6 +1,6 @@
-import { Player } from "../model/GameObject/Player";
-import { PlayersSet } from "../model/GameObject/PlayersSet";
-import { TeamID } from "../model/GameObject/TeamID";
+import { Player } from "../model/GameObject/Player.js";
+import { PlayersSet } from "../model/GameObject/PlayersSet.js";
+import { TeamID } from "../model/GameObject/TeamID.js";
 
 /**
  * Service for managing the player list and player operations

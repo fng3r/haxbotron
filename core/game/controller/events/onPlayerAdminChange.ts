@@ -1,6 +1,6 @@
 import type { PlayerObject } from "haxball.js";
-import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function onPlayerAdminChangeListener(runtime: RoomRuntime, changedPlayer: PlayerObject, byPlayer: PlayerObject | null): void {
     /* Event called when a player's admin rights are changed.

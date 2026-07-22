@@ -1,18 +1,18 @@
 /// <reference types="jest" />
 
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
-import { TeamID } from "../../../game/model/GameObject/TeamID";
-import { RoomRuntime } from "../../../game/runtime/RoomRuntime";
-import { RuntimeRoomRpcCommand, RuntimeRoomRpcRequest } from "../../../lib/room/RoomProtocol";
+import { TeamID } from "../../../game/model/GameObject/TeamID.js";
+import { RoomRuntime } from "../../../game/runtime/RoomRuntime.js";
+import { RuntimeRoomRpcCommand, RuntimeRoomRpcRequest } from "../../../lib/room/RoomProtocol.js";
 
-jest.mock("../../../game/runtime/WorkerEventBridge", () => ({
-    emitPlayerStatusChange: jest.fn(),
+const mockEmitPlayerStatusChange = jest.fn();
+
+jest.unstable_mockModule("../../../game/runtime/WorkerEventBridge.js", () => ({
+    emitPlayerStatusChange: mockEmitPlayerStatusChange,
 }));
 
-const { handleRoomCommand } = require("../../../game/runtime/RoomCommandHandler") as typeof import("../../../game/runtime/RoomCommandHandler");
-const { emitPlayerStatusChange } = jest.requireMock("../../../game/runtime/WorkerEventBridge") as {
-    emitPlayerStatusChange: jest.Mock;
-};
+const { handleRoomCommand } = await import("../../../game/runtime/RoomCommandHandler.js");
+const { emitPlayerStatusChange } = await import("../../../game/runtime/WorkerEventBridge.js");
 
 type MockRoomRuntime = RoomRuntime & {
     config: {

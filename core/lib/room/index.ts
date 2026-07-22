@@ -1,11 +1,11 @@
-import { RoomProcessManager } from "./RoomProcessManager";
-import { RoomOperationsAPI } from "./RoomOperationsAPI";
+import { RoomProcessManager } from "./RoomProcessManager.js";
+import { RoomOperationsAPI } from "./RoomOperationsAPI.js";
 
-export { RoomProcessManager } from "./RoomProcessManager";
-export { RoomOperationsAPI } from "./RoomOperationsAPI";
-export type { RoomDetailInfo, RoomInfo } from "./RoomOperationsAPI";
-export type { RoomInitConfig } from "./RoomHostConfig";
-export type { DiscordWebhookConfig, DiscordWebhookCredentials } from "./RoomTypes";
+export { RoomProcessManager } from "./RoomProcessManager.js";
+export { RoomOperationsAPI } from "./RoomOperationsAPI.js";
+export type { RoomDetailInfo, RoomInfo } from "./RoomOperationsAPI.js";
+export type { RoomInitConfig } from "./RoomHostConfig.js";
+export type { DiscordWebhookConfig, DiscordWebhookCredentials } from "./RoomTypes.js";
 
 export function createRoomServices(): {
     roomProcessManager: RoomProcessManager;

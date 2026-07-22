@@ -1,8 +1,8 @@
 import Joi from "joi";
-import { Player } from "../../game/model/GameObject/Player";
-import { TeamID } from "../../game/model/GameObject/TeamID";
-import { RoomInitConfig } from "./RoomHostConfig";
-import { DiscordWebhookConfig } from "./RoomTypes";
+import { Player } from "../../game/model/GameObject/Player.js";
+import { TeamID } from "../../game/model/GameObject/TeamID.js";
+import { RoomInitConfig } from "./RoomHostConfig.js";
+import { DiscordWebhookConfig } from "./RoomTypes.js";
 
 export interface RoomInfo {
     roomName: string;

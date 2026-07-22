@@ -1,5 +1,5 @@
 import Router from "@koa/router";
-import * as banlistController from '../../controller/v1/banlist';
+import * as banlistController from '../../controller/v1/banlist.js';
 
 export const banlistRouter = new Router();
 

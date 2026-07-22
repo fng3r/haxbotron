@@ -7,7 +7,7 @@ import {
     RoomRpcRequest,
     RoomRpcResult,
     isRoomRpcResponseForCommand,
-} from "./RoomProtocol";
+} from "./RoomProtocol.js";
 
 type PendingRequest = {
     command: RoomRpcCommand;

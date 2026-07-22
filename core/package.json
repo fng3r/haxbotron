@@ -2,6 +2,7 @@
   "name": "haxbotron-core",
   "version": "0.5.1",
   "description": "Haxbotron is a headless host server application for Haxball.",
+  "type": "module",
   "main": "out/app.js",
   "scripts": {
     "start": "node out/app.js",

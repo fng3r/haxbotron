@@ -1,10 +1,10 @@
 import type { PlayerObject } from "haxball.js";
-import * as LangRes from "../../resource/strings";
-import { CommandExecutor, isCommandString, isTeamChatCommand, parseCommand } from "../commands/CommandRegistry";
-import { getUnixTimestamp } from "../../shared/DateTime";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
-import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge";
-import * as Tst from "../../shared/Translator";
+import * as LangRes from "../../resource/strings.js";
+import { CommandExecutor, isCommandString, isTeamChatCommand, parseCommand } from "../commands/CommandRegistry.js";
+import { getUnixTimestamp } from "../../shared/DateTime.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge.js";
+import * as Tst from "../../shared/Translator.js";
 
 export function onPlayerChatListener(runtime: RoomRuntime, commandExecutor: CommandExecutor, player: PlayerObject, message: string): boolean {
     // Event called when a player sends a chat message.

@@ -1,5 +1,5 @@
 import type { PlayerObject } from "haxball.js";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function onPlayerBallKickListener(runtime: RoomRuntime, player: PlayerObject): void {
     // Event called when a player kicks the ball.

@@ -1,5 +1,5 @@
 import type { RoomObject } from "haxball.js";
-import { getStadiumData } from "../../lib/stadiumLoader";
+import { getStadiumData } from "../../lib/stadiumLoader.js";
 
 /**
  * Service for managing the Haxball room instance

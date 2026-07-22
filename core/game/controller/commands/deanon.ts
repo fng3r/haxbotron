@@ -1,7 +1,7 @@
 import type { PlayerObject } from "haxball.js";
-import * as LangRes from "../../resource/strings";
-import { RoomRuntime } from "../../runtime/RoomRuntime";
-import * as Tst from "../../shared/Translator";
+import * as LangRes from "../../resource/strings.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import * as Tst from "../../shared/Translator.js";
 
 export async function cmdDeanon(runtime: RoomRuntime, byPlayer: PlayerObject, playerId: number) {
     const player = runtime.players.getPlayer(playerId);

@@ -1,8 +1,8 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import { BanEntry } from "../../game/model/PlayerBan/BanEntry";
-import { PlayerStorage } from "../../game/model/GameObject/PlayerState";
-import { PlayerRole } from "../../game/model/PlayerRole/PlayerRole";
-import { getDbConnectionUrl } from "../config";
+import { BanEntry } from "../../game/model/PlayerBan/BanEntry.js";
+import { PlayerStorage } from "../../game/model/GameObject/PlayerState.js";
+import { PlayerRole } from "../../game/model/PlayerRole/PlayerRole.js";
+import { getDbConnectionUrl } from "../config.js";
 
 type QueryValue = string | number | undefined;
 

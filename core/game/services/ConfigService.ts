@@ -1,5 +1,5 @@
 import type { RoomConfigObject } from "haxball.js";
-import { GameRoomConfig } from "../model/Configuration/GameRoomConfig";
+import { GameRoomConfig } from "../model/Configuration/GameRoomConfig.js";
 
 /**
  * Service for managing configuration and admin password.

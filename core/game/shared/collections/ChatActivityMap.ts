@@ -1,4 +1,4 @@
-import CircularArray from "./CircularArray";
+import CircularArray from "./CircularArray.js";
 
 export default class ChatActivityMap {
     private _trackActionsCount;
