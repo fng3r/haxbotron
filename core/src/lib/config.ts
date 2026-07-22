@@ -43,8 +43,8 @@ export function getApiKeys(): string[] {
  */
 export function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET environment variable is required');
+  if (!secret || secret.trim().length === 0) {
+    throw new Error('JWT_SECRET environment variable must be a non-empty string');
   }
   return secret;
 }

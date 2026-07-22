@@ -11,7 +11,7 @@ import { createServer as HTTPcreateServer } from "node:http";
 import { Server as SIOserver } from "socket.io";
 import { authenticationMiddleware } from "./api/middleware/authenticationMiddleware.js";
 import { errorHandler } from "./api/middleware/errorHandler.js";
-import { wsAuthenticationMiddleware } from "./api/middleware/wsAuthenticationMiddleware.js";
+import { createWsAuthenticationMiddleware } from "./api/middleware/wsAuthenticationMiddleware.js";
 import { createIndexAPIRouter } from "./api/router/v1/index.js";
 import { getApiKeys, getServerConfig } from "./lib/config.js";
 import { createRoomServices } from "./lib/room/index.js";
@@ -26,7 +26,7 @@ const sio = new SIOserver(server, { path:'/ws', transports: ['websocket'] });
 const coreServerSettings = getServerConfig();
 const allowedApiKeys = getApiKeys();
 
-sio.use(wsAuthenticationMiddleware);
+sio.use(createWsAuthenticationMiddleware());
 
 // Start server after room services are initialized
 (async () => {
