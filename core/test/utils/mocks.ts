@@ -36,32 +36,3 @@ export function createMockAxios() {
     delete: jest.fn().mockResolvedValue({ status: 204, data: {} }),
   };
 }
-
-/**
- * Mock node-persist storage
- */
-export function createMockStorage() {
-  const storage = new Map<string, any>();
-  
-  return {
-    init: jest.fn().mockResolvedValue(undefined),
-    setItem: jest.fn().mockImplementation((key: string, value: any) => {
-      storage.set(key, value);
-      return Promise.resolve();
-    }),
-    getItem: jest.fn().mockImplementation((key: string) => {
-      return Promise.resolve(storage.get(key));
-    }),
-    removeItem: jest.fn().mockImplementation((key: string) => {
-      storage.delete(key);
-      return Promise.resolve();
-    }),
-    clear: jest.fn().mockImplementation(() => {
-      storage.clear();
-      return Promise.resolve();
-    }),
-    values: jest.fn().mockImplementation(() => {
-      return Promise.resolve(Array.from(storage.values()));
-    }),
-  };
-}

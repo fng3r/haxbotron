@@ -1,6 +1,4 @@
 import type { PlayerObject } from "haxball.js";
-import * as Tst from "../../shared/Translator.js";
-import * as LangRes from "../../resource/strings.js";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge.js";
@@ -11,12 +9,6 @@ export function onPlayerTeamChangeListener(runtime: RoomRuntime, changedPlayer: 
     const room = runtime.room.getRoom();
     const playerList = runtime.players.getPlayerList();
     
-    let placeholderTeamChange = {
-        targetPlayerID: changedPlayer.id,
-        targetPlayerName: changedPlayer.name,
-        targetAfkReason: ''
-    }
-
     if (changedPlayer.id === 0) { // if the player changed into other team is host player(always id 0),
         room.setPlayerTeam(0, TeamID.Spec); // stay host player in Spectators team.
         runtime.logger.i('onPlayerTeamChange', `Bot host is moved team but it is rejected.`);

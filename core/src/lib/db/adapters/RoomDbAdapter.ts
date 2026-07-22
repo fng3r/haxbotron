@@ -286,5 +286,3 @@ export class RoomDbAdapter {
         }
     }
 }
-
-export const roomDbAdapter = new RoomDbAdapter();

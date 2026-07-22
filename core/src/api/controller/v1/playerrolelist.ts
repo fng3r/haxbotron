@@ -4,29 +4,9 @@ import { apiDbAdapter as dbClient } from "../../../lib/db/adapters/ApiDbAdapter.
 import { ConflictError, ExternalServiceError, NotFoundError, ValidationError } from "../../../lib/errors.js";
 import { getRequestBody } from "../requestBody.js";
 
-interface PlayerRole {
-    auth: string;
-    name: string;
-    role: string;
-}
-
 interface PlayerRoleBody {
     name: string;
     role: string;
-}
-
-enum PlayerRoleEventType {
-    addRole = 'addrole',
-    removeRole = 'rmrole',
-    updateRole = 'updaterole'
-}
-
-interface PlayerRoleEvent {
-    type: PlayerRoleEventType;
-    auth: string;
-    name: string;
-    role: string;
-    timestamp: number;
 }
 
 export async function getAllList(ctx: Context) {

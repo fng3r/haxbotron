@@ -8,8 +8,7 @@ import Koa from "koa";
 import bodyParser from "@koa/bodyparser";
 import logger from "koa-logger";
 import Router from "@koa/router";
-import nodeStorage from "node-persist";
-import { Server as SIOserver, Socket as SIOsocket } from "socket.io";
+import { Server as SIOserver } from "socket.io";
 import { authenticationMiddleware } from "./api/middleware/authenticationMiddleware.js";
 import { errorHandler } from "./api/middleware/errorHandler.js";
 import { wsAuthenticationMiddleware } from "./api/middleware/wsAuthenticationMiddleware.js";
@@ -27,11 +26,6 @@ const sio = new SIOserver(server, { path:'/ws', transports: ['websocket'] });
 const coreServerSettings = getServerConfig();
 const allowedApiKeys = getApiKeys();
 
-nodeStorage.init();
-
-sio.on('connection', (socket: SIOsocket) => {
-
-})
 sio.use(wsAuthenticationMiddleware);
 
 // Start server after room services are initialized
