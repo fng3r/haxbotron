@@ -7,7 +7,7 @@
 - Room dependencies are composed once per worker in `RoomRuntime` and then passed explicitly into commands, event handlers, and RPC handlers.
 - Worker code emits room events directly to the parent process; the parent preserves the existing `roomct`, `log`, `joinleft`, and `statuschange` Socket.IO contract.
 - Player/ban/role persistence no longer crosses a browser bridge. The worker uses a room-scoped repository that calls the DB adapter directly.
-- Parent-process room services are composed explicitly in `app.ts`; controllers and routers receive `RoomOperationsAPI` through factory functions instead of pulling module globals.
+- Parent-process room services are composed explicitly in `src/app.ts`; controllers and routers receive `RoomOperationsAPI` through factory functions instead of pulling module globals.
 - The worker IPC protocol is now discriminated by `command`, and post-bootstrap room commands are dispatched through a typed handler table rather than a `switch` over loosely typed payloads.
 
 ## Important implementation details

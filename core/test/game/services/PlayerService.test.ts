@@ -1,8 +1,8 @@
 /// <reference types="jest" />
 
 import { describe, expect, it } from "@jest/globals";
-import { TeamID } from "../../../game/model/GameObject/TeamID.js";
-import { PlayerService } from "../../../game/services/PlayerService.js";
+import { TeamID } from "../../../src/game/model/GameObject/TeamID.js";
+import { PlayerService } from "../../../src/game/services/PlayerService.js";
 
 describe("PlayerService.getPlayersForTeam", () => {
     it("filters players by provided team", () => {

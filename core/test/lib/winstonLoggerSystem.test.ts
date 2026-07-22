@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import { winstonLogger } from '../../winstonLoggerSystem.js';
+import { winstonLogger } from '../../src/winstonLoggerSystem.js';
 
 describe('Winston logger', () => {
     it('handles filesystem errors from every rotating transport', () => {

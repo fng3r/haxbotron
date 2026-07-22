@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 
 import { describe, expect, it } from "@jest/globals";
-import { GameCommandKey, parseCommand } from "../../../../game/controller/commands/CommandRegistry.js";
+import { GameCommandKey, parseCommand } from "../../../../src/game/controller/commands/CommandRegistry.js";
 
 describe("CommandParser", () => {
     function expectParsed(input: string, commandName: GameCommandKey, commandArgs: any[] = []): void {

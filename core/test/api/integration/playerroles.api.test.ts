@@ -3,11 +3,11 @@ import Koa from 'koa';
 import bodyParser from '@koa/bodyparser';
 import Router from '@koa/router';
 import request from 'supertest';
-import { errorHandler } from '../../../api/middleware/errorHandler.js';
-import { ConflictError } from '../../../lib/errors.js';
+import { errorHandler } from '../../../src/api/middleware/errorHandler.js';
+import { ConflictError } from '../../../src/lib/errors.js';
 
 // Mock API DB adapter
-esmJest.unstable_mockModule('../../../lib/db/adapters/ApiDbAdapter.js', () => ({
+esmJest.unstable_mockModule('../../../src/lib/db/adapters/ApiDbAdapter.js', () => ({
     apiDbAdapter: {
         searchPlayerRoles: jest.fn(),
         createPlayerRole: jest.fn(),
@@ -17,8 +17,8 @@ esmJest.unstable_mockModule('../../../lib/db/adapters/ApiDbAdapter.js', () => ({
     }
 }));
 
-const playerRolesController = await import('../../../api/controller/v1/playerrolelist.js');
-const { apiDbAdapter: dbClient } = await import('../../../lib/db/adapters/ApiDbAdapter.js');
+const playerRolesController = await import('../../../src/api/controller/v1/playerrolelist.js');
+const { apiDbAdapter: dbClient } = await import('../../../src/lib/db/adapters/ApiDbAdapter.js');
 
 describe('Player Roles API Integration Tests', () => {
     let app: Koa;

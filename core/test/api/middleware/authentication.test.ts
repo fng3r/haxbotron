@@ -1,8 +1,8 @@
 import Koa from 'koa';
 import Router from '@koa/router';
 import request from 'supertest';
-import { authenticationMiddleware } from '../../../api/middleware/authenticationMiddleware.js';
-import { errorHandler } from '../../../api/middleware/errorHandler.js';
+import { authenticationMiddleware } from '../../../src/api/middleware/authenticationMiddleware.js';
+import { errorHandler } from '../../../src/api/middleware/errorHandler.js';
 
 describe('Authentication Middleware', () => {
   let app: Koa;

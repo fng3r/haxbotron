@@ -1,11 +1,11 @@
 /// <reference types="jest" />
 
-import { Player } from "../../../game/model/GameObject/Player.js";
-import { PlayerStorage } from "../../../game/model/GameObject/PlayerState.js";
-import { BanEntry } from "../../../game/model/PlayerBan/BanEntry.js";
-import { PlayerRole } from "../../../game/model/PlayerRole/PlayerRole.js";
-import { PlayerRoles } from "../../../game/model/PlayerRole/PlayerRoles.js";
-import { RoomDbRepository } from "../../../lib/db/runtime/RoomDbRepository.js";
+import { Player } from "../../../src/game/model/GameObject/Player.js";
+import { PlayerStorage } from "../../../src/game/model/GameObject/PlayerState.js";
+import { BanEntry } from "../../../src/game/model/PlayerBan/BanEntry.js";
+import { PlayerRole } from "../../../src/game/model/PlayerRole/PlayerRole.js";
+import { PlayerRoles } from "../../../src/game/model/PlayerRole/PlayerRoles.js";
+import { RoomDbRepository } from "../../../src/lib/db/runtime/RoomDbRepository.js";
 
 function createMockAdapter() {
     return {

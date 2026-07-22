@@ -2,9 +2,9 @@ import Koa from 'koa';
 import bodyParser from '@koa/bodyparser';
 import Router from '@koa/router';
 import request from 'supertest';
-import { createRoomController } from '../../../api/controller/v1/room.js';
-import { authenticationMiddleware } from '../../../api/middleware/authenticationMiddleware.js';
-import { errorHandler } from '../../../api/middleware/errorHandler.js';
+import { createRoomController } from '../../../src/api/controller/v1/room.js';
+import { authenticationMiddleware } from '../../../src/api/middleware/authenticationMiddleware.js';
+import { errorHandler } from '../../../src/api/middleware/errorHandler.js';
 
 /**
  * API Contract Tests for Room Endpoints

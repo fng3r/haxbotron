@@ -7,9 +7,9 @@ export default {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   collectCoverageFrom: [
-    'api/**/*.ts',
-    'game/**/*.ts',
-    'lib/**/*.ts',
+    'src/api/**/*.ts',
+    'src/game/**/*.ts',
+    'src/lib/**/*.ts',
     '!**/*.d.ts',
     '!**/node_modules/**',
     '!**/out/**',

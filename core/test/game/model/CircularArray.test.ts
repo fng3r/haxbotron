@@ -1,4 +1,4 @@
-import CircularArray from '../../../game/shared/collections/CircularArray.js';
+import CircularArray from '../../../src/game/shared/collections/CircularArray.js';
 
 describe('CircularArray', () => {
   let circularArray: CircularArray<number>;

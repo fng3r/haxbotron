@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 
 import { describe, expect, it, jest } from "@jest/globals";
-import { RoomRpcClient } from "../../../lib/room/RoomRpcClient.js";
+import { RoomRpcClient } from "../../../src/lib/room/RoomRpcClient.js";
 
 describe("RoomRpcClient", () => {
     it("resolves matching responses", async () => {

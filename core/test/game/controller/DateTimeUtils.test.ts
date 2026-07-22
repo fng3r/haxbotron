@@ -1,4 +1,4 @@
-import { getUnixTimestamp, getRemainingTimeString } from '../../../game/shared/DateTime.js';
+import { getUnixTimestamp, getRemainingTimeString } from '../../../src/game/shared/DateTime.js';
 
 describe('DateTimeUtils', () => {
   describe('getUnixTimestamp', () => {

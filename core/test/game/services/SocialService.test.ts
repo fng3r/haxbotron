@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 
-import { SocialService } from "../../../game/services/SocialService.js";
-import { DiscordWebhookService } from "../../../lib/integrations/DiscordWebhookService.js";
+import { SocialService } from "../../../src/game/services/SocialService.js";
+import { DiscordWebhookService } from "../../../src/lib/integrations/DiscordWebhookService.js";
 
 describe("SocialService.sendReplayWebhook", () => {
     it("sends replay webhook when replay upload is configured", () => {

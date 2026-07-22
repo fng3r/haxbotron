@@ -1,8 +1,8 @@
 /// <reference types="jest" />
 
 import { describe, expect, it, jest } from "@jest/globals";
-import { TeamID } from "../../../game/model/GameObject/TeamID.js";
-import { MatchService } from "../../../game/services/MatchService.js";
+import { TeamID } from "../../../src/game/model/GameObject/TeamID.js";
+import { MatchService } from "../../../src/game/services/MatchService.js";
 
 describe("MatchService lifecycle helpers", () => {
     it("updates live stats from native score snapshot", () => {
