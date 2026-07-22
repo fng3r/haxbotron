@@ -1,5 +1,5 @@
 import { Context, Next } from 'koa';
-import { AppError, isAppError, toAppError } from '../../lib/errors';
+import { isAppError, toAppError } from '../../lib/errors';
 import { winstonLogger } from '../../winstonLoggerSystem';
 
 /**
@@ -13,7 +13,7 @@ export async function errorHandler(ctx: Context, next: Next): Promise<void> {
 
     // Log error
     if (error.statusCode >= 500) {
-      winstonLogger.error('Server error', {
+      winstonLogger.error('[api] Server error.', {
         code: error.code,
         message: error.message,
         statusCode: error.statusCode,
@@ -23,7 +23,7 @@ export async function errorHandler(ctx: Context, next: Next): Promise<void> {
         stack: error.stack,
       });
     } else if (error.statusCode >= 400) {
-      winstonLogger.warn('Client error', {
+      winstonLogger.warn('[api] Client error.', {
         code: error.code,
         message: error.message,
         statusCode: error.statusCode,

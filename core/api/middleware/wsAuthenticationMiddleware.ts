@@ -1,6 +1,7 @@
 import { parse as parseCookie } from "cookie";
 import { jwtVerify } from "jose";
 import { Socket } from "socket.io";
+import { winstonLogger } from "../../winstonLoggerSystem";
 
 /**
  * JWT validation middleware for Socket.IO Websocket
@@ -9,7 +10,7 @@ export async function wsAuthenticationMiddleware(socket: Socket, next: any) {
     const cookie = socket.request.headers.cookie;
     
     if (!cookie) {
-        console.error('WebSocket connection rejected: No cookies provided');
+        winstonLogger.error('[api] [ws] WebSocket connection rejected: No cookies provided');
         socket.disconnect();
         return;
     }
@@ -19,7 +20,7 @@ export async function wsAuthenticationMiddleware(socket: Socket, next: any) {
         const token = tokenCookie['access_token'];
         
         if (!token) {
-            console.error('WebSocket connection rejected: No access_token in cookies');
+            winstonLogger.error('[api] [ws] WebSocket connection rejected: No access_token in cookies');
             socket.disconnect();
             return;
         }
@@ -29,11 +30,10 @@ export async function wsAuthenticationMiddleware(socket: Socket, next: any) {
             algorithms: ['HS256'],
         });
     } catch (error: any) {
-        console.error('JWT verification failed:', error.message);
+        winstonLogger.error(`[api] [ws] JWT verification failed: ${error.message}`);
         socket.disconnect();
         return;
     }
 
-    console.log('WebSocket authentication successful');
     return next();
 }

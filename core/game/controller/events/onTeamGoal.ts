@@ -30,24 +30,38 @@ export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Pr
 
     const { scorer, assistant } = runtime.match.consumeGoalTouches();
     if (scorer !== undefined) {
-        // check whether or not it is an OG. and process it!
-        if (playerList.get(scorer)!.team === team) { // if the goal is normal goal (not OG)
-            placeholderGoal.scorerName = playerList.get(scorer)!.name;
-            playerList.get(scorer)!.matchRecord.goals++;
+        const scoringPlayer = playerList.get(scorer);
+        if (!scoringPlayer) {
+            placeholderGoal.scorerName = `Player#${scorer} [LEFT]`;
+            const goalMsg = Tst.maketext(LangRes.onGoal.goal, placeholderGoal);
+            runtime.room.sendAnnouncement(goalMsg, null, 0xFFFFFF, "normal", 0);
+            runtime.logger.i('onTeamGoal', goalMsg);
+            return;
+        }
+
+        if (scoringPlayer.team === team) { // if the goal is normal goal (not OG)
+            placeholderGoal.scorerName = scoringPlayer.name;
+            scoringPlayer.matchRecord.goals++;
             let goalMsg: string = Tst.maketext(LangRes.onGoal.goal, placeholderGoal);
-            if (assistant !== undefined && scorer != assistant && playerList.get(assistant)!.team === team) {
-                // records assist when the player who assists is not same as the player goaled, and is not other team.
-                placeholderGoal.assistantName = playerList.get(assistant)!.name;
-                playerList.get(assistant)!.matchRecord.assists++;
-                goalMsg = Tst.maketext(LangRes.onGoal.goalWithAssist, placeholderGoal);
+            if (assistant !== undefined && scorer != assistant) {
+                const assistingPlayer = playerList.get(assistant);
+                if (!assistingPlayer) {
+                    placeholderGoal.assistantName = `Player#${assistant} [LEFT]`;
+                    goalMsg = Tst.maketext(LangRes.onGoal.goalWithAssist, placeholderGoal);
+                } else if (assistingPlayer.team === team) {
+                    // records assist when the player who assists is not same as the player scored, and is not from other team.
+                    placeholderGoal.assistantName = assistingPlayer.name;
+                    assistingPlayer.matchRecord.assists++;
+                    goalMsg = Tst.maketext(LangRes.onGoal.goalWithAssist, placeholderGoal);
+                }
             }
             runtime.room.sendAnnouncement(goalMsg, null, 0xFFFFFF, "normal", 0);
             runtime.logger.i('onTeamGoal', goalMsg);
         } else { // if the goal is OG
-            placeholderGoal.ogName = playerList.get(scorer)!.name;
-            playerList.get(scorer)!.matchRecord.ogs++;
+            placeholderGoal.ogName = scoringPlayer.name;
+            scoringPlayer.matchRecord.ogs++;
             runtime.room.sendAnnouncement(Tst.maketext(LangRes.onGoal.og, placeholderGoal), null, 0xFFFFFF, "normal", 0);
-            runtime.logger.i('onTeamGoal', `${playerList.get(scorer)!.name}#${scorer} made an OG.`);
+            runtime.logger.i('onTeamGoal', `${scoringPlayer.name}#${scorer} made an OG.`);
         }
     }
 }
