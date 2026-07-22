@@ -1,7 +1,8 @@
 import { ChildProcess, fork } from "child_process";
-import { fileURLToPath } from "url";
+import { fileURLToPath } from "node:url";
 import { Server as SIOserver } from "socket.io";
 import { v4 as uuid } from "uuid";
+import { winstonLogger } from "../../winstonLoggerSystem.js";
 import { RoomInitConfig } from "./RoomHostConfig.js";
 import {
     AnyRoomRpcResponse,
@@ -19,6 +20,7 @@ type RoomHandle = {
     child: ChildProcess;
     rpcClient: RoomRpcClient;
     ready: boolean;
+    shuttingDown: boolean;
     roomLink?: string;
     startupTimer?: NodeJS.Timeout;
     startupResolve: () => void;
@@ -54,12 +56,14 @@ export class RoomProcessManager {
 
     public async openRoom(ruid: string, initConfig: RoomInitConfig): Promise<void> {
         if (this.rooms.has(ruid)) {
+            winstonLogger.warn(`[RoomProcessManager] [${ruid}] Refused to open duplicate room`);
             throw new Error(`[RoomProcessManager] Room '${ruid}' already exists`);
         }
 
+        winstonLogger.info(`[RoomProcessManager] [${ruid}] Starting room worker`);
         const workerPath = fileURLToPath(new URL("../../game/runtime/roomWorker.js", import.meta.url));
         const child = fork(workerPath, [], {
-            stdio: ["ignore", "inherit", "inherit", "ipc"],
+            stdio: ["ignore", "inherit", "pipe", "ipc"],
             env: process.env,
             serialization: "advanced",
         });
@@ -72,6 +76,9 @@ export class RoomProcessManager {
             await this.request(handle, "openRoom", { ruid, initConfig }, ROOM_STARTUP_TIMEOUT_MS);
             await handle.startupPromise;
         } catch (error) {
+            winstonLogger.error(
+                `[RoomProcessManager] [${ruid}] Failed to start room worker: ${error}`
+            );
             this.forceCleanupRoom(ruid, child);
             throw error;
         }
@@ -79,23 +86,36 @@ export class RoomProcessManager {
 
     public async closeRoom(ruid: string): Promise<void> {
         const handle = this.getRoomHandle(ruid);
+        handle.shuttingDown = true;
+        winstonLogger.info(`[RoomProcessManager] [${ruid}] Stopping room worker`);
 
         try {
             await this.request(handle, "closeRoom", undefined, ROOM_SHUTDOWN_TIMEOUT_MS);
         } catch (error) {
+            winstonLogger.error(
+                `[RoomProcessManager] [${ruid}] Graceful shutdown failed: ${error}`
+            );
             handle.child.kill();
             throw error;
         }
 
-        await Promise.race([
-            handle.exitPromise,
-            new Promise<void>((_, reject) => {
-                setTimeout(() => {
-                    handle.child.kill();
-                    reject(new Error(`[RoomProcessManager] Timed out while shutting down room '${ruid}'`));
-                }, ROOM_SHUTDOWN_TIMEOUT_MS);
-            }),
-        ]);
+        try {
+            await Promise.race([
+                handle.exitPromise,
+                new Promise<void>((_, reject) => {
+                    setTimeout(() => {
+                        handle.child.kill();
+                        reject(new Error(`[RoomProcessManager] Timed out while shutting down room '${ruid}'`));
+                    }, ROOM_SHUTDOWN_TIMEOUT_MS);
+                }),
+            ]);
+            winstonLogger.info(`[RoomProcessManager] [${ruid}] Room worker stopped`);
+        } catch (error) {
+            winstonLogger.error(
+                `[RoomProcessManager] [${ruid}] Failed to stop room worker: ${error}`
+            );
+            throw error;
+        }
     }
 
     public async requestRoom<C extends RoomRpcCommand>(
@@ -131,6 +151,7 @@ export class RoomProcessManager {
                 `room '${ruid}'`
             ),
             ready: false,
+            shuttingDown: false,
             startupResolve,
             startupReject,
             startupPromise,
@@ -141,14 +162,27 @@ export class RoomProcessManager {
 
     private bindChildListeners(handle: RoomHandle): void {
         handle.startupTimer = setTimeout(() => {
+            winstonLogger.error(
+                `[RoomProcessManager] [${handle.ruid}] Room worker startup timed out`
+            );
             handle.startupReject(new Error(`[RoomProcessManager] Timed out while starting room '${handle.ruid}'`));
         }, ROOM_STARTUP_TIMEOUT_MS);
+
+        handle.child.stderr?.setEncoding("utf8");
+        handle.child.stderr?.on("data", (output: string | Buffer) => {
+            const message = output.toString().replace(/\s+$/, "");
+            if (message) {
+                winstonLogger.error(
+                    `[RoomProcessManager] [${handle.ruid}] Worker stderr:\n${message}`
+                );
+            }
+        });
 
         handle.child.on("message", (message: unknown) => {
             const parsedMessage = parseRoomWorkerMessage(message);
             if (!parsedMessage.success) {
-                console.warn(
-                    `[RoomProcessManager] Ignored invalid IPC message from room '${handle.ruid}': ${parsedMessage.error}`
+                winstonLogger.warn(
+                    `[RoomProcessManager] [${handle.ruid}] Ignored invalid IPC message: ${parsedMessage.error}`
                 );
                 this.rejectInvalidWorkerResponse(handle, message, parsedMessage.error);
                 return;
@@ -164,13 +198,26 @@ export class RoomProcessManager {
             this.handleWorkerResponse(handle, validatedMessage);
         });
 
-        handle.child.on("exit", () => {
+        handle.child.on("exit", (code, signal) => {
+            const exitDetails = `code=${code ?? "null"}, signal=${signal ?? "null"}`;
+            if (handle.shuttingDown) {
+                winstonLogger.info(
+                    `[RoomProcessManager] [${handle.ruid}] Room worker exited (${exitDetails})`
+                );
+            } else {
+                winstonLogger.error(
+                    `[RoomProcessManager] [${handle.ruid}] Room worker exited unexpectedly (${exitDetails})`
+                );
+            }
             this.resolveExit(handle);
             handle.rpcClient.rejectAll(new Error(`[RoomProcessManager] Room worker '${handle.ruid}' exited unexpectedly`));
             if (handle.startupTimer) {
                 clearTimeout(handle.startupTimer);
             }
             if (!handle.ready) {
+                winstonLogger.error(
+                    `[RoomProcessManager] [${handle.ruid}] Room worker exited before becoming ready`
+                );
                 handle.startupReject(new Error(`[RoomProcessManager] Room '${handle.ruid}' exited before becoming ready`));
             }
             this.rooms.delete(handle.ruid);
@@ -178,6 +225,9 @@ export class RoomProcessManager {
         });
 
         handle.child.on("error", (error) => {
+            winstonLogger.error(
+                `[RoomProcessManager] [${handle.ruid}] Child process error: ${error.message}`
+            );
             handle.rpcClient.rejectAll(error);
             handle.startupReject(error);
         });
@@ -188,6 +238,9 @@ export class RoomProcessManager {
             case "roomReady":
                 handle.ready = true;
                 handle.roomLink = event.payload.link;
+                winstonLogger.info(
+                    `[RoomProcessManager] [${handle.ruid}] Room worker is ready`
+                );
                 if (handle.startupTimer) {
                     clearTimeout(handle.startupTimer);
                 }
@@ -195,6 +248,7 @@ export class RoomProcessManager {
                 this.emitSocketIOEvent("roomct", { ruid: handle.ruid });
                 return;
             case "log":
+                winstonLogger.log(event.payload.level, event.payload.message);
                 this.emitSocketIOEvent("log", {
                     id: uuid(),
                     ruid: handle.ruid,

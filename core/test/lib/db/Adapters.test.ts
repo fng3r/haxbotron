@@ -31,7 +31,7 @@ describe("DB adapters", () => {
         const player = await adapter.readPlayer("room-1", "auth-1");
 
         expect(player).toBeUndefined();
-        expect(logger.info).toHaveBeenCalled();
+        expect(logger.info).toHaveBeenCalledWith(expect.stringMatching(/^\[db\] /));
         expect(logger.error).not.toHaveBeenCalled();
     });
 
@@ -48,6 +48,6 @@ describe("DB adapters", () => {
         const ban = await adapter.readBan("room-1", "conn-1");
 
         expect(ban).toBeUndefined();
-        expect(logger.error).toHaveBeenCalled();
+        expect(logger.error).toHaveBeenCalledWith(expect.stringMatching(/^\[db\] /));
     });
 });

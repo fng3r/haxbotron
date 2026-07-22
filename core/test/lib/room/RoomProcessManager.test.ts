@@ -1,18 +1,30 @@
 /// <reference types="jest" />
 
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { EventEmitter } from "events";
+import { PassThrough } from "stream";
 import { AnyRoomRpcRequest } from "../../../src/lib/room/RoomProtocol.js";
 
 const mockFork = jest.fn() as jest.Mock;
+const mockWinstonLogger = {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    log: jest.fn(),
+};
 
 jest.unstable_mockModule("child_process", () => ({
     fork: mockFork,
 }));
 
+jest.unstable_mockModule("../../../src/winstonLoggerSystem.js", () => ({
+    winstonLogger: mockWinstonLogger,
+}));
+
 class MockChildProcess extends EventEmitter {
     public send = jest.fn();
     public kill = jest.fn();
+    public stderr = new PassThrough();
 }
 
 describe("RoomProcessManager", () => {
@@ -78,6 +90,25 @@ describe("RoomProcessManager", () => {
         });
 
         await openRoomPromise;
+
+        child.stderr.write("TypeError: worker crashed\n    at roomWorker.js:1:1\n");
+
+        expect(mockWinstonLogger.error).toHaveBeenCalledWith(
+            "[RoomProcessManager] [room-1] Worker stderr:\nTypeError: worker crashed\n    at roomWorker.js:1:1"
+        );
+
+        child.emit("message", {
+            type: "event",
+            event: "log",
+            payload: {
+                origin: "game",
+                level: "info",
+                message: "[room-1] [game] A message",
+                timestamp: 1,
+            },
+        });
+
+        expect(mockWinstonLogger.log).toHaveBeenCalledWith("info", "[room-1] [game] A message");
 
         const requestPromise = manager.requestRoom("room-1", "getOnlinePlayersIDList", undefined, 1000);
         const request = child.send.mock.calls[1][0] as AnyRoomRpcRequest;
