@@ -1,8 +1,8 @@
 /// <reference types="jest" />
 
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { EventEmitter } from "events";
-import { PassThrough } from "stream";
+import { EventEmitter } from "node:events";
+import { PassThrough } from "node:stream";
 import { AnyRoomRpcRequest } from "../../../src/lib/room/RoomProtocol.js";
 
 const mockFork = jest.fn() as jest.Mock;
@@ -13,7 +13,7 @@ const mockWinstonLogger = {
     log: jest.fn(),
 };
 
-jest.unstable_mockModule("child_process", () => ({
+jest.unstable_mockModule("node:child_process", () => ({
     fork: mockFork,
 }));
 

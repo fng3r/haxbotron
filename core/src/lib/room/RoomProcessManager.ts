@@ -1,7 +1,6 @@
-import { ChildProcess, fork } from "child_process";
-import { fileURLToPath } from "node:url";
+import { randomUUID } from "node:crypto";
+import { fork, type ChildProcess } from "node:child_process";
 import { Server as SIOserver } from "socket.io";
-import { v4 as uuid } from "uuid";
 import { winstonLogger } from "../../winstonLoggerSystem.js";
 import { RoomInitConfig } from "./RoomHostConfig.js";
 import {
@@ -61,8 +60,8 @@ export class RoomProcessManager {
         }
 
         winstonLogger.info(`[RoomProcessManager] [${ruid}] Starting room worker`);
-        const workerPath = fileURLToPath(new URL("../../game/runtime/roomWorker.js", import.meta.url));
-        const child = fork(workerPath, [], {
+        const workerUrl = new URL("../../game/runtime/roomWorker.js", import.meta.url);
+        const child = fork(workerUrl, [], {
             stdio: ["ignore", "inherit", "pipe", "ipc"],
             env: process.env,
             serialization: "advanced",
@@ -250,7 +249,7 @@ export class RoomProcessManager {
             case "log":
                 winstonLogger.log(event.payload.level, event.payload.message);
                 this.emitSocketIOEvent("log", {
-                    id: uuid(),
+                    id: randomUUID(),
                     ruid: handle.ruid,
                     origin: event.payload.origin,
                     type: event.payload.level,

@@ -1,4 +1,4 @@
-import { v4 as uuid } from "uuid";
+import { randomUUID } from "node:crypto";
 import {
     AnyRoomRpcRequest,
     RoomRpcCommand,
@@ -29,7 +29,7 @@ export class RoomRpcClient {
         payload: RoomRpcPayload<C>,
         timeoutMs: number
     ): Promise<RoomRpcResult<C>> {
-        const requestId = uuid();
+        const requestId = randomUUID();
         const request: RoomRpcRequest<C> = {
             type: "request",
             requestId,
