@@ -21,6 +21,7 @@ import {
   getRoomConfigs,
   saveRoomConfig,
   deleteRoomConfig,
+  relaunchRoom,
 } from '@/lib/api/room';
 import { AllRoomListItem, DiscordWebhookConfig, PersistedRoomConfig, RoomInfo, RoomInfoItem, TeamColoursResponse } from '@/lib/types/room';
 
@@ -114,6 +115,18 @@ const mutations = {
     });
   },
 
+  relaunchRoom: () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: relaunchRoom,
+      onSettled: (_data, _error, config) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.room(config.ruid) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.roomFreezeStatus(config.ruid) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
+      },
+    });
+  },
+
   setNoticeMessage: () => {
     const queryClient = useQueryClient();
 
@@ -154,14 +167,22 @@ const mutations = {
   },
 
   setPassword: () => {
+    const queryClient = useQueryClient();
     return useMutation({
       mutationFn: setPassword,
+      onSettled: (_data, _error, { ruid }) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.room(ruid) });
+      },
     });
   },
 
   clearPassword: () => {
+    const queryClient = useQueryClient();
     return useMutation({
       mutationFn: clearPassword,
+      onSettled: (_data, _error, { ruid }) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.room(ruid) });
+      },
     });
   },
 

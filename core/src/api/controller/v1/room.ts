@@ -79,6 +79,36 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
             ctx.status = 201;
         },
 
+        async relaunchRoom(ctx: Context) {
+            const { ruid } = ctx.params;
+            ensureRoomExists(ruid);
+
+            const validationResult = nestedHostRoomConfigSchema.validate({
+                ...(ctx.request.body as Record<string, unknown>),
+                ruid,
+            });
+            if (validationResult.error) {
+                const formatted = formatJoiError(validationResult.error);
+                throw new ValidationError(formatted.message, formatted.details);
+            }
+
+            const body = validationResult.value;
+            const nextConfig: RoomInitConfig = {
+                _LaunchDate: new Date(),
+                _RUID: ruid,
+                _config: body._config,
+                settings: body.settings,
+                rules: body.rules,
+                discordWebhook: body.discordWebhook,
+            };
+            if (nextConfig._config.password === "") nextConfig._config.password = undefined;
+
+            await apiDbAdapter.saveRoomConfig(body);
+            await roomOperations.closeRoom(ruid);
+            await roomOperations.openNewRoom(ruid, nextConfig);
+            ctx.status = 201;
+        },
+
         async terminateRoom(ctx: Context) {
             const { ruid } = ctx.params;
             ensureRoomExists(ruid);

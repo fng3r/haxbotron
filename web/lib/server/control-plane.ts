@@ -56,6 +56,13 @@ export async function getServerRoomConfigs(): Promise<PersistedRoomConfig[]> {
   });
 }
 
+export async function getServerRoomConfig(ruid: string): Promise<PersistedRoomConfig> {
+  return await (await getService()).requestGlobal<PersistedRoomConfig>({
+    url: `/api/v1/room-configs/${encodeURIComponent(ruid)}`,
+    method: 'GET',
+  });
+}
+
 export async function getServerRoomInfo(ruid: string): Promise<RoomInfo> {
   return await (await getService()).getRoomInfo(ruid);
 }

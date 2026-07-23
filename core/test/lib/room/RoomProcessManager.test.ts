@@ -43,6 +43,35 @@ describe("RoomProcessManager", () => {
         jest.restoreAllMocks();
     });
 
+    it("propagates an invalid room token reported during worker startup", async () => {
+        const manager = new RoomProcessManager();
+        const openRoomPromise = manager.openRoom("room-1", {
+            _RUID: "room-1",
+            _LaunchDate: new Date("2026-01-01T00:00:00.000Z"),
+            _config: {
+                roomName: "Room 1", token: "expired", noPlayer: true,
+                playerName: "bot", public: false, maxPlayers: 8,
+            },
+            rules: {
+                scoreLimit: 5, timeLimit: 5, teamLock: false, autoAdmin: false,
+                whitelistEnabled: false, defaultMapName: "classic",
+            },
+            settings: {
+                antiChatFlood: true, chatFloodCriterion: 5, chatFloodIntervalMillisecs: 10_000,
+                muteDefaultMillisecs: 180_000, forbidDuplicatedNickname: true,
+            },
+        });
+
+        child.stderr.write("InvalidRoomTokenError: Invalid room token. Generate a new token at https://www.haxball.com/headlesstoken.\n");
+        child.emit("exit", 1, null);
+
+        await expect(openRoomPromise).rejects.toMatchObject({
+            code: "INVALID_ROOM_TOKEN",
+            statusCode: 400,
+            message: "Invalid room token. Generate a new token at https://www.haxball.com/headlesstoken.",
+        });
+    });
+
     it("rejects pending requests immediately when worker response is invalid", async () => {
         const manager = new RoomProcessManager();
         const openRoomPromise = manager.openRoom("room-1", {

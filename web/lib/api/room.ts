@@ -14,8 +14,10 @@ import {
 } from '@/lib/types/room';
 
 function toErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof AxiosError && error.response?.data?.message) {
-    return error.response.data.message;
+  if (error instanceof AxiosError) {
+    const data = error.response?.data;
+    if (data?.error?.message) return data.error.message;
+    if (data?.message) return data.message;
   }
   if (error instanceof Error) return error.message;
   return fallback;
@@ -130,6 +132,14 @@ export const shutdownRoom = async (ruid: string): Promise<void> => {
     await apiClient.delete(`/api/v1/room/${ruid}`);
   } catch (error) {
     throw new Error(toErrorMessage(error, 'Unexpected error occurred. Please try again.'));
+  }
+};
+
+export const relaunchRoom = async (config: ReactHostRoomInfo): Promise<void> => {
+  try {
+    await getApiClient().post(`/api/v1/room/${encodeURIComponent(config.ruid)}/relaunch`, config);
+  } catch (error) {
+    throw new Error(toErrorMessage(error, 'Failed to relaunch room.'));
   }
 };
 
