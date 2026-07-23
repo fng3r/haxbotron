@@ -1,7 +1,7 @@
 {
-  "ruid": "cis4",
+  "ruid": "cisN",
   "_config": {
-    "roomName": "\ud83c\udfc6 cis-haxball.ru | Room #4",
+    "roomName": "\ud83c\udfc6 cis-haxball.ru | Room #N",
     "password": "2552",
     "maxPlayers": 15,
     "public": true,
