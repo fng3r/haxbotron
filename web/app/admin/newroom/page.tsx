@@ -1,3 +1,5 @@
+import 'flag-icons/css/flag-icons.min.css';
+
 import RoomConfigWorkspace from '@/components/Admin/RoomConfigWorkspace';
 
 import { getServerControlMappings, getServerRoomConfigs } from '@/lib/server/control-plane';

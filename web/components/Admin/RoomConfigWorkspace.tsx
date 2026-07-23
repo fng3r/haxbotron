@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ExternalLink, LoaderCircle, Plus, Rocket, Save, Trash2, TriangleAlert } from 'lucide-react';
 import { z } from 'zod';
 
+import CountryCombobox from '@/components/Admin/CountryCombobox';
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -270,7 +271,7 @@ export default function RoomConfigWorkspace({
                   control={form.control}
                   name={name}
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="min-w-0">
                       <FormLabel>{{ ruid: 'RUID', roomName: 'Room title', password: 'Password' }[name]}</FormLabel>
                       <FormControl>
                         <Input {...field} />
@@ -396,16 +397,31 @@ export default function RoomConfigWorkspace({
                 <div className="sm:col-span-3">
                   <Toggle form={form} name="geoEnabled" label="Override room location" />
                 </div>
-                {(['geoCode', 'geoLat', 'geoLon'] as const).map((name) => (
+                <FormField
+                  control={form.control}
+                  name="geoCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl>
+                        <CountryCombobox
+                          value={field.value}
+                          onChange={field.onChange}
+                          disabled={!form.watch('geoEnabled')}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {(['geoLat', 'geoLon'] as const).map((name) => (
                   <FormField
                     key={name}
                     control={form.control}
                     name={name}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>
-                          {{ geoCode: 'Country code', geoLat: 'Latitude', geoLon: 'Longitude' }[name]}
-                        </FormLabel>
+                        <FormLabel>{{ geoLat: 'Latitude', geoLon: 'Longitude' }[name]}</FormLabel>
                         <FormControl>
                           <Input {...field} disabled={!form.watch('geoEnabled')} />
                         </FormControl>
@@ -414,6 +430,9 @@ export default function RoomConfigWorkspace({
                     )}
                   />
                 ))}
+                <p className="text-muted-foreground text-sm sm:col-span-3">
+                  Some country flags may not be supported by HaxBall and will fall back to the default flag
+                </p>
               </CardContent>
             </Card>
           </div>
