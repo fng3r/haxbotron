@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 
 import { describe, expect, it, jest } from "@jest/globals";
-import { BanService } from "../../../game/services/BanService";
+import { BanService } from "../../../src/game/services/BanService.js";
 
 describe("BanService", () => {
     const sampleBan = {

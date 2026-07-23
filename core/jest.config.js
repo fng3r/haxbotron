@@ -1,12 +1,15 @@
-module.exports = {
-  preset: 'ts-jest',
+export default {
   testEnvironment: 'node',
   roots: ['<rootDir>/test'],
   testMatch: ['**/*.test.ts'],
+  extensionsToTreatAsEsm: ['.ts'],
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
   collectCoverageFrom: [
-    'api/**/*.ts',
-    'game/**/*.ts',
-    'lib/**/*.ts',
+    'src/api/**/*.ts',
+    'src/game/**/*.ts',
+    'src/lib/**/*.ts',
     '!**/*.d.ts',
     '!**/node_modules/**',
     '!**/out/**',
@@ -15,15 +18,21 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   transform: {
-    '^.+\\.ts$': 'ts-jest',
-  },
-  globals: {
-    'ts-jest': {
-      tsconfig: {
-        esModuleInterop: true,
-        allowJs: true,
+    '^.+\\.tsx?$': [
+      '@swc/jest',
+      {
+        jsc: {
+          parser: {
+            syntax: 'typescript',
+            tsx: false,
+          },
+          target: 'es2022',
+        },
+        module: {
+          type: 'es6',
+        },
       },
-    },
+    ],
   },
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
   testTimeout: 10000,

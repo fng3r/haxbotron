@@ -1,5 +1,5 @@
-import { PlayerRoles } from "../../game/model/PlayerRole/PlayerRoles";
-import { DbApiGateway } from "../../lib/db/DbApiGateway";
+import { PlayerRoles } from "../../src/game/model/PlayerRole/PlayerRoles.js";
+import { DbApiGateway } from "../../src/lib/db/DbApiGateway.js";
 
 describe("DbApiGateway", () => {
     function createGateway() {

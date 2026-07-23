@@ -19,7 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 
-import { RoomSettings } from '@/../core/lib/room/RoomHostConfig';
+import type { RoomSettings } from '@/../core/src/lib/room/RoomHostConfig';
 import DefaultConfigSet from '@/lib/defaultroomconfig.json';
 import { mutations } from '@/lib/queries/room';
 import { ManagedRoomInfo, RoomMapping } from '@/lib/types/control';

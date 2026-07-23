@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 
-import { PlayerRoles } from "../../../game/model/PlayerRole/PlayerRoles";
-import { PlayerOnboardingService } from "../../../game/services/PlayerOnboardingService";
+import { PlayerRoles } from "../../../src/game/model/PlayerRole/PlayerRoles.js";
+import { PlayerOnboardingService } from "../../../src/game/services/PlayerOnboardingService.js";
 
 describe("PlayerOnboardingService", () => {
     function mockPlayerObject() {

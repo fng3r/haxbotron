@@ -1,0 +1,50 @@
+import type { PlayerObject } from "haxball.js";
+import { Player } from "../../model/GameObject/Player.js";
+import { TeamID } from "../../model/GameObject/TeamID.js";
+import * as LangRes from "../../resource/strings.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import * as Tst from "../../shared/Translator.js";
+
+export function cmdList(runtime: RoomRuntime, byPlayer: PlayerObject, playerGroup?: string): void {
+    const team = resolveTeam(playerGroup);
+    if (team === "invalid") {
+        runtime.room.sendAnnouncement(LangRes.command.list._ErrorNoTeam, byPlayer.id, 0xFF7777, "normal", 2);
+        return;
+    }
+
+    const players = team === undefined
+        ? runtime.players.getAllPlayers()
+        : runtime.players.getPlayersForTeam(team);
+    const whoisResult = players.length > 0
+        ? players.map(formatListedPlayer).join(", ")
+        : LangRes.command.list._ErrorNoOne;
+
+    runtime.room.sendAnnouncement(
+        Tst.maketext(LangRes.command.list.whoisList, { whoisResult }),
+        byPlayer.id,
+        0x479947,
+        "normal",
+        1
+    );
+}
+
+function resolveTeam(playerGroup?: string): TeamID | undefined | "invalid" {
+    if (playerGroup === undefined || playerGroup === null) {
+        return undefined;
+    }
+
+    if (playerGroup === "red") {
+        return TeamID.Red;
+    } else if (playerGroup === "blue") {
+        return TeamID.Blue;
+    } else if (playerGroup === "spec") {
+        return TeamID.Spec;
+    }
+    
+    return "invalid";
+}
+
+function formatListedPlayer(player: Player): string {
+    const muteFlag = player.permissions.mute ? "🔇" : "";
+    return `${player.name}#${player.id}${muteFlag}`;
+}

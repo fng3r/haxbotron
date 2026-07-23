@@ -1,11 +1,11 @@
 /// <reference types="jest" />
 
 import { describe, expect, it } from "@jest/globals";
-import { TeamID } from "../../../game/model/GameObject/TeamID";
+import { TeamID } from "../../../src/game/model/GameObject/TeamID.js";
 import {
     parseRoomRpcRequest,
     parseRoomWorkerMessage,
-} from "../../../lib/room/RoomProtocol";
+} from "../../../src/lib/room/RoomProtocol.js";
 
 describe("RoomProtocol validation", () => {
     it("parses valid runtime requests", () => {

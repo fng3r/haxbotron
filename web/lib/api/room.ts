@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 
-import { ReactHostRoomInfo } from '@/../core/lib/room/RoomHostConfig';
+import type { ReactHostRoomInfo } from '@/../core/src/lib/room/RoomHostConfig';
 import { getAllRoomsListAction, getRoomsInfoListAction } from '@/lib/actions/control';
 import getApiClient from '@/lib/api-client';
 import {

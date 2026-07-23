@@ -1,0 +1,22 @@
+import type { PlayerObject } from "haxball.js";
+import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles.js";
+import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+
+export function cmdStaff(runtime: RoomRuntime, byPlayer: PlayerObject): void {
+    const playerList = runtime.players.getPlayerList();
+    
+    const entries = []
+    for (const player of playerList.values()) {
+        const role = runtime.playerRoles.getRole(player.id);
+        if (!role) {
+            continue;
+        }
+
+        if (PlayerRoles.atLeast(role, PlayerRoles.S_ADM)) {
+            entries.push(`${player.name}#${player.id} (${role.role})`);
+        }
+    }
+    const staffPlayersString = `👨🏻‍💼 Staff: ${entries.join(', ') || 'No staff players'}`;
+
+    runtime.room.sendAnnouncement(staffPlayersString, null, 0x479947, "normal", 1);
+}

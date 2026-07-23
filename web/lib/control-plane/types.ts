@@ -1,4 +1,4 @@
-import { RoomHostConfig, RoomRules, RoomSettings } from '@/../core/lib/room/RoomHostConfig';
+import type { RoomHostConfig, RoomRules, RoomSettings } from '@/../core/src/lib/room/RoomHostConfig';
 
 export type HostNode = {
   id: string;

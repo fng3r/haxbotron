@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import type { RuntimeRoomRpcRequest } from "../../../lib/room/RoomProtocol";
+import type { RuntimeRoomRpcRequest } from "../../../src/lib/room/RoomProtocol.js";
 
 const mockHaxballJS = jest.fn() as jest.Mock;
 const mockOpenRoomRuntime = jest.fn() as jest.Mock;
@@ -15,7 +15,7 @@ let nextTickMock: jest.Mock;
 let originalProcessOn: typeof process.on;
 let originalProcessExit: typeof process.exit;
 let originalProcessNextTick: typeof process.nextTick;
-let roomWorkerModule: typeof import("../../../game/runtime/roomWorker");
+let roomWorkerModule: typeof import("../../../src/game/runtime/roomWorker.js");
 
 async function flushWorkerPipeline(): Promise<void> {
     await new Promise<void>((resolve) => {
@@ -29,7 +29,7 @@ async function flushWorkerPipeline(): Promise<void> {
     });
 }
 
-function createRuntimeCommand<C extends Exclude<keyof import("../../../lib/room/RoomProtocol").RoomRpcContract, "openRoom">>(
+function createRuntimeCommand<C extends Exclude<keyof import("../../../src/lib/room/RoomProtocol.js").RoomRpcContract, "openRoom">>(
     command: C,
     payload: RuntimeRoomRpcRequest<C>["payload"]
 ): RuntimeRoomRpcRequest<C> {
@@ -71,21 +71,20 @@ describe("roomWorker pipeline", () => {
         (process as NodeJS.Process).exit = exitMock as unknown as typeof process.exit;
         (process as NodeJS.Process).nextTick = nextTickMock as unknown as typeof process.nextTick;
 
-        jest.doMock("haxball.js", () => ({
-            __esModule: true,
+        jest.unstable_mockModule("haxball.js", () => ({
             default: mockHaxballJS,
         }));
-        jest.doMock("../../../game/runtime/RoomBootstrap", () => ({
+        jest.unstable_mockModule("../../../src/game/runtime/RoomBootstrap.js", () => ({
             openRoomRuntime: mockOpenRoomRuntime,
         }));
-        jest.doMock("../../../game/runtime/RoomCommandHandler", () => ({
+        jest.unstable_mockModule("../../../src/game/runtime/RoomCommandHandler.js", () => ({
             handleRoomCommand: mockHandleRoomCommand,
         }));
-        jest.doMock("../../../game/runtime/WorkerEventBridge", () => ({
+        jest.unstable_mockModule("../../../src/game/runtime/WorkerEventBridge.js", () => ({
             sendWorkerMessage: mockSendWorkerMessage,
         }));
 
-        roomWorkerModule = await import("../../../game/runtime/roomWorker");
+        roomWorkerModule = await import("../../../src/game/runtime/roomWorker.js");
         expect(roomWorkerModule).toBeDefined();
         expect(messageHandler).toBeDefined();
     });

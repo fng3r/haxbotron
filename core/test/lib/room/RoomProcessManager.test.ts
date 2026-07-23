@@ -1,9 +1,9 @@
 /// <reference types="jest" />
 
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
-import { EventEmitter } from "events";
-import { PassThrough } from "stream";
-import { AnyRoomRpcRequest } from "../../../lib/room/RoomProtocol";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { EventEmitter } from "node:events";
+import { PassThrough } from "node:stream";
+import { AnyRoomRpcRequest } from "../../../src/lib/room/RoomProtocol.js";
 
 const mockFork = jest.fn() as jest.Mock;
 const mockWinstonLogger = {
@@ -13,11 +13,11 @@ const mockWinstonLogger = {
     log: jest.fn(),
 };
 
-jest.mock("child_process", () => ({
+jest.unstable_mockModule("node:child_process", () => ({
     fork: mockFork,
 }));
 
-jest.mock("../../../winstonLoggerSystem", () => ({
+jest.unstable_mockModule("../../../src/winstonLoggerSystem.js", () => ({
     winstonLogger: mockWinstonLogger,
 }));
 
@@ -29,14 +29,14 @@ class MockChildProcess extends EventEmitter {
 
 describe("RoomProcessManager", () => {
     let child: MockChildProcess;
-    let RoomProcessManager: typeof import("../../../lib/room/RoomProcessManager").RoomProcessManager;
+    let RoomProcessManager: typeof import("../../../src/lib/room/RoomProcessManager.js").RoomProcessManager;
 
     beforeEach(async () => {
         jest.resetModules();
         jest.clearAllMocks();
         child = new MockChildProcess();
         mockFork.mockReturnValue(child);
-        ({ RoomProcessManager } = await import("../../../lib/room/RoomProcessManager"));
+        ({ RoomProcessManager } = await import("../../../src/lib/room/RoomProcessManager.js"));
     });
 
     afterEach(() => {

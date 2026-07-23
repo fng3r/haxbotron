@@ -1,4 +1,4 @@
-import { generateRandomString } from '../../lib/utils';
+import { generateRandomString } from '../../src/lib/utils.js';
 
 describe('Utils', () => {
   describe('generateRandomString', () => {

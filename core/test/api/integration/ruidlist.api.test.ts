@@ -1,18 +1,19 @@
+import { jest as esmJest } from "@jest/globals";
 import Koa from 'koa';
-import bodyParser from 'koa-bodyparser';
-import Router from 'koa-router';
+import bodyParser from '@koa/bodyparser';
+import Router from '@koa/router';
 import request from 'supertest';
-import * as ruidlistController from '../../../api/controller/v1/ruidlist';
-import { errorHandler } from '../../../api/middleware/errorHandler';
+import { errorHandler } from '../../../src/api/middleware/errorHandler.js';
 
 // Mock API DB adapter
-jest.mock('../../../lib/db/adapters/ApiDbAdapter', () => ({
+esmJest.unstable_mockModule('../../../src/lib/db/adapters/ApiDbAdapter.js', () => ({
     apiDbAdapter: {
         getRuidList: jest.fn(),
     }
 }));
 
-const { apiDbAdapter: dbClient } = require('../../../lib/db/adapters/ApiDbAdapter');
+const ruidlistController = await import('../../../src/api/controller/v1/ruidlist.js');
+const { apiDbAdapter: dbClient } = await import('../../../src/lib/db/adapters/ApiDbAdapter.js');
 
 describe('RUID List API Integration Tests', () => {
     let app: Koa;

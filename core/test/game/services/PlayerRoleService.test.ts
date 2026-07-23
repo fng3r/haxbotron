@@ -1,8 +1,8 @@
 /// <reference types="jest" />
 
 import { describe, expect, it } from "@jest/globals";
-import { PlayerRoles } from "../../../game/model/PlayerRole/PlayerRoles";
-import { PlayerRoleService } from "../../../game/services/PlayerRoleService";
+import { PlayerRoles } from "../../../src/game/model/PlayerRole/PlayerRoles.js";
+import { PlayerRoleService } from "../../../src/game/services/PlayerRoleService.js";
 
 describe("PlayerRoleService admin policy helpers", () => {
     it("restores admin when lower privilege user changes higher privilege user", () => {

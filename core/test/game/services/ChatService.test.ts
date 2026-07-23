@@ -1,8 +1,8 @@
 /// <reference types="jest" />
 
 import { describe, expect, it } from "@jest/globals";
-import { PlayerRoles } from "../../../game/model/PlayerRole/PlayerRoles";
-import { ChatService } from "../../../game/services/ChatService";
+import { PlayerRoles } from "../../../src/game/model/PlayerRole/PlayerRoles.js";
+import { ChatService } from "../../../src/game/services/ChatService.js";
 
 describe("ChatService", () => {
     it("detects chat flood when threshold and interval are exceeded", () => {

@@ -1,8 +1,8 @@
 /// <reference types="jest" />
 
 import { describe, expect, it, jest } from "@jest/globals";
-import { TeamID } from "../../../game/model/GameObject/TeamID";
-import { MatchService } from "../../../game/services/MatchService";
+import { TeamID } from "../../../src/game/model/GameObject/TeamID.js";
+import { MatchService } from "../../../src/game/services/MatchService.js";
 
 describe("MatchService lifecycle helpers", () => {
     it("updates live stats from native score snapshot", () => {
@@ -73,6 +73,8 @@ describe("MatchService lifecycle helpers", () => {
 
         expect(current.matchRecord.balltouch).toBe(1);
         expect(previous.matchRecord.passed).toBe(1);
-        expect(submitTouchSpy).toHaveBeenCalledWith(current);
+        expect(submitTouchSpy).toHaveBeenCalledWith(
+            current as unknown as Parameters<typeof stack.submitTouch>[0]
+        );
     });
 });

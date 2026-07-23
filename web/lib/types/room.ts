@@ -1,8 +1,8 @@
-import {
+import type {
   RoomHostConfig,
   RoomRules,
   RoomSettings,
-} from '@/../core/lib/room/RoomHostConfig';
+} from '@/../core/src/lib/room/RoomHostConfig';
 import { ManagedRoomIntegrity } from '@/lib/types/control';
 
 export type RoomInfoItem = {
