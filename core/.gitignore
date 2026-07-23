@@ -3,6 +3,7 @@
 node_modules/
 out/
 coverage/
+docs/
 *.tsbuildinfo
 public/out/
 !webpack.config.js
