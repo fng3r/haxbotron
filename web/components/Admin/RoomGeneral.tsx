@@ -2,20 +2,33 @@
 
 import React, { useState } from 'react';
 
-import { LucideAlertCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+import { LoaderCircle, LucideAlertCircle, Power } from 'lucide-react';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CopyButton } from '@/components/ui/copy-button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 import { mutations, queries } from '@/lib/queries/room';
 
-export default function RoomInfo({ ruid }: { ruid: string }) {
+export default function RoomGeneral({ ruid }: { ruid: string }) {
+  const router = useRouter();
   const { data: roomInfo, error: roomInfoError } = queries.getRoomInfo(ruid);
   const roomInfoJSON = JSON.stringify(roomInfo, null, 4);
 
@@ -31,6 +44,17 @@ export default function RoomInfo({ ruid }: { ruid: string }) {
   const setPasswordMutation = mutations.setPassword();
   const clearPasswordMutation = mutations.clearPassword();
   const toggleFreezeMutation = mutations.toggleFreeze();
+  const shutdownRoomMutation = mutations.shutdownRoom();
+
+  const handleShutdown = () => {
+    shutdownRoomMutation.mutate(ruid, {
+      onSuccess: () => {
+        SnackBarNotification.success('Room closed successfully.');
+        router.push('/admin/roomlist');
+      },
+      onError: (error) => SnackBarNotification.error(error.message),
+    });
+  };
 
   const onChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
@@ -96,8 +120,41 @@ export default function RoomInfo({ ruid }: { ruid: string }) {
         </Alert>
       )}
       <Card>
-        <CardHeader>
-          <CardTitle>Room Information</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <CardTitle>General</CardTitle>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button type="button" variant="destructive" disabled={roomInfo?.isOnline === false}>
+                <Power />
+                Close room
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Close room?</DialogTitle>
+                <DialogDescription>
+                  Room <span className="font-medium text-foreground">{ruid}</span> will be shut down immediately and
+                  all connected players will be disconnected.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline" disabled={shutdownRoomMutation.isPending}>
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={shutdownRoomMutation.isPending}
+                  onClick={handleShutdown}
+                >
+                  {shutdownRoomMutation.isPending ? <LoaderCircle className="animate-spin" /> : <Power />}
+                  Close room
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
           <div className="flex flex-col gap-4 max-w-80">

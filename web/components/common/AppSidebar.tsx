@@ -12,12 +12,11 @@ import {
   PlusCircle,
   Server,
   Settings2,
-  SlidersHorizontal,
   Share2,
   Shirt,
+  SlidersHorizontal,
   User,
   Users2,
-  XOctagon,
 } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -68,18 +67,18 @@ export default function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathName === '/admin/configs'}>
-                  <Link href="/admin/configs">
-                    <SlidersHorizontal className="size-5" />
-                    <span>Room Configs</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathName === '/admin/roomlist'}>
                   <Link href="/admin/roomlist">
                     <Gamepad2 className="size-5" />
                     <span>Room List</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathName === '/admin/configs'}>
+                  <Link href="/admin/configs">
+                    <SlidersHorizontal className="size-5" />
+                    <span>Room Configs</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -105,7 +104,7 @@ export default function AppSidebar() {
                     <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}`}>
                       <Link href={`/admin/room/${ruid}`}>
                         <Server className="size-5" />
-                        <span>Information</span>
+                        <span>General</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -146,14 +145,6 @@ export default function AppSidebar() {
                       <Link href={`/admin/room/${ruid}/kits`}>
                         <Shirt className="size-5" />
                         <span>Kits</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/shutdown`}>
-                      <Link href={`/admin/room/${ruid}/shutdown`}>
-                        <XOctagon className="size-5" />
-                        <span>Close room</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
