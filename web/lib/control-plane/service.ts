@@ -767,7 +767,13 @@ class ControlPlaneService {
       });
     }
 
-    if (pathSegments[0] === 'playerlist' || pathSegments[0] === 'banlist' || pathSegments[0] === 'roleslist' || pathSegments[0] === 'ruidlist') {
+    if (
+      pathSegments[0] === 'playerlist' ||
+      pathSegments[0] === 'banlist' ||
+      pathSegments[0] === 'roleslist' ||
+      pathSegments[0] === 'ruidlist' ||
+      pathSegments[0] === 'room-configs'
+    ) {
       return await this.requestGlobal({
         url: `/api/v1/${pathSegments.join('/')}${search.toString() ? `?${search.toString()}` : ''}`,
         method,

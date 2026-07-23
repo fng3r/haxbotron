@@ -7,7 +7,12 @@
     "public": true,
     "token": "",
     "noPlayer": true,
-    "playerName": "\ud83e\udd16"
+    "playerName": "\ud83e\udd16",
+    "geo": {
+      "code": "RU",
+      "lat": 60.030995,
+      "lon": 31.045776
+    }
   },
   "settings": {
     "chatFiltering": true,

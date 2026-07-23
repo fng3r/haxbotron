@@ -10,6 +10,7 @@ import {
   RoomInfoItem,
   SetTeamColoursParams,
   TeamColoursResponse,
+  PersistedRoomConfig,
 } from '@/lib/types/room';
 
 function toErrorMessage(error: unknown, fallback: string): string {
@@ -96,6 +97,30 @@ export const createRoom = async (roomConfig: ReactHostRoomInfo): Promise<void> =
       }
     }
     throw new Error(toErrorMessage(error, 'Unexpected error occured. Please try again.'));
+  }
+};
+
+export const getRoomConfigs = async (): Promise<PersistedRoomConfig[]> => {
+  try {
+    return (await getApiClient().get('/api/v1/room-configs')).data;
+  } catch (error) {
+    throw new Error(toErrorMessage(error, 'Failed to load room configurations.'));
+  }
+};
+
+export const saveRoomConfig = async (config: ReactHostRoomInfo): Promise<PersistedRoomConfig> => {
+  try {
+    return (await getApiClient().put(`/api/v1/room-configs/${encodeURIComponent(config.ruid)}`, config)).data;
+  } catch (error) {
+    throw new Error(toErrorMessage(error, 'Failed to save room configuration.'));
+  }
+};
+
+export const deleteRoomConfig = async (ruid: string): Promise<void> => {
+  try {
+    await getApiClient().delete(`/api/v1/room-configs/${encodeURIComponent(ruid)}`);
+  } catch (error) {
+    throw new Error(toErrorMessage(error, 'Failed to delete room configuration.'));
   }
 };
 

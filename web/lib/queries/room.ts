@@ -18,8 +18,11 @@ import {
   setTeamColours,
   shutdownRoom,
   toggleFreeze,
+  getRoomConfigs,
+  saveRoomConfig,
+  deleteRoomConfig,
 } from '@/lib/api/room';
-import { AllRoomListItem, DiscordWebhookConfig, RoomInfo, RoomInfoItem, TeamColoursResponse } from '@/lib/types/room';
+import { AllRoomListItem, DiscordWebhookConfig, PersistedRoomConfig, RoomInfo, RoomInfoItem, TeamColoursResponse } from '@/lib/types/room';
 
 const queryKeys = {
   room: (ruid: string) => ['room', ruid],
@@ -29,6 +32,7 @@ const queryKeys = {
   roomTeamColours: (ruid: string) => ['room', ruid, 'colours'],
   rooms: ['rooms'],
   allRooms: ['rooms', 'all'],
+  roomConfigs: ['room-configs'],
 };
 
 const queries = {
@@ -73,9 +77,21 @@ const queries = {
       queryKey: queryKeys.roomTeamColours(ruid),
       queryFn: () => getTeamColours(ruid),
     }),
+
+  getRoomConfigs: (initialData?: PersistedRoomConfig[]) =>
+    useQuery<PersistedRoomConfig[]>({ queryKey: queryKeys.roomConfigs, queryFn: getRoomConfigs, initialData }),
 };
 
 const mutations = {
+  saveRoomConfig: () => {
+    const queryClient = useQueryClient();
+    return useMutation({ mutationFn: saveRoomConfig, onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.roomConfigs }) });
+  },
+
+  deleteRoomConfig: () => {
+    const queryClient = useQueryClient();
+    return useMutation({ mutationFn: deleteRoomConfig, onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.roomConfigs }) });
+  },
   createRoom: () => {
     const queryClient = useQueryClient();
 

@@ -1,11 +1,11 @@
-import RoomCreate from '@/components/Admin/RoomCreate';
+import RoomConfigWorkspace from '@/components/Admin/RoomConfigWorkspace';
 
-import { getServerControlMappings } from '@/lib/server/control-plane';
+import { getServerControlMappings, getServerRoomConfigs } from '@/lib/server/control-plane';
 
 export const dynamic = 'force-dynamic';
 
 export default async function RoomCreatePage() {
-  const mappings = await getServerControlMappings();
+  const [mappings, configs] = await Promise.all([getServerControlMappings(), getServerRoomConfigs()]);
 
-  return <RoomCreate mappings={mappings} />;
+  return <RoomConfigWorkspace mappings={mappings} initialConfigs={configs} />;
 }

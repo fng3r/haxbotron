@@ -4,6 +4,12 @@ import type {
   RoomSettings,
 } from '@/../core/src/lib/room/RoomHostConfig';
 import { ManagedRoomIntegrity } from '@/lib/types/control';
+import type { ReactHostRoomInfo } from '@/../core/src/lib/room/RoomHostConfig';
+
+export type PersistedRoomConfig = ReactHostRoomInfo & {
+  createdAt?: number;
+  updatedAt?: number;
+};
 
 export type RoomInfoItem = {
   ruid: string;

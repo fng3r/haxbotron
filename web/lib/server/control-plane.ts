@@ -1,11 +1,17 @@
 import 'server-only';
 
-import { DiscordWebhookConfig, TeamColoursResponse } from '@/lib/types/room';
 import { getControlPlaneService } from '@/lib/control-plane/service';
 import { ClusterSummary, HostStatusInfo, ManagedRoomInfo, RoomLocationInfo, RoomMapping } from '@/lib/types/control';
-import { AllRoomListItem, RoomInfo, RoomInfoItem } from '@/lib/types/room';
 import { BanListItem, OnlinePlayer, RoomPlayer } from '@/lib/types/player';
 import { PlayerRole, PlayerRoleEvent, RolePagination } from '@/lib/types/roles';
+import {
+  AllRoomListItem,
+  DiscordWebhookConfig,
+  PersistedRoomConfig,
+  RoomInfo,
+  RoomInfoItem,
+  TeamColoursResponse,
+} from '@/lib/types/room';
 
 async function getService() {
   const service = getControlPlaneService();
@@ -41,12 +47,23 @@ export async function getServerAllRoomsList(): Promise<AllRoomListItem[]> {
   return await (await getService()).listAllRooms();
 }
 
+export async function getServerRoomConfigs(): Promise<PersistedRoomConfig[]> {
+  return await (
+    await getService()
+  ).requestGlobal<PersistedRoomConfig[]>({
+    url: '/api/v1/room-configs',
+    method: 'GET',
+  });
+}
+
 export async function getServerRoomInfo(ruid: string): Promise<RoomInfo> {
   return await (await getService()).getRoomInfo(ruid);
 }
 
 export async function getServerRoomFreezeStatus(ruid: string): Promise<boolean> {
-  const result = await (await getService()).requestRoom<{ freezed: boolean }>(ruid, {
+  const result = await (
+    await getService()
+  ).requestRoom<{ freezed: boolean }>(ruid, {
     url: `/api/v1/room/${ruid}/info/freeze`,
     method: 'GET',
   });
@@ -54,7 +71,9 @@ export async function getServerRoomFreezeStatus(ruid: string): Promise<boolean> 
 }
 
 export async function getServerRoomNoticeMessage(ruid: string): Promise<string> {
-  const result = await (await getService()).requestRoom<{ message: string }>(ruid, {
+  const result = await (
+    await getService()
+  ).requestRoom<{ message: string }>(ruid, {
     url: `/api/v1/room/${ruid}/social/notice`,
     method: 'GET',
   });
@@ -62,14 +81,18 @@ export async function getServerRoomNoticeMessage(ruid: string): Promise<string> 
 }
 
 export async function getServerRoomDiscordWebhookConfig(ruid: string): Promise<DiscordWebhookConfig> {
-  return await (await getService()).requestRoom<DiscordWebhookConfig>(ruid, {
+  return await (
+    await getService()
+  ).requestRoom<DiscordWebhookConfig>(ruid, {
     url: `/api/v1/room/${ruid}/social/discord/webhook`,
     method: 'GET',
   });
 }
 
 export async function getServerTeamColours(ruid: string): Promise<TeamColoursResponse> {
-  return await (await getService()).requestRoom<TeamColoursResponse>(ruid, {
+  return await (
+    await getService()
+  ).requestRoom<TeamColoursResponse>(ruid, {
     url: `/api/v1/room/${ruid}/asset/team/colour`,
     method: 'GET',
   });
@@ -80,7 +103,9 @@ export async function getServerPlayerAccountList(
   { page, pagingCount, searchQuery = '' }: { page: number; pagingCount: number; searchQuery?: string },
 ): Promise<RoomPlayer[]> {
   const index: number = (page - 1) * pagingCount;
-  return await (await getService()).requestGlobal<RoomPlayer[]>({
+  return await (
+    await getService()
+  ).requestGlobal<RoomPlayer[]>({
     url: `/api/v1/playerlist/${ruid}?searchQuery=${searchQuery}&start=${index}&count=${pagingCount}`,
     method: 'GET',
   });
@@ -107,7 +132,9 @@ export async function getServerPlayersBans(
   { page, pagingCount }: { page: number; pagingCount: number },
 ): Promise<BanListItem[]> {
   const index: number = (page - 1) * pagingCount;
-  return await (await getService()).requestGlobal<BanListItem[]>({
+  return await (
+    await getService()
+  ).requestGlobal<BanListItem[]>({
     url: `/api/v1/banlist/${ruid}?start=${index}&count=${pagingCount}`,
     method: 'GET',
   });
@@ -119,7 +146,9 @@ export async function getServerPlayersRoles({
   searchQuery = '',
 }: RolePagination): Promise<PlayerRole[]> {
   const index: number = (page - 1) * pagingCount;
-  return await (await getService()).requestGlobal<PlayerRole[]>({
+  return await (
+    await getService()
+  ).requestGlobal<PlayerRole[]>({
     url: `/api/v1/roleslist?searchQuery=${searchQuery}&start=${index}&count=${pagingCount}`,
     method: 'GET',
   });
@@ -131,7 +160,9 @@ export async function getServerPlayersRoleEvents({
   searchQuery = '',
 }: RolePagination): Promise<PlayerRoleEvent[]> {
   const index: number = (page - 1) * pagingCount;
-  return await (await getService()).requestGlobal<PlayerRoleEvent[]>({
+  return await (
+    await getService()
+  ).requestGlobal<PlayerRoleEvent[]>({
     url: `/api/v1/roleslist/events?searchQuery=${searchQuery}&start=${index}&count=${pagingCount}`,
     method: 'GET',
   });

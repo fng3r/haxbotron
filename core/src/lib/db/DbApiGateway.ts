@@ -3,6 +3,7 @@ import { BanEntry } from "../../game/model/PlayerBan/BanEntry.js";
 import { PlayerStorage } from "../../game/model/GameObject/PlayerState.js";
 import { PlayerRole } from "../../game/model/PlayerRole/PlayerRole.js";
 import { getDbConnectionUrl } from "../config.js";
+import type { ReactHostRoomInfo } from "../room/RoomHostConfig.js";
 
 type QueryValue = string | number | undefined;
 
@@ -150,5 +151,21 @@ export class DbApiGateway {
     // -------------------------------------------------------------------
     public getRuidList(): Promise<AxiosResponse<any>> {
         return this.client.get(`${this.baseUrl}ruidlist`);
+    }
+
+    public getRoomConfigs(): Promise<AxiosResponse<any>> {
+        return this.client.get(`${this.baseUrl}room-configs`);
+    }
+
+    public getRoomConfig(ruid: string): Promise<AxiosResponse<any>> {
+        return this.client.get(`${this.baseUrl}room-configs/${encodeURIComponent(ruid)}`);
+    }
+
+    public saveRoomConfig(config: ReactHostRoomInfo): Promise<AxiosResponse<any>> {
+        return this.client.put(`${this.baseUrl}room-configs/${encodeURIComponent(config.ruid)}`, config);
+    }
+
+    public deleteRoomConfig(ruid: string): Promise<AxiosResponse<any>> {
+        return this.client.delete(`${this.baseUrl}room-configs/${encodeURIComponent(ruid)}`);
     }
 }

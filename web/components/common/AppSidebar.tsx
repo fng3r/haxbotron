@@ -12,6 +12,7 @@ import {
   PlusCircle,
   Server,
   Settings2,
+  SlidersHorizontal,
   Share2,
   Shirt,
   User,
@@ -63,6 +64,14 @@ export default function AppSidebar() {
                   <Link href="/admin/newroom">
                     <PlusCircle className="size-5" />
                     <span>New Room</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathName === '/admin/configs'}>
+                  <Link href="/admin/configs">
+                    <SlidersHorizontal className="size-5" />
+                    <span>Room Configs</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
