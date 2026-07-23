@@ -262,7 +262,7 @@ export default function RoomConfigWorkspace({
         <form onSubmit={form.handleSubmit(submit)} className="space-y-5">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Identity & host</CardTitle>
+              <CardTitle className="text-lg">General</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-3">
               {(['ruid', 'roomName', 'password'] as const).map((name) => (
