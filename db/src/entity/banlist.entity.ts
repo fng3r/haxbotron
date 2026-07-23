@@ -20,8 +20,8 @@ export class BanList {
     reason!: string;
 
     @Column()
-    register!: number; 
+    register!: number;
 
     @Column()
-    expire!: number; 
+    expire!: number;
 }

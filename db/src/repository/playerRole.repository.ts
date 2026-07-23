@@ -1,7 +1,7 @@
-import { getRepository, Like } from 'typeorm';
-import { PlayerRole } from '../entity/playerRole.entity';
-import {Player} from "../entity/player.entity";
-import { PlayerRoleEvent, PlayerRoleEventType } from '../entity/playerRoleEvent.entity';
+import { Like } from "typeorm";
+import { appDataSource } from "../dataSource.js";
+import { PlayerRole } from "../entity/playerRole.entity.js";
+import { PlayerRoleEvent, PlayerRoleEventType } from "../entity/playerRoleEvent.entity.js";
 
 export interface IPlayerRoleRepository {
     get(auth: string) : Promise<PlayerRole>;
@@ -15,8 +15,10 @@ export interface IPlayerRoleRepository {
 }
 
 export class PlayerRoleRepository implements IPlayerRoleRepository {
+    public constructor(private readonly dataSource = appDataSource) {}
+
     private get repository() {
-        return getRepository(PlayerRole);
+        return this.dataSource.getRepository(PlayerRole);
     }
 
     public async search(searchQuery: string, pagination: { start: number; count: number; }): Promise<PlayerRole[]> {
@@ -44,14 +46,14 @@ export class PlayerRoleRepository implements IPlayerRoleRepository {
     }
 
     public async get(auth: string): Promise<PlayerRole> {
-        const playerRole = await this.repository.findOne({auth: auth});
-        if (playerRole === undefined) throw new Error(`Player ${auth} not found`);
+        const playerRole = await this.repository.findOneBy({ auth });
+        if (playerRole === null) throw new Error(`Player ${auth} not found`);
 
         return playerRole;
     }
 
     public async create(auth: string, name: string, role: string): Promise<void> {
-        const playerRole = await this.repository.findOne({auth: auth});
+        const playerRole = await this.repository.findOneBy({ auth });
         if (playerRole) throw new Error(`Player ${auth} already has a role ${playerRole.role}`);
         await this.repository.save({auth: auth, name: name, role: role});
 
@@ -74,13 +76,13 @@ export class PlayerRoleRepository implements IPlayerRoleRepository {
     }
 
     public async addEvent(type: string, auth: string, name: string, role: string, timestamp: number): Promise<void> {
-        const repository = getRepository(PlayerRoleEvent);
-        
+        const repository = this.dataSource.getRepository(PlayerRoleEvent);
+
         await repository.save({type: type, auth: auth, name: name, role: role, timestamp: timestamp});
     }
 
     public async searchEvents(searchQuery: string, pagination: { start: number; count: number; }): Promise<PlayerRoleEvent[]> {
-        const repository = getRepository(PlayerRoleEvent);
+        const repository = this.dataSource.getRepository(PlayerRoleEvent);
         const events = await repository.find({
             where: [
                 { auth: Like(`%${searchQuery}%`)},

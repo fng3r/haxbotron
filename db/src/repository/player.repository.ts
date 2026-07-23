@@ -1,37 +1,39 @@
-import { getRepository, Like, Repository } from 'typeorm';
-import { IRepository } from './repository.interface';
-import { Player } from '../entity/player.entity';
-import { PlayerModel } from '../model/PlayerModel';
-
-const NICKNAMES_SEPARATOR = ';;';
+import { Like, type Repository } from "typeorm";
+import { appDataSource } from "../dataSource.js";
+import { Player } from "../entity/player.entity.js";
+import type { PlayerModel } from "../model/PlayerModel.js";
+import type { IRepository } from "./repository.interface.js";
 
 export interface IPlayerRepository extends IRepository<Player> {
     search(ruid: string, searchQuery: string, pagination: { start: number; count: number; }): Promise<Player[]>
 }
 
 export class PlayerRepository implements IPlayerRepository {
+    public constructor(private readonly dataSource = appDataSource) {}
+
+    private get repository(): Repository<Player> {
+        return this.dataSource.getRepository(Player);
+    }
+
     public async findAll(ruid: string, pagination?: {start: number, count: number}): Promise<Player[]> {
-        const repository: Repository<Player> = getRepository(Player);
         let players: Player[] = [];
         if(pagination) {
-            players = await repository.find({where: {ruid: ruid}, skip: pagination.start, take: pagination.count});
+            players = await this.repository.find({where: {ruid}, skip: pagination.start, take: pagination.count});
         } else {
-            players = await repository.find({ ruid: ruid });
+            players = await this.repository.find({ where: { ruid } });
         }
         if (players.length === 0) throw new Error('There are no players.');
         return players;
     }
 
     public async findSingle(ruid: string, auth: string): Promise<Player | undefined> {
-        const repository: Repository<Player> = getRepository(Player);
-        let player: Player | undefined = await repository.findOne({ ruid: ruid, auth: auth });
-        if (player === undefined) throw new Error('Such player is not found.');
+        const player = await this.repository.findOneBy({ ruid, auth });
+        if (player === null) throw new Error('Such player is not found.');
         return player;
     }
 
     public async search(ruid: string, searchQuery: string, pagination: { start: number; count: number; }): Promise<Player[]> {
-        const repository: Repository<Player> = getRepository(Player);
-        const players = repository.find({
+        const players = this.repository.find({
             where: [
                 { ruid: ruid, auth: Like(`%${searchQuery}%`)},
                 { ruid: ruid, name: Like(`%${searchQuery}%`)},
@@ -45,9 +47,8 @@ export class PlayerRepository implements IPlayerRepository {
     }
 
     public async addSingle(ruid: string, player: PlayerModel): Promise<Player> {
-        const repository: Repository<Player> = getRepository(Player);
-        let newPlayer: Player | undefined = await repository.findOne({ ruid: ruid, auth: player.auth });
-        if (newPlayer === undefined) {
+        let newPlayer = await this.repository.findOneBy({ ruid, auth: player.auth });
+        if (newPlayer === null) {
             newPlayer = new Player();
             newPlayer.ruid = ruid;
             newPlayer.auth = player.auth;
@@ -63,13 +64,12 @@ export class PlayerRepository implements IPlayerRepository {
         } else {
             throw new Error('Such player is exist already.');
         }
-        return await repository.save(newPlayer);
+        return await this.repository.save(newPlayer);
     }
 
     public async updateSingle(ruid: string, auth: string, player: PlayerModel): Promise<Player> {
-        const repository: Repository<Player> = getRepository(Player);
-        let newPlayer: Player | undefined = await repository.findOne({ ruid: ruid, auth: auth });
-        if (newPlayer !== undefined) {
+        const newPlayer = await this.repository.findOneBy({ ruid, auth });
+        if (newPlayer !== null) {
             newPlayer.ruid = ruid;
             newPlayer.auth = player.auth;
             newPlayer.conn = player.conn;
@@ -84,16 +84,15 @@ export class PlayerRepository implements IPlayerRepository {
         } else {
             throw new Error('Such player is not found.');
         }
-        return await repository.save(newPlayer);
+        return await this.repository.save(newPlayer);
     }
 
     public async deleteSingle(ruid: string, auth: string): Promise<void> {
-        const repository: Repository<Player> = getRepository(Player);
-        let player: Player | undefined = await repository.findOne({ ruid: ruid, auth: auth });
-        if (player === undefined) {
+        const player = await this.repository.findOneBy({ ruid, auth });
+        if (player === null) {
             throw new Error('Such player is not found.');
         } else {
-            await repository.remove(player);
+            await this.repository.remove(player);
         }
     }
 }

@@ -1,9 +1,9 @@
-import Router from "koa-router";
-import { Context } from "koa";
-import { BanListController } from "../controller/banlist.controller";
-import { BanList } from "../entity/banlist.entity";
-import { BanListRepository } from "../repository/banlist.repository";
-import { IRepository } from "../repository/repository.interface";
+import Router from "@koa/router";
+import type { Context } from "koa";
+import { BanListController } from "../controller/banlist.controller.js";
+import type { BanList } from "../entity/banlist.entity.js";
+import { BanListRepository } from "../repository/banlist.repository.js";
+import type { IRepository } from "../repository/repository.interface.js";
 
 export const banlistRouter = new Router();
 const banlistRepository: IRepository<BanList> = new BanListRepository();

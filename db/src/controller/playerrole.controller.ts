@@ -1,5 +1,6 @@
-import { Context } from "koa";
-import { IPlayerRoleRepository } from '../repository/playerRole.repository';
+import type { Context } from "koa";
+import type { IPlayerRoleRepository } from "../repository/playerRole.repository.js";
+import { getRequestBody } from "./requestBody.js";
 
 export class PlayerRoleController {
     private readonly _repository: IPlayerRoleRepository;
@@ -69,11 +70,17 @@ export class PlayerRoleController {
 
     public async addPlayerRole(ctx: Context) {
         const {auth} = ctx.params;
-        const {name, role} = ctx.request.body;
+        const {name, role} = getRequestBody(ctx);
+
+        if (typeof name !== "string" || typeof role !== "string") {
+            ctx.status = 400;
+            ctx.body = { error: "name and role must be strings" };
+            return;
+        }
 
         return this._repository
             .create(auth, name, role)
-            .then((player) => {
+            .then(() => {
                 ctx.status = 204;
             })
             .catch((error) => {
@@ -85,7 +92,13 @@ export class PlayerRoleController {
 
     public async updatePlayerRole(ctx: Context) {
         const {auth} = ctx.params;
-        const {name, role} = ctx.request.body;
+        const {name, role} = getRequestBody(ctx);
+
+        if (typeof name !== "string" || typeof role !== "string") {
+            ctx.status = 400;
+            ctx.body = { error: "name and role must be strings" };
+            return;
+        }
 
         return this._repository
             .set(auth, name, role)

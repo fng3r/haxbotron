@@ -1,7 +1,7 @@
-import Router from "koa-router";
-import { Context } from "koa";
-import { PlayerController } from '../controller/player.controller';
-import { IPlayerRepository, PlayerRepository } from '../repository/player.repository';
+import Router from "@koa/router";
+import type { Context } from "koa";
+import { PlayerController } from "../controller/player.controller.js";
+import { PlayerRepository, type IPlayerRepository } from "../repository/player.repository.js";
 
 export const playerRouter = new Router();
 const playersRepository: IPlayerRepository = new PlayerRepository();

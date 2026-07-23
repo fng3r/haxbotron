@@ -1,46 +1,53 @@
 {
-    "name": "haxbotron-db",
-    "version": "0.5.1",
-    "description": "Haxbotron is a headless host server application for Haxball.",
-    "main": "out/app.js",
-    "author": "dapucita",
-    "license": "MIT",
-    "homepage": "https://github.com/dapucita/haxbotron",
-    "bugs": {
-        "url": "https://github.com/dapucita/haxbotron/issues"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/dapucita/haxbotron.git"
-    },
-    "scripts": {
-        "start": "node out/app.js",
-        "build": "tsc"
-    },
-    "dependencies": {
-        "@koa/cors": "^3.1.0",
-        "@types/cookie": "^0.4.0",
-        "@types/koa-logger": "^3.1.1",
-        "@types/koa__cors": "^3.0.2",
-        "@types/node": "^14.14.20",
-        "cookie": "^0.4.1",
-        "dotenv": "^8.2.0",
-        "joi": "^17.3.0",
-        "koa": "^2.13.1",
-        "koa-bodyparser": "^4.3.0",
-        "koa-ip": "^2.1.0",
-        "koa-logger": "^3.2.1",
-        "koa-router": "^10.0.0",
-        "reflect-metadata": "^0.1.13",
-        "sqlite3": "^5.0.0",
-        "typeorm": "^0.2.29",
-        "winston": "^3.3.3",
-        "winston-daily-rotate-file": "^4.5.0"
-    },
-    "devDependencies": {
-        "typescript": "^4.1.3",
-        "@types/koa": "^2.11.6",
-        "@types/koa-bodyparser": "^4.3.0",
-        "@types/koa-router": "^7.4.1"
-    }
+  "name": "haxbotron-db",
+  "version": "0.5.1",
+  "description": "Haxbotron is a headless host server application for Haxball.",
+  "type": "module",
+  "main": "out/app.js",
+  "scripts": {
+    "start": "node out/app.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit --incremental false",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "check": "npm run typecheck && npm test",
+    "migration:generate": "npm run build && typeorm migration:generate -d out/dataSource.js --esm",
+    "migration:show": "npm run build && typeorm migration:show -d out/dataSource.js",
+    "migration:run": "npm run build && typeorm migration:run -d out/dataSource.js",
+    "migration:revert": "npm run build && typeorm migration:revert -d out/dataSource.js"
+  },
+  "author": "dapucita",
+  "license": "MIT",
+  "homepage": "https://github.com/dapucita/haxbotron",
+  "bugs": {
+    "url": "https://github.com/dapucita/haxbotron/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dapucita/haxbotron.git"
+  },
+  "engines": {
+    "node": "^22.13.0"
+  },
+  "dependencies": {
+    "@koa/bodyparser": "^6.1.0",
+    "@koa/cors": "^5.0.0",
+    "@koa/router": "^15.7.0",
+    "better-sqlite3": "^12.11.1",
+    "dotenv": "^17.4.2",
+    "joi": "^18.2.3",
+    "koa": "^3.2.1",
+    "koa-logger": "^4.0.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^1.1.0",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/koa": "^3.0.3",
+    "@types/koa-logger": "^3.1.5",
+    "@types/koa__cors": "^5.0.1",
+    "@types/node": "^22.20.0",
+    "typescript": "^7.0.2"
+  }
 }

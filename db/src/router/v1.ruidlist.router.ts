@@ -1,7 +1,7 @@
-import { Context } from "koa";
-import Router from "koa-router";
-import { Player } from '../entity/player.entity';
-import { getRepository, Repository } from "typeorm";
+import Router from "@koa/router";
+import type { Context } from "koa";
+import { appDataSource } from "../dataSource.js";
+import { Player } from "../entity/player.entity.js";
 
 interface ruidListItem {
     ruid: string
@@ -11,7 +11,7 @@ export const ruidlistRouter = new Router();
 
 // Get All exist RUIDs list on DB
 ruidlistRouter.get('/', async (ctx: Context) => {
-    const repository: Repository<Player> = getRepository(Player);
+    const repository = appDataSource.getRepository(Player);
     await repository
         .createQueryBuilder('Player')
         .select('ruid')

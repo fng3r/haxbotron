@@ -1,31 +1,35 @@
-import { getRepository, Repository } from 'typeorm';
-import { IRepository } from './repository.interface';
-import { BanList } from '../entity/banlist.entity';
-import { BanListModel } from '../model/BanListModel';
+import type { Repository } from "typeorm";
+import { appDataSource } from "../dataSource.js";
+import { BanList } from "../entity/banlist.entity.js";
+import type { BanListModel } from "../model/BanListModel.js";
+import type { IRepository } from "./repository.interface.js";
 
 export class BanListRepository implements IRepository<BanList> {
+    public constructor(private readonly dataSource = appDataSource) {}
+
+    private get repository(): Repository<BanList> {
+        return this.dataSource.getRepository(BanList);
+    }
+
     public async findAll(ruid: string, pagination?: {start: number, count: number}): Promise<BanList[]> {
-        const repository: Repository<BanList> = getRepository(BanList);
         let banlist: BanList[] = [];
         if(pagination) {
-            banlist = await repository.find({where: {ruid: ruid}, skip: pagination.start, take: pagination.count});
+            banlist = await this.repository.find({where: {ruid}, skip: pagination.start, take: pagination.count});
         } else {
-            banlist = await repository.find({ ruid: ruid });
+            banlist = await this.repository.find({ where: { ruid } });
         }
         return banlist;
     }
 
     public async findSingle(ruid: string, conn: string): Promise<BanList | undefined> {
-        const repository: Repository<BanList> = getRepository(BanList);
-        let banPlayer: BanList | undefined = await repository.findOne({ ruid: ruid, conn: conn });
-        if (banPlayer === undefined) throw new Error('Such player is not banned.');
+        const banPlayer = await this.repository.findOneBy({ ruid, conn });
+        if (banPlayer === null) throw new Error('Such player is not banned.');
         return banPlayer;
     }
 
     public async addSingle(ruid: string, banlist: BanListModel): Promise<BanList> {
-        const repository: Repository<BanList> = getRepository(BanList);
-        let newBan: BanList | undefined = await repository.findOne({ ruid: ruid, conn: banlist.conn });
-        if (newBan === undefined) {
+        let newBan = await this.repository.findOneBy({ ruid, conn: banlist.conn });
+        if (newBan === null) {
             newBan = new BanList();
             newBan.ruid = ruid;
             newBan.conn = banlist.conn;
@@ -36,13 +40,12 @@ export class BanListRepository implements IRepository<BanList> {
         } else {
             throw new Error('Such player is already banned.');
         }
-        return await repository.save(newBan);
+        return await this.repository.save(newBan);
     }
 
     public async updateSingle(ruid: string, conn: string, banlist: BanListModel): Promise<BanList> {
-        const repository: Repository<BanList> = getRepository(BanList);
-        let newBan: BanList | undefined = await repository.findOne({ ruid: ruid, conn: conn });
-        if (newBan !== undefined) {
+        const newBan = await this.repository.findOneBy({ ruid, conn });
+        if (newBan !== null) {
             newBan.ruid = ruid;
             newBan.conn = banlist.conn;
             newBan.auth = banlist.auth;
@@ -52,16 +55,15 @@ export class BanListRepository implements IRepository<BanList> {
         } else {
             throw new Error('Such player is not banned yet.');
         }
-        return await repository.save(newBan);
+        return await this.repository.save(newBan);
     }
 
     public async deleteSingle(ruid: string, conn: string): Promise<void> {
-        const repository: Repository<BanList> = getRepository(BanList);
-        let banPlayer: BanList | undefined = await repository.findOne({ ruid: ruid, conn: conn });
-        if (banPlayer === undefined) {
+        const banPlayer = await this.repository.findOneBy({ ruid, conn });
+        if (banPlayer === null) {
             throw new Error('Such player is not banned yet.');
         } else {
-            await repository.remove(banPlayer);
+            await this.repository.remove(banPlayer);
         }
     }
 }

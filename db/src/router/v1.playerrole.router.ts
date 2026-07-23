@@ -1,7 +1,7 @@
-import Router from "koa-router";
-import { Context } from "koa";
-import { PlayerRoleController } from '../controller/playerrole.controller';
-import {IPlayerRoleRepository, PlayerRoleRepository} from '../repository/playerRole.repository';
+import Router from "@koa/router";
+import type { Context } from "koa";
+import { PlayerRoleController } from "../controller/playerrole.controller.js";
+import { PlayerRoleRepository, type IPlayerRoleRepository } from "../repository/playerRole.repository.js";
 
 export const playerRoleRouter = new Router();
 const playersRepository: IPlayerRoleRepository = new PlayerRoleRepository();

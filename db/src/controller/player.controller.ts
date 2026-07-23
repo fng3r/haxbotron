@@ -1,17 +1,16 @@
-import { Context } from "koa";
-import { IRepository } from '../repository/repository.interface';
-import { BanList } from '../entity/banlist.entity';
-import { BanListModel } from '../model/BanListModel';
-import { banListModelSchema } from "../model/Validator";
+import type { Context } from "koa";
+import type { PlayerModel } from "../model/PlayerModel.js";
+import { playerModelSchema } from "../model/Validator.js";
+import type { IPlayerRepository } from "../repository/player.repository.js";
 
-export class BanListController {
-    private readonly _repository: IRepository<BanList>;
+export class PlayerController {
+    private readonly _repository: IPlayerRepository;
 
-    constructor(repository: IRepository<BanList>) {
+    constructor(repository: IPlayerRepository) {
         this._repository = repository;
     }
 
-    public async getAllBannedPlayers(ctx: Context) {
+    public async getAllPlayers(ctx: Context) {
         const { ruid } = ctx.params;
         const { start, count } = ctx.request.query;
 
@@ -40,11 +39,28 @@ export class BanListController {
         }
     }
 
-    public async getBannedPlayer(ctx: Context) {
-        const { ruid, conn } = ctx.params;
+    public async search(ctx: Context) {
+        const { ruid } = ctx.params;
+        const { searchQuery, start, count } = ctx.request.query;
 
         return this._repository
-            .findSingle(ruid, conn)
+            .search(ruid, searchQuery as string, { start: parseInt(<string>start), count: parseInt(<string>count) })
+            .then((players) => {
+                ctx.status = 200;
+                ctx.body = players;
+            })
+            .catch((error) => {
+                console.error(error)
+                ctx.status = 500;
+                ctx.body = { error: error.message };
+            });
+    }
+
+    public async getPlayer(ctx: Context) {
+        const { ruid, auth } = ctx.params;
+
+        return this._repository
+            .findSingle(ruid, auth)
             .then((player) => {
                 ctx.status = 200;
                 ctx.body = player;
@@ -55,8 +71,8 @@ export class BanListController {
             });
     }
 
-    public async addBanPlayer(ctx: Context) {
-        const validationResult = banListModelSchema.validate(ctx.request.body);
+    public async addPlayer(ctx: Context) {
+        const validationResult = playerModelSchema.validate(ctx.request.body);
 
         if (validationResult.error) {
             ctx.status = 400;
@@ -65,10 +81,10 @@ export class BanListController {
         }
 
         const { ruid } = ctx.params;
-        const banlistModel: BanListModel = ctx.request.body;
+        const playerModel = validationResult.value as PlayerModel;
 
         return this._repository
-            .addSingle(ruid, banlistModel)
+            .addSingle(ruid, playerModel)
             .then(() => {
                 ctx.status = 204;
             })
@@ -78,8 +94,8 @@ export class BanListController {
             });
     }
 
-    public async updateBannedPlayer(ctx: Context) {
-        const validationResult = banListModelSchema.validate(ctx.request.body);
+    public async updatePlayer(ctx: Context) {
+        const validationResult = playerModelSchema.validate(ctx.request.body);
 
         if (validationResult.error) {
             ctx.status = 400;
@@ -87,11 +103,11 @@ export class BanListController {
             return;
         }
 
-        const { ruid, conn } = ctx.params;
-        const banlistModel: BanListModel = ctx.request.body;
+        const { ruid, auth } = ctx.params;
+        const playerModel = validationResult.value as PlayerModel;
 
         return this._repository
-            .updateSingle(ruid, conn, banlistModel)
+            .updateSingle(ruid, auth, playerModel)
             .then(() => {
                 ctx.status = 204;
             })
@@ -101,11 +117,11 @@ export class BanListController {
             });
     }
 
-    public async deleteBannedPlayer(ctx: Context) {
-        const { ruid, conn } = ctx.params;
+    public async deletePlayer(ctx: Context) {
+        const { ruid, auth } = ctx.params;
 
         return this._repository
-            .deleteSingle(ruid, conn)
+            .deleteSingle(ruid, auth)
             .then(() => {
                 ctx.status = 204;
             })

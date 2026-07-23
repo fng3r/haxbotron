@@ -1,4 +1,4 @@
-import {Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable} from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Player {
@@ -9,22 +9,22 @@ export class Player {
     ruid!: string;
 
     @Column()
-    auth!: string; 
+    auth!: string;
 
     @Column()
-    conn!: string; 
+    conn!: string;
 
     @Column()
     name!: string;
 
     @Column()
-    mute!: boolean; 
+    mute!: boolean;
 
     @Column()
-    muteExpire!: number; 
+    muteExpire!: number;
 
     @Column()
-    rejoinCount!: number; 
+    rejoinCount!: number;
 
     @Column()
     joinDate!: number;
@@ -36,7 +36,7 @@ export class Player {
     nicknames!: string[];
 
     @Column()
-    malActCount!: number; 
+    malActCount!: number;
 }
 
 @Entity()
