@@ -1,9 +1,4 @@
-import type {
-  RoomHostConfig,
-  RoomRules,
-  RoomSettings,
-} from '@/../core/src/lib/room/RoomHostConfig';
-import { ManagedRoomIntegrity } from '@/lib/types/control';
+import type { RoomHostConfig, RoomRules, RoomSettings } from '@/../core/src/lib/room/RoomHostConfig';
 import type { ReactHostRoomInfo } from '@/../core/src/lib/room/RoomHostConfig';
 
 export type PersistedRoomConfig = ReactHostRoomInfo & {
@@ -43,7 +38,6 @@ export type RoomInfo = {
   rules: RoomRules;
   hostId?: string;
   hostName?: string;
-  integrity?: ManagedRoomIntegrity;
 };
 
 export type DiscordWebhookConfig = {

@@ -4,17 +4,9 @@ import { HostStatusPill } from '@/components/common/StatusPill';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-import { ClusterSummary, HostStatusInfo, ManagedRoomInfo } from '@/lib/types/control';
+import { ClusterSummary, HostStatusInfo } from '@/lib/types/control';
 
-export default function ControlOverview({
-  summary,
-  hosts,
-  rooms,
-}: {
-  summary: ClusterSummary;
-  hosts: HostStatusInfo[];
-  rooms: ManagedRoomInfo[];
-}) {
+export default function ControlOverview({ summary, hosts }: { summary: ClusterSummary; hosts: HostStatusInfo[] }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 md:grid-cols-4">
@@ -38,9 +30,9 @@ export default function ControlOverview({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Integrity Issues</CardTitle>
+            <CardTitle>Online Rooms</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-semibold">{summary.integrityIssueCount}</CardContent>
+          <CardContent className="text-3xl font-semibold">{summary.onlineRoomCount}</CardContent>
         </Card>
       </div>
 
@@ -55,8 +47,8 @@ export default function ControlOverview({
                 <TableRow>
                   <TableHead>Host</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Mapped</TableHead>
-                  <TableHead>Online</TableHead>
+                  <TableHead>Assigned rooms</TableHead>
+                  <TableHead>Online rooms</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -86,13 +78,10 @@ export default function ControlOverview({
               Manage hosts
             </Link>
             <Link className="text-blue-600 hover:underline" href="/admin/control/mappings">
-              Manage RUID mappings
-            </Link>
-            <Link className="text-blue-600 hover:underline" href="/admin/newroom">
-              Create mapped room
+              Manage room assignments
             </Link>
             <p className="text-sm text-muted-foreground">
-              {rooms.filter((room) => room.integrity === 'wrong_host').length} rooms are reporting placement issues.
+              {summary.onlineRoomCount} of {summary.configuredRoomCount} configured rooms are online
             </p>
           </CardContent>
         </Card>

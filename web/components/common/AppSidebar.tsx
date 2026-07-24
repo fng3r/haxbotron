@@ -7,16 +7,17 @@ import LogoutButton from './LogoutButton';
 import {
   Ban,
   Gamepad2,
+  Gauge,
   LayoutDashboard,
   List,
   PlusCircle,
   Server,
-  Settings2,
   Share2,
   Shirt,
   SlidersHorizontal,
   User,
   Users2,
+  Waypoints,
 } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -161,7 +162,7 @@ export default function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathName === '/admin/control'}>
                   <Link href="/admin/control">
-                    <Settings2 className="size-5" />
+                    <Gauge className="size-5" />
                     <span>Overview</span>
                   </Link>
                 </SidebarMenuButton>
@@ -177,7 +178,7 @@ export default function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathName === '/admin/control/mappings'}>
                   <Link href="/admin/control/mappings">
-                    <Gamepad2 className="size-5" />
+                    <Waypoints className="size-5" />
                     <span>RUID Mappings</span>
                   </Link>
                 </SidebarMenuButton>

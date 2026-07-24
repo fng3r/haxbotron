@@ -9,8 +9,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
-import { Button } from '@/components/ui/button';
 import { HostStatusPill } from '@/components/common/StatusPill';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { createHostAction, deleteHostAction, updateHostAction } from '@/lib/actions/control';
-import { HostNode, HostStatusInfo } from '@/lib/types/control';
+import { HostStatusInfo } from '@/lib/types/control';
 
 const hostFormSchema = z.object({
   id: z.string().trim().min(1, { message: 'ID is required' }),
@@ -58,8 +58,7 @@ export default function ControlHosts({ hosts }: { hosts: HostStatusInfo[] }) {
                 <TableHead>Name</TableHead>
                 <TableHead>Base URL</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Mapped</TableHead>
-                <TableHead>Online</TableHead>
+                <TableHead>Assigned rooms</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -82,9 +81,12 @@ export default function ControlHosts({ hosts }: { hosts: HostStatusInfo[] }) {
                       )}
                     </TableCell>
                     {!isEditing && <TableCell>{host.baseUrl}</TableCell>}
-                    {!isEditing && <TableCell><HostStatusPill enabled={host.enabled} healthy={host.healthy} /></TableCell>}
+                    {!isEditing && (
+                      <TableCell>
+                        <HostStatusPill enabled={host.enabled} healthy={host.healthy} />
+                      </TableCell>
+                    )}
                     {!isEditing && <TableCell>{host.mappedRoomCount}</TableCell>}
-                    {!isEditing && <TableCell>{host.onlineMappedRoomCount}</TableCell>}
                     {!isEditing && (
                       <TableCell>
                         <div className="flex gap-2">
@@ -119,17 +121,16 @@ function CreateHostCard() {
 
   const onSubmit = (values: HostFormValues) => {
     startTransition(() => {
-      void createHostAction(values)
-        .then((result) => {
-          if (!result.ok) {
-            SnackBarNotification.error(result.message);
-            return;
-          }
+      void createHostAction(values).then((result) => {
+        if (!result.ok) {
+          SnackBarNotification.error(result.message);
+          return;
+        }
 
-          SnackBarNotification.success(result.message);
-          form.reset(emptyHostForm);
-          router.refresh();
-        });
+        SnackBarNotification.success(result.message);
+        form.reset(emptyHostForm);
+        router.refresh();
+      });
     });
   };
 
@@ -229,23 +230,25 @@ function EditingHostRow({
 
   const onSubmit = (values: HostUpdateValues) => {
     startTransition(() => {
-      void updateHostAction({ hostId: host.id, payload: values })
-        .then((result) => {
-          if (!result.ok) {
-            SnackBarNotification.error(result.message);
-            return;
-          }
+      void updateHostAction({ hostId: host.id, payload: values }).then((result) => {
+        if (!result.ok) {
+          SnackBarNotification.error(result.message);
+          return;
+        }
 
-          SnackBarNotification.success(result.message);
-          onSaved();
-          router.refresh();
-        });
+        SnackBarNotification.success(result.message);
+        onSaved();
+        router.refresh();
+      });
     });
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto_auto]">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto_auto]"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -303,16 +306,15 @@ function DeleteHostButton({ host }: { host: HostStatusInfo }) {
 
   const onDelete = () => {
     startTransition(() => {
-      void deleteHostAction(host.id)
-        .then((result) => {
-          if (!result.ok) {
-            SnackBarNotification.error(result.message);
-            return;
-          }
+      void deleteHostAction(host.id).then((result) => {
+        if (!result.ok) {
+          SnackBarNotification.error(result.message);
+          return;
+        }
 
-          SnackBarNotification.success(result.message);
-          router.refresh();
-        });
+        SnackBarNotification.success(result.message);
+        router.refresh();
+      });
     });
   };
 
