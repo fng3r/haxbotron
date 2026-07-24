@@ -10,11 +10,14 @@ import {
   RoomInfoItem,
   SetTeamColoursParams,
   TeamColoursResponse,
+  PersistedRoomConfig,
 } from '@/lib/types/room';
 
 function toErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof AxiosError && error.response?.data?.message) {
-    return error.response.data.message;
+  if (error instanceof AxiosError) {
+    const data = error.response?.data;
+    if (data?.error?.message) return data.error.message;
+    if (data?.message) return data.message;
   }
   if (error instanceof Error) return error.message;
   return fallback;
@@ -99,12 +102,44 @@ export const createRoom = async (roomConfig: ReactHostRoomInfo): Promise<void> =
   }
 };
 
+export const getRoomConfigs = async (): Promise<PersistedRoomConfig[]> => {
+  try {
+    return (await getApiClient().get('/api/v1/room-configs')).data;
+  } catch (error) {
+    throw new Error(toErrorMessage(error, 'Failed to load room configurations.'));
+  }
+};
+
+export const saveRoomConfig = async (config: ReactHostRoomInfo): Promise<PersistedRoomConfig> => {
+  try {
+    return (await getApiClient().put(`/api/v1/room-configs/${encodeURIComponent(config.ruid)}`, config)).data;
+  } catch (error) {
+    throw new Error(toErrorMessage(error, 'Failed to save room configuration.'));
+  }
+};
+
+export const deleteRoomConfig = async (ruid: string): Promise<void> => {
+  try {
+    await getApiClient().delete(`/api/v1/room-configs/${encodeURIComponent(ruid)}`);
+  } catch (error) {
+    throw new Error(toErrorMessage(error, 'Failed to delete room configuration.'));
+  }
+};
+
 export const shutdownRoom = async (ruid: string): Promise<void> => {
   try {
     const apiClient = getApiClient();
     await apiClient.delete(`/api/v1/room/${ruid}`);
   } catch (error) {
     throw new Error(toErrorMessage(error, 'Unexpected error occurred. Please try again.'));
+  }
+};
+
+export const relaunchRoom = async (config: ReactHostRoomInfo): Promise<void> => {
+  try {
+    await getApiClient().post(`/api/v1/room/${encodeURIComponent(config.ruid)}/relaunch`, config);
+  } catch (error) {
+    throw new Error(toErrorMessage(error, 'Failed to relaunch room.'));
   }
 };
 

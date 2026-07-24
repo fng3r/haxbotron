@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import { discordWebhookConfigSchema } from './discordwebhook.validation.js';
 
 const roomConfigSchema = Joi.object().keys({
     roomName: Joi.string().required()
@@ -41,5 +42,13 @@ export const nestedHostRoomConfigSchema = Joi.object()
         _config: roomConfigSchema.required(),
         settings: roomSettingSchema.required(),
         rules: gameRuleSchema.required(),
+        discordWebhook: discordWebhookConfigSchema.default({
+            feed: false,
+            replayUpload: false,
+            replaysWebhookId: '',
+            replaysWebhookToken: '',
+            passwordWebhookId: '',
+            passwordWebhookToken: '',
+        }),
     })
     .options({ stripUnknown: true });

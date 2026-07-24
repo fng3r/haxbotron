@@ -18,8 +18,12 @@ import {
   setTeamColours,
   shutdownRoom,
   toggleFreeze,
+  getRoomConfigs,
+  saveRoomConfig,
+  deleteRoomConfig,
+  relaunchRoom,
 } from '@/lib/api/room';
-import { AllRoomListItem, DiscordWebhookConfig, RoomInfo, RoomInfoItem, TeamColoursResponse } from '@/lib/types/room';
+import { AllRoomListItem, DiscordWebhookConfig, PersistedRoomConfig, RoomInfo, RoomInfoItem, TeamColoursResponse } from '@/lib/types/room';
 
 const queryKeys = {
   room: (ruid: string) => ['room', ruid],
@@ -29,6 +33,7 @@ const queryKeys = {
   roomTeamColours: (ruid: string) => ['room', ruid, 'colours'],
   rooms: ['rooms'],
   allRooms: ['rooms', 'all'],
+  roomConfigs: ['room-configs'],
 };
 
 const queries = {
@@ -73,9 +78,21 @@ const queries = {
       queryKey: queryKeys.roomTeamColours(ruid),
       queryFn: () => getTeamColours(ruid),
     }),
+
+  getRoomConfigs: (initialData?: PersistedRoomConfig[]) =>
+    useQuery<PersistedRoomConfig[]>({ queryKey: queryKeys.roomConfigs, queryFn: getRoomConfigs, initialData }),
 };
 
 const mutations = {
+  saveRoomConfig: () => {
+    const queryClient = useQueryClient();
+    return useMutation({ mutationFn: saveRoomConfig, onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.roomConfigs }) });
+  },
+
+  deleteRoomConfig: () => {
+    const queryClient = useQueryClient();
+    return useMutation({ mutationFn: deleteRoomConfig, onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.roomConfigs }) });
+  },
   createRoom: () => {
     const queryClient = useQueryClient();
 
@@ -93,6 +110,18 @@ const mutations = {
     return useMutation({
       mutationFn: shutdownRoom,
       onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
+      },
+    });
+  },
+
+  relaunchRoom: () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: relaunchRoom,
+      onSettled: (_data, _error, config) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.room(config.ruid) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.roomFreezeStatus(config.ruid) });
         queryClient.invalidateQueries({ queryKey: queryKeys.rooms });
       },
     });
@@ -138,14 +167,22 @@ const mutations = {
   },
 
   setPassword: () => {
+    const queryClient = useQueryClient();
     return useMutation({
       mutationFn: setPassword,
+      onSettled: (_data, _error, { ruid }) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.room(ruid) });
+      },
     });
   },
 
   clearPassword: () => {
+    const queryClient = useQueryClient();
     return useMutation({
       mutationFn: clearPassword,
+      onSettled: (_data, _error, { ruid }) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.room(ruid) });
+      },
     });
   },
 

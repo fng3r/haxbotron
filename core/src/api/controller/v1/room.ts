@@ -1,9 +1,10 @@
 import { Context } from "koa";
 import { Player } from "../../../game/model/GameObject/Player.js";
 import { TeamID } from "../../../game/model/GameObject/TeamID.js";
+import { apiDbAdapter } from "../../../lib/db/adapters/ApiDbAdapter.js";
+import { ConflictError, PlayerNotFoundError, RoomNotFoundError, ValidationError } from "../../../lib/errors.js";
 import { RoomOperationsAPI } from "../../../lib/room/index.js";
 import { RoomInitConfig } from "../../../lib/room/RoomHostConfig.js";
-import { ConflictError, PlayerNotFoundError, RoomNotFoundError, ValidationError } from "../../../lib/errors.js";
 import { formatJoiError } from "../../middleware/errorHandler.js";
 import { discordWebhookConfigSchema } from "../../schema/discordwebhook.validation.js";
 import { nestedHostRoomConfigSchema } from "../../schema/hostroomconfig.validation.js";
@@ -62,6 +63,7 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
                 _config: body._config,
                 settings: body.settings,
                 rules: body.rules,
+                discordWebhook: body.discordWebhook,
             };
 
             if (newRoomConfig._config.password == "") {
@@ -72,7 +74,38 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
                 throw new ConflictError(`Room with RUID '${newRoomConfig._RUID}' already exists`);
             }
 
+            await apiDbAdapter.saveRoomConfig(body);
             await roomOperations.openNewRoom(newRoomConfig._RUID, newRoomConfig);
+            ctx.status = 201;
+        },
+
+        async relaunchRoom(ctx: Context) {
+            const { ruid } = ctx.params;
+            ensureRoomExists(ruid);
+
+            const validationResult = nestedHostRoomConfigSchema.validate({
+                ...(ctx.request.body as Record<string, unknown>),
+                ruid,
+            });
+            if (validationResult.error) {
+                const formatted = formatJoiError(validationResult.error);
+                throw new ValidationError(formatted.message, formatted.details);
+            }
+
+            const body = validationResult.value;
+            const nextConfig: RoomInitConfig = {
+                _LaunchDate: new Date(),
+                _RUID: ruid,
+                _config: body._config,
+                settings: body.settings,
+                rules: body.rules,
+                discordWebhook: body.discordWebhook,
+            };
+            if (nextConfig._config.password === "") nextConfig._config.password = undefined;
+
+            await apiDbAdapter.saveRoomConfig(body);
+            await roomOperations.closeRoom(ruid);
+            await roomOperations.openNewRoom(ruid, nextConfig);
             ctx.status = 201;
         },
 
@@ -323,6 +356,12 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
                 replayUpload,
                 passwordWebhookId,
                 passwordWebhookToken,
+            });
+
+            const persisted = await apiDbAdapter.getRoomConfig(ruid);
+            await apiDbAdapter.saveRoomConfig({
+                ...persisted,
+                discordWebhook: { feed, replaysWebhookId, replaysWebhookToken, replayUpload, passwordWebhookId, passwordWebhookToken },
             });
             ctx.status = 201;
         },

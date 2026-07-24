@@ -8,6 +8,7 @@ export function createRoomRouter(roomOperations: RoomOperationsAPI): Router {
 
     roomRouter.get('/', roomController.getRoomList); // get room list
     roomRouter.post('/', roomController.createRoom); // create room
+    roomRouter.post('/:ruid/relaunch', roomController.relaunchRoom); // close and reopen room with supplied config
 
     roomRouter.get('/:ruid', roomController.getRoomInfo); // get room info
     roomRouter.delete('/:ruid', roomController.terminateRoom); // create room

@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
+import { RoomStatusPill } from '@/components/common/StatusPill';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -55,7 +56,6 @@ export default function ControlMappings({
                 <TableHead>RUID</TableHead>
                 <TableHead>Host</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Integrity</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -67,7 +67,7 @@ export default function ControlMappings({
                   <TableRow key={mapping.ruid}>
                     <TableCell>{mapping.ruid}</TableCell>
                     {isEditing ? (
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={3}>
                         <EditingMappingRow
                           hosts={hosts}
                           mapping={mapping}
@@ -78,8 +78,9 @@ export default function ControlMappings({
                     ) : (
                       <>
                         <TableCell>{mapping.hostName || mapping.hostId}</TableCell>
-                        <TableCell>{mapping.online ? 'online' : 'offline'}</TableCell>
-                        <TableCell>{mapping.integrity}</TableCell>
+                        <TableCell>
+                          <RoomStatusPill online={mapping.online} />
+                        </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button
@@ -120,17 +121,16 @@ function CreateMappingCard({ hosts }: { hosts: HostStatusInfo[] }) {
 
   const onSubmit = (values: MappingFormValues) => {
     startTransition(() => {
-      void createMappingAction(values)
-        .then((result) => {
-          if (!result.ok) {
-            SnackBarNotification.error(result.message);
-            return;
-          }
+      void createMappingAction(values).then((result) => {
+        if (!result.ok) {
+          SnackBarNotification.error(result.message);
+          return;
+        }
 
-          SnackBarNotification.success(result.message);
-          form.reset(emptyMappingForm);
-          router.refresh();
-        });
+        SnackBarNotification.success(result.message);
+        form.reset(emptyMappingForm);
+        router.refresh();
+      });
     });
   };
 
@@ -213,17 +213,16 @@ function EditingMappingRow({
 
   const onSubmit = (values: Pick<MappingFormValues, 'hostId'>) => {
     startTransition(() => {
-      void updateMappingAction({ ruid: mapping.ruid, hostId: values.hostId })
-        .then((result) => {
-          if (!result.ok) {
-            SnackBarNotification.error(result.message);
-            return;
-          }
+      void updateMappingAction({ ruid: mapping.ruid, hostId: values.hostId }).then((result) => {
+        if (!result.ok) {
+          SnackBarNotification.error(result.message);
+          return;
+        }
 
-          SnackBarNotification.success(result.message);
-          onSaved();
-          router.refresh();
-        });
+        SnackBarNotification.success(result.message);
+        onSaved();
+        router.refresh();
+      });
     });
   };
 
@@ -273,16 +272,15 @@ function DeleteMappingButton({ mapping }: { mapping: RoomMapping & ManagedRoomIn
 
   const onDelete = () => {
     startTransition(() => {
-      void deleteMappingAction(mapping.ruid)
-        .then((result) => {
-          if (!result.ok) {
-            SnackBarNotification.error(result.message);
-            return;
-          }
+      void deleteMappingAction(mapping.ruid).then((result) => {
+        if (!result.ok) {
+          SnackBarNotification.error(result.message);
+          return;
+        }
 
-          SnackBarNotification.success(result.message);
-          router.refresh();
-        });
+        SnackBarNotification.success(result.message);
+        router.refresh();
+      });
     });
   };
 

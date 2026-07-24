@@ -3,6 +3,7 @@
 import Link from 'next/link';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RoomStatusPill } from '@/components/common/StatusPill';
 import { CopyButton } from '@/components/ui/copy-button';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -97,7 +98,7 @@ export default function RoomList() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Link href={`/admin/room/${item.ruid}`} className="block w-full">
-                        {item.online ? 'online' : 'offline'}
+                        <RoomStatusPill online={item.online} />
                       </Link>
                     </TableCell>
                   </TableRow>

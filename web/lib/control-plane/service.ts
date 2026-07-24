@@ -1,9 +1,4 @@
-import 'server-only';
-
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, Method } from 'axios';
-import socketClient from 'socket.io-client';
-
-import { generateToken } from '@/lib/auth/jwt';
 
 import { getControlPlaneEventBus } from './event-bus';
 import { loadControlPlaneState, saveControlPlaneState } from './storage';
@@ -22,6 +17,10 @@ import {
   RuntimeRoomInfo,
   RuntimeSnapshot,
 } from './types';
+import 'server-only';
+import socketClient from 'socket.io-client';
+
+import { generateToken } from '@/lib/auth/jwt';
 
 type HostSocketHandle = {
   socket: ReturnType<typeof socketClient>;
@@ -70,12 +69,10 @@ function makeDefaultSnapshot(state: ControlPlaneState): RuntimeSnapshot {
           healthy: false,
           lastSeenAt: null,
           onlineRooms: new Set<string>(),
-          integrityIssues: 0,
         },
       ]),
     ),
     rooms: new Map(),
-    unmappedOnlineRooms: [],
   };
 }
 
@@ -106,7 +103,7 @@ function unsupportedError(message: string): ControlPlaneError {
 class ControlPlaneService {
   private state: ControlPlaneState | null = null;
   private statePromise: Promise<ControlPlaneState> | null = null;
-  private runtimeSnapshot: RuntimeSnapshot = { generatedAt: 0, hosts: new Map(), rooms: new Map(), unmappedOnlineRooms: [] };
+  private runtimeSnapshot: RuntimeSnapshot = { generatedAt: 0, hosts: new Map(), rooms: new Map() };
   private refreshPromise: Promise<RuntimeSnapshot> | null = null;
   private socketHandles = new Map<string, HostSocketHandle>();
   private socketsBootstrapped = false;
@@ -234,11 +231,7 @@ class ControlPlaneService {
             await Promise.all(
               onlineRooms.map(async (ruid) => {
                 const mapping = mappingsByRuid.get(ruid);
-                if (!mapping) {
-                  snapshot.unmappedOnlineRooms.push({ ruid, hostId: host.id });
-                  hostState.integrityIssues += 1;
-                  return;
-                }
+                if (!mapping || mapping.hostId !== host.id) return;
 
                 try {
                   const detailResponse = await client.get(`/api/v1/room/${ruid}/info`);
@@ -262,41 +255,11 @@ class ControlPlaneService {
 
       for (const mapping of state.mappings) {
         const ownerHost = snapshot.hosts.get(mapping.hostId);
-        const actualHost = state.hosts.find((host) => snapshot.hosts.get(host.id)?.onlineRooms.has(mapping.ruid));
-        let room: RuntimeRoomInfo;
-
-        if (!ownerHost || !ownerHost.healthy) {
-          room = {
-            ownerHostId: mapping.hostId,
-            online: false,
-            integrity: 'host_unreachable',
-          };
-        } else if (!actualHost) {
-          room = {
-            ownerHostId: mapping.hostId,
-            online: false,
-            integrity: 'offline',
-          };
-        } else if (actualHost.id !== mapping.hostId) {
-          room = {
-            ownerHostId: mapping.hostId,
-            actualHostId: actualHost.id,
-            online: true,
-            integrity: 'wrong_host',
-            detail: detailByRuid.get(mapping.ruid),
-          };
-          snapshot.hosts.get(actualHost.id)!.integrityIssues += 1;
-        } else {
-          room = {
-            ownerHostId: mapping.hostId,
-            actualHostId: actualHost.id,
-            online: true,
-            integrity: 'ok',
-            detail: detailByRuid.get(mapping.ruid),
-          };
-        }
-
-        snapshot.rooms.set(mapping.ruid, room);
+        const online = Boolean(ownerHost?.healthy && ownerHost.onlineRooms.has(mapping.ruid));
+        snapshot.rooms.set(mapping.ruid, {
+          online,
+          detail: online ? detailByRuid.get(mapping.ruid) : undefined,
+        });
       }
 
       snapshot.generatedAt = Date.now();
@@ -337,17 +300,14 @@ class ControlPlaneService {
           if (this.socketHandles.has(host.id)) return;
 
           const token = await generateToken('control-plane');
-          const socket = socketClient(
-            normalizeBaseUrl(host.baseUrl),
-            {
-              path: '/ws',
-              transports: ['websocket'],
-              autoConnect: true,
-              extraHeaders: {
-                cookie: `access_token=${token}`,
-              },
-            } as any,
-          );
+          const socket = socketClient(normalizeBaseUrl(host.baseUrl), {
+            path: '/ws',
+            transports: ['websocket'],
+            autoConnect: true,
+            extraHeaders: {
+              cookie: `access_token=${token}`,
+            },
+          } as any);
 
           const emit = (event: AggregatedSocketEvent) => {
             getControlPlaneEventBus().emit(event);
@@ -406,16 +366,11 @@ class ControlPlaneService {
     const snapshot = await this.refreshSnapshot();
     const healthyHostCount = Array.from(snapshot.hosts.values()).filter((host) => host.healthy).length;
     const onlineRoomCount = Array.from(snapshot.rooms.values()).filter((room) => room.online).length;
-    const integrityIssueCount =
-      Array.from(snapshot.rooms.values()).filter((room) => room.integrity === 'wrong_host').length +
-      snapshot.unmappedOnlineRooms.length;
-
     return {
       hostCount: state.hosts.length,
       healthyHostCount,
       configuredRoomCount: state.mappings.length,
       onlineRoomCount,
-      integrityIssueCount,
     };
   }
 
@@ -430,7 +385,8 @@ class ControlPlaneService {
         const room = snapshot.rooms.get(mapping.ruid);
         return mapping.hostId === host.id && room?.online;
       }).length;
-      const blockingReason = mappedRoomCount > 0 ? 'Move or delete all mapped rooms before deleting this host.' : undefined;
+      const blockingReason =
+        mappedRoomCount > 0 ? 'Move or delete all mapped rooms before deleting this host.' : undefined;
 
       return {
         id: host.id,
@@ -444,7 +400,6 @@ class ControlPlaneService {
         serverVersion: runtime?.system?.serverVersion,
         mappedRoomCount,
         onlineMappedRoomCount,
-        integrityIssues: runtime?.integrityIssues ?? 0,
         blockingReason,
       };
     });
@@ -460,7 +415,6 @@ class ControlPlaneService {
         ruid: mapping.ruid,
         hostId: mapping.hostId,
         online: false,
-        integrity: 'offline',
       }),
     }));
   }
@@ -481,16 +435,10 @@ class ControlPlaneService {
         roomName: runtime?.detail?.roomName,
         roomLink: runtime?.detail?.link,
         onlinePlayers: runtime?.detail?.onlinePlayers,
-        integrity: runtime?.integrity ?? 'offline',
       };
 
-      if (runtime?.integrity === 'wrong_host') {
-        return {
-          ...base,
-          blockingReason: `Room is online on '${runtime.actualHostId}' instead of '${mapping.hostId}'.`,
-        };
-      }
-      if (runtime?.integrity === 'host_unreachable') {
+      const hostRuntime = host ? snapshot.hosts.get(host.id) : undefined;
+      if (!host?.enabled || !hostRuntime?.healthy) {
         return {
           ...base,
           blockingReason: 'Assigned host is disabled or unreachable.',
@@ -515,7 +463,6 @@ class ControlPlaneService {
       hostId: mapping.hostId,
       hostName: host?.name,
       baseUrl: host?.baseUrl,
-      integrity: room?.integrity ?? 'offline',
       online: room?.online ?? false,
     };
   }
@@ -741,7 +688,10 @@ class ControlPlaneService {
   public async proxyRequest(method: Method, pathSegments: string[], search: URLSearchParams, body?: unknown) {
     if (pathSegments[0] === 'room') {
       if (pathSegments.length === 1) {
-        if (method === 'GET') return await this.listManagedRooms().then((rooms) => rooms.filter((room) => room.online).map((room) => room.ruid));
+        if (method === 'GET')
+          return await this.listManagedRooms().then((rooms) =>
+            rooms.filter((room) => room.online).map((room) => room.ruid),
+          );
         if (method === 'POST') {
           const payload = body as { ruid?: string };
           if (!payload?.ruid) throw validationError('RUID is required.');
@@ -767,7 +717,13 @@ class ControlPlaneService {
       });
     }
 
-    if (pathSegments[0] === 'playerlist' || pathSegments[0] === 'banlist' || pathSegments[0] === 'roleslist' || pathSegments[0] === 'ruidlist') {
+    if (
+      pathSegments[0] === 'playerlist' ||
+      pathSegments[0] === 'banlist' ||
+      pathSegments[0] === 'roleslist' ||
+      pathSegments[0] === 'ruidlist' ||
+      pathSegments[0] === 'room-configs'
+    ) {
       return await this.requestGlobal({
         url: `/api/v1/${pathSegments.join('/')}${search.toString() ? `?${search.toString()}` : ''}`,
         method,

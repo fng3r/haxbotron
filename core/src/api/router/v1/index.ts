@@ -7,6 +7,7 @@ import { ruidlistRouter } from "./ruidlist.js";
 import { banlistRouter } from "./banlist.js";
 import { playerlistRouter } from "./playerlist.js";
 import { playerRolesRouter} from "./playerroles.js";
+import { roomConfigsRouter } from "./roomconfigs.js";
 
 export function createIndexAPIRouter(roomOperations: RoomOperationsAPI): Router {
     const indexAPIRouter = new Router();
@@ -20,6 +21,7 @@ export function createIndexAPIRouter(roomOperations: RoomOperationsAPI): Router 
             })
         )
         .use('/room', roomRouter.routes())
+        .use('/room-configs', roomConfigsRouter.routes())
         .use('/ruidlist', ruidlistRouter.routes())
         .use('/banlist', banlistRouter.routes())
         .use('/roleslist', playerRolesRouter.routes())

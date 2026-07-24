@@ -1,19 +1,20 @@
 import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
 
-import RoomInfo from '@/components/Admin/RoomInfo';
+import RoomGeneral from '@/components/Admin/RoomGeneral';
 
 import { queryKeys } from '@/lib/queries/room';
-import { getServerRoomFreezeStatus, getServerRoomInfo } from '@/lib/server/control-plane';
+import { getServerRoomConfig, getServerRoomFreezeStatus, getServerRoomInfo } from '@/lib/server/control-plane';
 
-export default async function RoomInfoPage({ params }: { params: Promise<{ ruid: string }> }) {
+export default async function RoomGeneralPage({ params }: { params: Promise<{ ruid: string }> }) {
   const { ruid } = await params;
 
   const queryClient = new QueryClient();
-  await Promise.all([
+  const [, roomConfig] = await Promise.all([
     queryClient.prefetchQuery({
       queryKey: queryKeys.room(ruid),
       queryFn: () => getServerRoomInfo(ruid),
     }),
+    getServerRoomConfig(ruid),
     queryClient.prefetchQuery({
       queryKey: queryKeys.roomFreezeStatus(ruid),
       queryFn: () => getServerRoomFreezeStatus(ruid),
@@ -22,7 +23,7 @@ export default async function RoomInfoPage({ params }: { params: Promise<{ ruid:
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <RoomInfo ruid={ruid} />
+      <RoomGeneral ruid={ruid} roomConfig={roomConfig} />
     </HydrationBoundary>
   );
 }
