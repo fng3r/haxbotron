@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { HostStatusPill } from '@/components/common/StatusPill';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { queries } from '@/lib/queries/server';
@@ -59,7 +60,7 @@ export default function ServerInfo() {
                 <TableRow key={host.id}>
                   <TableCell>{host.name}</TableCell>
                   <TableCell>{host.baseUrl}</TableCell>
-                  <TableCell>{host.healthy ? 'healthy' : 'down'}</TableCell>
+                  <TableCell><HostStatusPill enabled={host.enabled} healthy={host.healthy} /></TableCell>
                   <TableCell>{host.mappedRoomCount}</TableCell>
                   <TableCell>{host.onlineMappedRoomCount}</TableCell>
                 </TableRow>

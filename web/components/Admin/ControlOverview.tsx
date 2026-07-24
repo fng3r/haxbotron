@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { HostStatusPill } from '@/components/common/StatusPill';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -62,7 +63,11 @@ export default function ControlOverview({
                 {hosts.map((host) => (
                   <TableRow key={host.id}>
                     <TableCell>{host.name}</TableCell>
-                    <TableCell>{host.healthy ? 'healthy' : 'down'}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <HostStatusPill enabled={host.enabled} healthy={host.healthy} />
+                      </div>
+                    </TableCell>
                     <TableCell>{host.mappedRoomCount}</TableCell>
                     <TableCell>{host.onlineMappedRoomCount}</TableCell>
                   </TableRow>

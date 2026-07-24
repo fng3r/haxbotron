@@ -10,6 +10,7 @@ import { z } from 'zod';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Button } from '@/components/ui/button';
+import { RoomStatusPill } from '@/components/common/StatusPill';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -78,7 +79,7 @@ export default function ControlMappings({
                     ) : (
                       <>
                         <TableCell>{mapping.hostName || mapping.hostId}</TableCell>
-                        <TableCell>{mapping.online ? 'online' : 'offline'}</TableCell>
+                        <TableCell><RoomStatusPill online={mapping.online} /></TableCell>
                         <TableCell>{mapping.integrity}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">

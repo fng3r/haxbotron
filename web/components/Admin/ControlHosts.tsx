@@ -10,6 +10,7 @@ import { z } from 'zod';
 
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Button } from '@/components/ui/button';
+import { HostStatusPill } from '@/components/common/StatusPill';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -81,7 +82,7 @@ export default function ControlHosts({ hosts }: { hosts: HostStatusInfo[] }) {
                       )}
                     </TableCell>
                     {!isEditing && <TableCell>{host.baseUrl}</TableCell>}
-                    {!isEditing && <TableCell>{host.healthy ? 'healthy' : 'down'}</TableCell>}
+                    {!isEditing && <TableCell><HostStatusPill enabled={host.enabled} healthy={host.healthy} /></TableCell>}
                     {!isEditing && <TableCell>{host.mappedRoomCount}</TableCell>}
                     {!isEditing && <TableCell>{host.onlineMappedRoomCount}</TableCell>}
                     {!isEditing && (
