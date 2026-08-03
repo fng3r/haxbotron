@@ -26,11 +26,8 @@ export type HostStatusInfo = {
   serverVersion?: string;
   mappedRoomCount: number;
   onlineMappedRoomCount: number;
-  integrityIssues: number;
   blockingReason?: string;
 };
-
-export type ManagedRoomIntegrity = 'ok' | 'wrong_host' | 'offline' | 'host_unreachable';
 
 export type ManagedRoomInfo = {
   ruid: string;
@@ -40,7 +37,6 @@ export type ManagedRoomInfo = {
   roomName?: string;
   roomLink?: string;
   onlinePlayers?: number;
-  integrity: ManagedRoomIntegrity;
   blockingReason?: string;
 };
 
@@ -49,7 +45,6 @@ export type RoomLocationInfo = {
   hostId: string;
   hostName?: string;
   baseUrl?: string;
-  integrity: ManagedRoomIntegrity;
   online: boolean;
 };
 
@@ -58,5 +53,4 @@ export type ClusterSummary = {
   healthyHostCount: number;
   configuredRoomCount: number;
   onlineRoomCount: number;
-  integrityIssueCount: number;
 };

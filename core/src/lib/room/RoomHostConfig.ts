@@ -4,6 +4,7 @@ export interface RoomInitConfig {
     _config: RoomHostConfig;
     settings: RoomSettings;
     rules: RoomRules;
+    discordWebhook?: import("./RoomTypes.js").DiscordWebhookConfig;
 }
 
 export interface ReactHostRoomInfo {
@@ -11,6 +12,12 @@ export interface ReactHostRoomInfo {
     _config: RoomHostConfig;
     settings: RoomSettings;
     rules: RoomRules;
+    discordWebhook: import("./RoomTypes.js").DiscordWebhookConfig;
+}
+
+export interface PersistedRoomConfig extends ReactHostRoomInfo {
+    createdAt?: number;
+    updatedAt?: number;
 }
 
 export interface RoomHostConfig {

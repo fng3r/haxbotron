@@ -7,7 +7,6 @@ import * as Tst from "../shared/Translator.js";
 import { emitPlayerStatusChange, emitRoomReady } from "./WorkerEventBridge.js";
 import { DiscordWebhookService } from "../../lib/integrations/DiscordWebhookService.js";
 import { RoomInitConfig } from "../../lib/room/RoomHostConfig.js";
-import { DiscordWebhookConfig } from "../../lib/room/RoomTypes.js";
 import { Player } from "../model/GameObject/Player.js";
 import { TeamID } from "../model/GameObject/TeamID.js";
 import * as LangRes from "../resource/strings.js";
@@ -21,11 +20,18 @@ export async function openRoomRuntime(
     initConfig: RoomInitConfig,
     discordWebhookService: DiscordWebhookService = new DiscordWebhookService()
 ): Promise<RoomRuntime> {
-    const runtimeConfig = applyGeolocationOverride(initConfig);
+    const runtimeConfig = initConfig;
     const logger = new Logger(runtimeConfig._RUID);
     logger.i("initialization", "Loading initial config and open the game room...");
 
-    const discordWebhookConfig = getDiscordWebhookConfigFromEnv();
+    const discordWebhookConfig = runtimeConfig.discordWebhook ?? {
+        feed: false,
+        replayUpload: false,
+        replaysWebhookId: "",
+        replaysWebhookToken: "",
+        passwordWebhookId: "",
+        passwordWebhookToken: "",
+    };
     const room = HBInit(runtimeConfig._config);
     const adminPassword = generateRandomString();
 
@@ -50,29 +56,6 @@ export async function openRoomRuntime(
     console.log(`Haxbotron loaded room runtime. (RUID ${runtime.config.getRUID()}, TOKEN ${runtime.config.getRoomToken()})`);
 
     return runtime;
-}
-
-function getDiscordWebhookConfigFromEnv(): DiscordWebhookConfig {
-    return {
-        feed: JSON.parse(process.env.DISCORD_WEBHOOK_FEED || false.toString()),
-        replayUpload: JSON.parse(process.env.DISCORD_WEBHOOK_REPLAY_UPLOAD || false.toString()),
-        replaysWebhookId: process.env.DISCORD_REPLAYS_WEBHOOK_ID || "",
-        replaysWebhookToken: process.env.DISCORD_REPLAYS_WEBHOOK_TOKEN || "",
-        passwordWebhookId: process.env.DISCORD_PASSWORD_WEBHOOK_ID || "",
-        passwordWebhookToken: process.env.DISCORD_PASSWORD_WEBHOOK_TOKEN || "",
-    };
-}
-
-function applyGeolocationOverride(initConfig: RoomInitConfig): RoomInitConfig {
-    if (process.env.TWEAKS_GEOLOCATIONOVERRIDE && JSON.parse(process.env.TWEAKS_GEOLOCATIONOVERRIDE.toLowerCase()) === true) {
-        initConfig._config.geo = {
-            code: process.env.TWEAKS_GEOLOCATIONOVERRIDE_CODE || "KR",
-            lat: parseFloat(process.env.TWEAKS_GEOLOCATIONOVERRIDE_LAT || "37.5665"),
-            lon: parseFloat(process.env.TWEAKS_GEOLOCATIONOVERRIDE_LON || "126.978"),
-        };
-    }
-
-    return initConfig;
 }
 
 function setDefaultSettings(runtime: RoomRuntime): void {

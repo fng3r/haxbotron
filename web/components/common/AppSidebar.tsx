@@ -7,16 +7,17 @@ import LogoutButton from './LogoutButton';
 import {
   Ban,
   Gamepad2,
+  Gauge,
   LayoutDashboard,
   List,
   PlusCircle,
   Server,
-  Settings2,
   Share2,
   Shirt,
+  SlidersHorizontal,
   User,
   Users2,
-  XOctagon,
+  Waypoints,
 } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -75,6 +76,14 @@ export default function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathName === '/admin/configs'}>
+                  <Link href="/admin/configs">
+                    <SlidersHorizontal className="size-5" />
+                    <span>Room Configs</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathName === '/admin/roleslist'}>
                   <Link href="/admin/roleslist">
                     <Users2 className="size-5" />
@@ -96,7 +105,7 @@ export default function AppSidebar() {
                     <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}`}>
                       <Link href={`/admin/room/${ruid}`}>
                         <Server className="size-5" />
-                        <span>Information</span>
+                        <span>General</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -140,14 +149,6 @@ export default function AppSidebar() {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/shutdown`}>
-                      <Link href={`/admin/room/${ruid}/shutdown`}>
-                        <XOctagon className="size-5" />
-                        <span>Close room</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -161,7 +162,7 @@ export default function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathName === '/admin/control'}>
                   <Link href="/admin/control">
-                    <Settings2 className="size-5" />
+                    <Gauge className="size-5" />
                     <span>Overview</span>
                   </Link>
                 </SidebarMenuButton>
@@ -177,7 +178,7 @@ export default function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathName === '/admin/control/mappings'}>
                   <Link href="/admin/control/mappings">
-                    <Gamepad2 className="size-5" />
+                    <Waypoints className="size-5" />
                     <span>RUID Mappings</span>
                   </Link>
                 </SidebarMenuButton>

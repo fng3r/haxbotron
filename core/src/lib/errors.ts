@@ -101,6 +101,16 @@ export class RoomCreationError extends RoomError {
   }
 }
 
+export class InvalidRoomTokenError extends AppError {
+  constructor() {
+    super(
+      'Invalid room token. Generate a new token at https://www.haxball.com/headlesstoken.',
+      400,
+      'INVALID_ROOM_TOKEN',
+    );
+  }
+}
+
 /**
  * Player not found error
  */

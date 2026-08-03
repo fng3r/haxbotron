@@ -1,6 +1,7 @@
 import { BanEntry } from "../../../game/model/PlayerBan/BanEntry.js";
 import { PlayerStorage } from "../../../game/model/GameObject/PlayerState.js";
 import { DbApiGateway } from "../DbApiGateway.js";
+import type { PersistedRoomConfig, ReactHostRoomInfo } from "../../room/RoomHostConfig.js";
 
 /**
  * API-facing adapter.
@@ -62,6 +63,22 @@ export class ApiDbAdapter {
     public async getRuidList(): Promise<any[]> {
         const response = await this.gateway.getRuidList();
         return response.data;
+    }
+
+    public async getRoomConfigs(): Promise<PersistedRoomConfig[]> {
+        return (await this.gateway.getRoomConfigs()).data;
+    }
+
+    public async getRoomConfig(ruid: string): Promise<PersistedRoomConfig> {
+        return (await this.gateway.getRoomConfig(ruid)).data;
+    }
+
+    public async saveRoomConfig(config: ReactHostRoomInfo): Promise<PersistedRoomConfig> {
+        return (await this.gateway.saveRoomConfig(config)).data;
+    }
+
+    public async deleteRoomConfig(ruid: string): Promise<void> {
+        await this.gateway.deleteRoomConfig(ruid);
     }
 
     // Methods shared with the room runtime adapter when both paths use the same DB API.

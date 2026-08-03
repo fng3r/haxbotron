@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { fork, type ChildProcess } from "node:child_process";
 import { Server as SIOserver } from "socket.io";
 import { winstonLogger } from "../../winstonLoggerSystem.js";
+import { InvalidRoomTokenError, RoomCreationError } from "../errors.js";
 import { RoomInitConfig } from "./RoomHostConfig.js";
 import {
     AnyRoomRpcResponse,
@@ -27,6 +28,7 @@ type RoomHandle = {
     startupPromise: Promise<void>;
     exitPromise: Promise<void>;
     exitResolve: () => void;
+    startupStderr: string;
 };
 
 const DEFAULT_COMMAND_TIMEOUT_MS = 5_000;
@@ -72,8 +74,10 @@ export class RoomProcessManager {
         this.bindChildListeners(handle);
 
         try {
-            await this.request(handle, "openRoom", { ruid, initConfig }, ROOM_STARTUP_TIMEOUT_MS);
-            await handle.startupPromise;
+            await Promise.all([
+                this.request(handle, "openRoom", { ruid, initConfig }, ROOM_STARTUP_TIMEOUT_MS),
+                handle.startupPromise,
+            ]);
         } catch (error) {
             winstonLogger.error(
                 `[RoomProcessManager] [${ruid}] Failed to start room worker: ${error}`
@@ -156,6 +160,7 @@ export class RoomProcessManager {
             startupPromise,
             exitPromise,
             exitResolve,
+            startupStderr: "",
         };
     }
 
@@ -171,6 +176,7 @@ export class RoomProcessManager {
         handle.child.stderr?.on("data", (output: string | Buffer) => {
             const message = output.toString().replace(/\s+$/, "");
             if (message) {
+                handle.startupStderr = `${handle.startupStderr}\n${message}`.slice(-16_384);
                 winstonLogger.error(
                     `[RoomProcessManager] [${handle.ruid}] Worker stderr:\n${message}`
                 );
@@ -208,8 +214,11 @@ export class RoomProcessManager {
                     `[RoomProcessManager] [${handle.ruid}] Room worker exited unexpectedly (${exitDetails})`
                 );
             }
+            const startupError = !handle.ready ? this.getStartupError(handle) : undefined;
             this.resolveExit(handle);
-            handle.rpcClient.rejectAll(new Error(`[RoomProcessManager] Room worker '${handle.ruid}' exited unexpectedly`));
+            handle.rpcClient.rejectAll(
+                startupError ?? new Error(`[RoomProcessManager] Room worker '${handle.ruid}' exited unexpectedly`)
+            );
             if (handle.startupTimer) {
                 clearTimeout(handle.startupTimer);
             }
@@ -217,7 +226,7 @@ export class RoomProcessManager {
                 winstonLogger.error(
                     `[RoomProcessManager] [${handle.ruid}] Room worker exited before becoming ready`
                 );
-                handle.startupReject(new Error(`[RoomProcessManager] Room '${handle.ruid}' exited before becoming ready`));
+                handle.startupReject(startupError);
             }
             this.rooms.delete(handle.ruid);
             this.emitSocketIOEvent("roomct", { ruid: handle.ruid });
@@ -230,6 +239,19 @@ export class RoomProcessManager {
             handle.rpcClient.rejectAll(error);
             handle.startupReject(error);
         });
+    }
+
+    private getStartupError(handle: RoomHandle): Error {
+        if (/InvalidRoomTokenError|Invalid room token/i.test(handle.startupStderr)) {
+            return new InvalidRoomTokenError();
+        }
+
+        const errorMatch = handle.startupStderr.match(/^([A-Za-z][A-Za-z0-9]*Error):\s*([^\n]+)/m);
+        if (errorMatch) {
+            return new RoomCreationError(`Room failed to start: ${errorMatch[2]}`);
+        }
+
+        return new RoomCreationError(`Room '${handle.ruid}' exited before becoming ready`);
     }
 
     private handleWorkerEvent(handle: RoomHandle, event: RoomWorkerEvent): void {
