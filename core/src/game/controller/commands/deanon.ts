@@ -10,11 +10,17 @@ export async function cmdDeanon(runtime: RoomRuntime, byPlayer: PlayerObject, pl
         return;
     }
 
-    const nicknamesList = Array.from(player.nicknames.values()).join(', ');
-    const placeholder = {
-        playerID: player.id,
-        playerName: player.name,
-        nicknamesList: nicknamesList
+    const previousNicknames = Array.from(player.nicknames.values()).filter(name => name !== player.name);
+    if (previousNicknames.length === 0) {
+        runtime.room.sendAnnouncement(Tst.maketext(Messages.command.deanon.onlyKnownAs, {
+            playerID: player.id
+            ,playerName: player.name
+        }), byPlayer.id, 0x479947, "normal", 1);
+    } else {
+        runtime.room.sendAnnouncement(Tst.maketext(Messages.command.deanon.alsoKnownAs, {
+            playerID: player.id
+            ,playerName: player.name
+            ,nicknamesList: previousNicknames.join(', ')
+        }), byPlayer.id, 0x479947, "normal", 1);
     }
-    runtime.room.sendAnnouncement(Tst.maketext(Messages.command.deanon.playerNicknames, placeholder), byPlayer.id, 0x479947, "normal", 1);
 }

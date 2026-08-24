@@ -57,7 +57,8 @@ export const command = {
         playerAuth: `📄 {playerName}#{playerID} public ID: {playerAuth}`
     }
     ,deanon: {
-        playerNicknames: `📄 {playerName}#{playerID} nicknames: {nicknamesList}`
+        onlyKnownAs: '📄 {playerName}#{playerID} is only known as {playerName}'
+        ,alsoKnownAs: '📄 {playerName}#{playerID} is also known as {nicknamesList}'
     }
     ,map: {
         _ErrorNoMap: '❌ Unknown map name. 📑 Check available maps with the !help map command'
