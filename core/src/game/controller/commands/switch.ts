@@ -1,21 +1,19 @@
 import type { PlayerObject } from "haxball.js";
-import {PlayerRoles} from "../../model/PlayerRole/PlayerRoles.js";
-import {TeamID} from "../../model/GameObject/TeamID.js";
-import * as Tst from "../../shared/Translator.js";
+import { TeamID } from "../../model/GameObject/TeamID.js";
 import * as LangRes from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import * as Tst from "../../shared/Translator.js";
 
 export function cmdSwitch(runtime: RoomRuntime, byPlayer: PlayerObject): void {
     const room = runtime.room.getRoom();
-    const playerList = runtime.players.getPlayerList();
+    const playerList = room.getPlayerList();
     
     const placeholder = {
         playerID: byPlayer.id
         ,playerName: byPlayer.name
     };
 
-    const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
-    if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
+    if(!byPlayer.admin) {
         runtime.room.sendAnnouncement(LangRes.command.switch._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
