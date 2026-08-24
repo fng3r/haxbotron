@@ -1,14 +1,14 @@
 import type { PlayerObject } from "haxball.js";
 import { Player } from "../../model/GameObject/Player.js";
 import { TeamID } from "../../model/GameObject/TeamID.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import * as Tst from "../../shared/Translator.js";
 
 export function cmdList(runtime: RoomRuntime, byPlayer: PlayerObject, playerGroup?: string): void {
     const team = resolveTeam(playerGroup);
     if (team === "invalid") {
-        runtime.room.sendAnnouncement(LangRes.command.list._ErrorNoTeam, byPlayer.id, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(Messages.command.list._ErrorNoTeam, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
 
@@ -17,10 +17,10 @@ export function cmdList(runtime: RoomRuntime, byPlayer: PlayerObject, playerGrou
         : runtime.players.getPlayersForTeam(team);
     const whoisResult = players.length > 0
         ? players.map(formatListedPlayer).join(", ")
-        : LangRes.command.list._ErrorNoOne;
+        : Messages.command.list._ErrorNoOne;
 
     runtime.room.sendAnnouncement(
-        Tst.maketext(LangRes.command.list.whoisList, { whoisResult }),
+        Tst.maketext(Messages.command.list.whoisList, { whoisResult }),
         byPlayer.id,
         0x479947,
         "normal",

@@ -1,5 +1,5 @@
 import type { PlayerObject } from "haxball.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { CommandExecutor, isCommandString, isTeamChatCommand, parseCommand } from "../commands/CommandRegistry.js";
 import { getUnixTimestamp } from "../../shared/DateTime.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
@@ -20,7 +20,7 @@ export function onPlayerChatListener(runtime: RoomRuntime, commandExecutor: Comm
     if (isCommandString(message)) {
         const command = parseCommand(message);
         if (command === null) {
-            runtime.room.sendAnnouncement(LangRes.command._ErrorWrongCommand, player.id, 0xFF7777, "normal", 2);
+            runtime.room.sendAnnouncement(Messages.command._ErrorWrongCommand, player.id, 0xFF7777, "normal", 2);
         } else {
             Promise.resolve(commandExecutor.executeCommand(player, command)).catch(() => {
                 runtime.logger.e('executeCommand', `Failed to execute command '${command.commandName}'`);
@@ -38,7 +38,7 @@ export function onPlayerChatListener(runtime: RoomRuntime, commandExecutor: Comm
     }
 
     if (runtime.chat.isMessageBlockedByMute(roomPlayer)) {
-        runtime.room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2);
+        runtime.room.sendAnnouncement(Messages.onChat.mutedChat, player.id, 0xFF0000, "bold", 2);
         return false;
     }
 
@@ -56,7 +56,7 @@ export function onPlayerChatListener(runtime: RoomRuntime, commandExecutor: Comm
                 playerID: player.id,
                 playerName: player.name
             };
-            runtime.room.sendAnnouncement(Tst.maketext(LangRes.antitrolling.chatFlood.muteReason, placeholder), null, 0xFF0000, "normal", 1); // notify that fact
+            runtime.room.sendAnnouncement(Tst.maketext(Messages.antitrolling.chatFlood.muteReason, placeholder), null, 0xFF0000, "normal", 1); // notify that fact
 
             emitPlayerStatusChange(player.id);
             return false;

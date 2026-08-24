@@ -1,6 +1,6 @@
 import type { ScoresObject } from "haxball.js";
 import { TeamID } from "../../model/GameObject/TeamID.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import * as Tst from "../../shared/Translator.js";
 
@@ -19,7 +19,7 @@ export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Pr
     if (scorer !== undefined) {
         const scoringPlayer = playerList.get(scorer);
         if (!scoringPlayer) {
-            const goalMsg = Tst.maketext(LangRes.onGoal.goal, {
+            const goalMsg = Tst.maketext(Messages.onGoal.goal, {
                 scorerName: `Player#${scorer} [LEFT]`
                 ,score
                 ,time
@@ -31,7 +31,7 @@ export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Pr
 
         if (scoringPlayer.team === team) { // if the goal is normal goal (not OG)
             scoringPlayer.matchRecord.goals++;
-            let goalMsg: string = Tst.maketext(LangRes.onGoal.goal, {
+            let goalMsg: string = Tst.maketext(Messages.onGoal.goal, {
                 scorerName: scoringPlayer.name
                 ,score
                 ,time
@@ -39,7 +39,7 @@ export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Pr
             if (assistant !== undefined && scorer !== assistant) {
                 const assistingPlayer = playerList.get(assistant);
                 if (!assistingPlayer) {
-                    goalMsg = Tst.maketext(LangRes.onGoal.goalWithAssist, {
+                    goalMsg = Tst.maketext(Messages.onGoal.goalWithAssist, {
                         scorerName: scoringPlayer.name
                         ,assistantName: `Player#${assistant} [LEFT]`
                         ,score
@@ -48,7 +48,7 @@ export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Pr
                 } else if (assistingPlayer.team === team) {
                     // records assist when the player who assists is not same as the player scored, and is not from other team.
                     assistingPlayer.matchRecord.assists++;
-                    goalMsg = Tst.maketext(LangRes.onGoal.goalWithAssist, {
+                    goalMsg = Tst.maketext(Messages.onGoal.goalWithAssist, {
                         scorerName: scoringPlayer.name
                         ,assistantName: assistingPlayer.name
                         ,score
@@ -60,7 +60,7 @@ export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Pr
             runtime.logger.i('onTeamGoal', goalMsg);
         } else { // if the goal is OG
             scoringPlayer.matchRecord.ogs++;
-            runtime.room.sendAnnouncement(Tst.maketext(LangRes.onGoal.og, {
+            runtime.room.sendAnnouncement(Tst.maketext(Messages.onGoal.og, {
                 ogName: scoringPlayer.name
                 ,score
                 ,time

@@ -1,5 +1,5 @@
 import type { PlayerObject } from "haxball.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge.js";
 import { getUnixTimestamp } from "../../shared/DateTime.js";
@@ -25,7 +25,7 @@ export async function onPlayerLeaveListener(runtime: RoomRuntime, player: Player
     };
 
     runtime.logger.i('onPlayerLeave', `${player.name}#${player.id} has left.`);
-    runtime.room.sendAnnouncement(Tst.maketext(LangRes.onLeft.playerLeft, placeholderLeft), null, 0xFFFFFF, "small", 0);
+    runtime.room.sendAnnouncement(Tst.maketext(Messages.onLeft.playerLeft, placeholderLeft), null, 0xFFFFFF, "small", 0);
 
     const playerEntry = playerList.get(player.id)!;
     playerEntry.entrytime.leftDate = leftTimeStamp;
