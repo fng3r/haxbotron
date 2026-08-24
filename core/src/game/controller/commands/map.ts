@@ -1,11 +1,9 @@
 import type { PlayerObject } from "haxball.js";
-import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles.js";
 import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function cmdMap(runtime: RoomRuntime, byPlayer: PlayerObject, mapName: string): void {
-    const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
-    if(!PlayerRoles.atLeast(playerRole, PlayerRoles.ADM)) {
+    if (!byPlayer.admin) {
         runtime.room.sendAnnouncement(Messages.command._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
