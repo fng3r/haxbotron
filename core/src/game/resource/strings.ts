@@ -4,19 +4,19 @@
 export const scheduler = {
     advertise: ''
     ,autoUnmute: '🔊 Player {targetName}#{targetID} is no longer muted.'
-}
+} as const
 
 export const teamName = {
     specTeam: 'Spec'
     ,redTeam: 'Red'
     ,blueTeam: 'Blue'
-}
+} as const
 
 export const antitrolling = {
     chatFlood: {
         muteReason: '🔇 {playerName}#{playerID} was muted for flooding (3 minutes).'
     }
-}
+} as const
 
 export const command = {
     _ErrorNoPermission: '❌ You are not an admin. You can\'t do this.'
@@ -95,11 +95,11 @@ export const command = {
     ,switch: {
         success: '🔃 Teams were switched by {playerName}#{playerID}'
     }
-}
+} as const
 
 export const funcUpdateAdmins = {
     newAdmin: '📢 {playerName}#{playerID} is now an admin.\n📑 Banning other players is not allowed.'
-}
+} as const
 
 export const onJoin = {
     playerJoined: '{playerName}#{playerID} ({playerRole}) has joined (public id: {playerAuth})'
@@ -110,37 +110,37 @@ export const onJoin = {
         permanentBan: '{playerName} is banned permanently'
         ,fixedTermBan: '{playerName} is banned until {banExpirationDate}'
     }
-}
+} as const
 
 export const onLeft = {
     playerLeft: '{playerName}#{playerID} has left (public id: {playerAuth})'
-}
+} as const
 
 export const onChat = {
     mutedChat: '🔇 You are muted. You can\'t send messages, only commands.'
-}
+} as const
 
 export const onVictory = {
     victory: '🎉 {winnerTeam} team won. Score: 🔴{redScore}-{blueScore}🔵. Possession: 🔴{possTeamRed}%-{possTeamBlue}%🔵'
-}
+} as const
 
 export const onKick = {
     banned: {
         permanentBan: '🚫 You are banned permanently'
         ,tempBan: '🚫 You are banned for {banInMinutes} minutes'
     }
-}
+} as const
 
 export const onGoal = {
     goal: '⚽️ {scorerName} | {score} | {time}'
     ,goalWithAssist: '⚽️ {scorerName} (👟 {assistantName}) | {score} | {time} '
     ,og: '🥅 {ogName} | {score} | {time}'
-}
+} as const
 
 export const onGamePause = {
     pausedByPlayer: 'The game was paused by {player}'
-}
+} as const
 
 export const onGameUnpause = {
     unpausedByPlayer: 'The game was unpaused by {player}'
-}
+} as const

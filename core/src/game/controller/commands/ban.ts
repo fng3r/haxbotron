@@ -24,27 +24,31 @@ export async function cmdBan(runtime: RoomRuntime, byPlayer: PlayerObject, playe
         const banInMinutes = banDuration || -1;
         if (playerList.has(playerId)) {
             const player = playerList.get(playerId)!;
-            let placeholder = {
-                targetName: playerList.get(playerId)!.name
-                ,ticketTarget: playerId
-                ,byPlayerName: byPlayer.name
-                ,byPlayerId: byPlayer.id
-                ,banInMinutes: banInMinutes
-            };
             const currentTimestamp: number = getUnixTimestamp();
 
             if (banInMinutes === -1) {
                 await runtime.bans.upsertBan(
                     runtime.bans.createPermanentBan(player.conn, player.auth, '', currentTimestamp)
                 );
-                room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.permanentBan, placeholder), false);
-                runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successPermaBan, placeholder), null, 0x479947, "normal", 1);
+                room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.permanentBan, { playerName: player.name }), false);
+                runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successPermaBan, {
+                    targetName: player.name
+                    ,ticketTarget: playerId
+                    ,byPlayerName: byPlayer.name
+                    ,byPlayerId: byPlayer.id
+                }), null, 0x479947, "normal", 1);
             } else {
                 await runtime.bans.upsertBan(
                     runtime.bans.createTemporaryBan(player.conn, player.auth, '', currentTimestamp, banInMinutes * 60 * 1000)
                 );
-                room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.tempBan, placeholder), false);
-                runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successTempBan, placeholder), null, 0x479947, "normal", 1);
+                room.kickPlayer(player.id, Tst.maketext(LangRes.onKick.banned.tempBan, { banInMinutes }), false);
+                runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.ban.successTempBan, {
+                    targetName: player.name
+                    ,ticketTarget: playerId
+                    ,byPlayerName: byPlayer.name
+                    ,byPlayerId: byPlayer.id
+                    ,banInMinutes: banInMinutes
+                }), null, 0x479947, "normal", 1);
             }
 
             emitPlayerStatusChange(byPlayer.id);
