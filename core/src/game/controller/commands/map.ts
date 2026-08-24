@@ -6,12 +6,12 @@ import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 export function cmdMap(runtime: RoomRuntime, byPlayer: PlayerObject, mapName: string): void {
     const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.ADM)) {
-        runtime.room.sendAnnouncement(LangRes.command.map._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
 
     if (runtime.match.isPlaying()) {
-        runtime.room.sendAnnouncement(LangRes.command.switch._ErrorGameStartedAlready, byPlayer.id, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command._ErrorGameStartedAlready, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
 

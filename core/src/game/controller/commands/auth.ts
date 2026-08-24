@@ -8,7 +8,7 @@ export function cmdAuth(runtime: RoomRuntime, byPlayer: PlayerObject, playerId?:
     
     const player = runtime.players.getPlayer(playerId);
     if (!player) {
-        runtime.room.sendAnnouncement(LangRes.command.auth._ErrorNoPlayer, null, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command._ErrorNoPlayer, null, 0xFF7777, "normal", 2);
         return;
     }
 

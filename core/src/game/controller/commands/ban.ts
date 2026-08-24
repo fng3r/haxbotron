@@ -13,7 +13,7 @@ export async function cmdBan(runtime: RoomRuntime, byPlayer: PlayerObject, playe
     
     const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
-        runtime.room.sendAnnouncement(LangRes.command.mute._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
 
@@ -49,7 +49,7 @@ export async function cmdBan(runtime: RoomRuntime, byPlayer: PlayerObject, playe
 
             emitPlayerStatusChange(byPlayer.id);
         } else {
-            runtime.room.sendAnnouncement(LangRes.command.ban._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 2);
+            runtime.room.sendAnnouncement(LangRes.command._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 2);
         }
     }
 }

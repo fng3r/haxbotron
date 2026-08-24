@@ -16,6 +16,6 @@ export function cmdFreeze(runtime: RoomRuntime, byPlayer: PlayerObject): void {
 
         emitPlayerStatusChange(byPlayer.id);
     } else {
-        runtime.room.sendAnnouncement(LangRes.command.freeze._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
     }
 }

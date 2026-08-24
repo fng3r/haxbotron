@@ -6,7 +6,7 @@ import * as Tst from "../../shared/Translator.js";
 export async function cmdDeanon(runtime: RoomRuntime, byPlayer: PlayerObject, playerId: number) {
     const player = runtime.players.getPlayer(playerId);
     if (player === undefined) {
-        runtime.room.sendAnnouncement(LangRes.command.deanon._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 1);
+        runtime.room.sendAnnouncement(LangRes.command._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 1);
         return;
     }
 

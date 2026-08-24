@@ -7,7 +7,7 @@ import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 export function cmdSetPassword(runtime: RoomRuntime, byPlayer: PlayerObject, password?: string): void {
     const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
     if (!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
-        runtime.room.sendAnnouncement(LangRes.command.setpassword._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
 

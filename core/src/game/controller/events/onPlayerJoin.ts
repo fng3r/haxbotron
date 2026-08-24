@@ -53,7 +53,7 @@ export async function onPlayerJoinListener(runtime: RoomRuntime, player: PlayerJ
     // if this player use seperator (|,|) in nickname, then kick
     if (player.name.includes('|,|')) {
         runtime.logger.i('onPlayerJoin', `${player.name}#${player.id} was joined but kicked for including seperator word. (|,|)`);
-        room.kickPlayer(player.id, Tst.maketext(LangRes.onJoin.includeSeperator, placeholderJoin), false); // kick
+        room.kickPlayer(player.id, Tst.maketext(LangRes.onJoin.includeSeparator, placeholderJoin), false); // kick
         return;
     }
     

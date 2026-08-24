@@ -14,11 +14,11 @@ export function cmdSwitch(runtime: RoomRuntime, byPlayer: PlayerObject): void {
     };
 
     if(!byPlayer.admin) {
-        runtime.room.sendAnnouncement(LangRes.command.switch._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
     if (runtime.match.isPlaying()) {
-        runtime.room.sendAnnouncement(LangRes.command.switch._ErrorGameStartedAlready, byPlayer.id, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(LangRes.command._ErrorGameStartedAlready, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
 
