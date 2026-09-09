@@ -9,6 +9,7 @@ import { ExternalLink, LoaderCircle, Plus, Rocket, Save, Trash2, TriangleAlert }
 import { z } from 'zod';
 
 import CountryCombobox from '@/components/Admin/CountryCombobox';
+import { WebhookBlurSection } from '@/components/Admin/WebhookBlurSection';
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -436,42 +437,54 @@ export default function RoomConfigWorkspace({
               </CardContent>
             </Card>
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Discord webhooks</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              <Toggle form={form} name="discordFeed" label="Enable Discord integration" />
-              <Toggle form={form} name="replayUpload" label="Upload replays" />
-              {(['replaysWebhookId', 'replaysWebhookToken', 'passwordWebhookId', 'passwordWebhookToken'] as const).map(
-                (name) => (
-                  <FormField
-                    key={name}
-                    control={form.control}
-                    name={name}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {
+          <WebhookBlurSection>
+            {({ blurred, toggle }) => (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Discord webhooks</CardTitle>
+                    {toggle}
+                  </div>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-2">
+                  <Toggle form={form} name="discordFeed" label="Enable Discord integration" />
+                  <Toggle form={form} name="replayUpload" label="Upload replays" />
+                  {(
+                    ['replaysWebhookId', 'replaysWebhookToken', 'passwordWebhookId', 'passwordWebhookToken'] as const
+                  ).map((name) => (
+                    <FormField
+                      key={name}
+                      control={form.control}
+                      name={name}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
                             {
-                              replaysWebhookId: 'Replays webhook ID',
-                              replaysWebhookToken: 'Replays webhook token',
-                              passwordWebhookId: 'Password webhook ID',
-                              passwordWebhookToken: 'Password webhook token',
-                            }[name]
-                          }
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ),
-              )}
-            </CardContent>
-          </Card>
+                              {
+                                replaysWebhookId: 'Replays webhook ID',
+                                replaysWebhookToken: 'Replays webhook token',
+                                passwordWebhookId: 'Password webhook ID',
+                                passwordWebhookToken: 'Password webhook token',
+                              }[name]
+                            }
+                          </FormLabel>
+                          <FormControl>
+                            <div
+                              className="transition-[filter] duration-150"
+                              style={{ filter: name.endsWith('Token') && blurred ? 'blur(5px)' : 'none' }}
+                            >
+                              <Input {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </WebhookBlurSection>
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Advanced bot settings</CardTitle>
