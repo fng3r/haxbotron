@@ -1,7 +1,7 @@
 import type { PlayerObject } from "haxball.js";
 import { extractPlayerIdentifier, isPlayerId, PlayerId } from "../../model/PlayerIdentifier/PlayerIdentifier.js";
 import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import { getRemainingTimeString, getUnixTimestamp } from "../../shared/DateTime.js";
@@ -12,7 +12,7 @@ export function cmdMute(runtime: RoomRuntime, byPlayer: PlayerObject, playerIden
     
     const playerRole = runtime.playerRoles.getRole(byPlayer.id)!;
     if(!PlayerRoles.atLeast(playerRole, PlayerRoles.S_ADM)) {
-        runtime.room.sendAnnouncement(LangRes.command.mute._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(Messages.command._ErrorNoPermission, byPlayer.id, 0xFF7777, "normal", 2);
         return;
     }
     const playerIdentifier1 = extractPlayerIdentifier(playerIdentifier);
@@ -22,25 +22,30 @@ export function cmdMute(runtime: RoomRuntime, byPlayer: PlayerObject, playerIden
         const muteInMinutes = muteDuration || -1;
         if (playerList.has(playerId)) {
             const player = playerList.get(playerId)!;
-            const placeholder = {
-                targetName: player.name
-                ,targetId: playerId
-                ,byPlayerName: byPlayer.name
-                ,byPlayerId: byPlayer.id
-                ,muteInMinutes: muteInMinutes
-            };
             const action = runtime.chat.toggleMute(player, muteInMinutes, getUnixTimestamp());
             if (action === "unmuted") {
-                runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.mute.successUnmute, placeholder), null, 0x479947, "normal", 1);
+                runtime.room.sendAnnouncement(Tst.maketext(Messages.command.mute.successUnmute, {
+                    targetName: player.name
+                    ,targetId: playerId
+                }), null, 0x479947, "normal", 1);
             } else if (action === "muted_permanently") {
-                runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.mute.successPermaMute, placeholder), null, 0x479947, "normal", 1);
+                runtime.room.sendAnnouncement(Tst.maketext(Messages.command.mute.successPermaMute, {
+                    targetName: player.name
+                    ,targetId: playerId
+                    ,byPlayerName: byPlayer.name
+                    ,byPlayerId: byPlayer.id
+                }), null, 0x479947, "normal", 1);
             } else if (action === "muted_temporarily") {
-                runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.mute.successTempMute, placeholder), null, 0x479947, "normal", 1);
+                runtime.room.sendAnnouncement(Tst.maketext(Messages.command.mute.successTempMute, {
+                    targetName: player.name
+                    ,targetId: playerId
+                    ,muteInMinutes: muteInMinutes
+                }), null, 0x479947, "normal", 1);
             }
 
             emitPlayerStatusChange(byPlayer.id);
         } else {
-            runtime.room.sendAnnouncement(LangRes.command.mute._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 2);
+            runtime.room.sendAnnouncement(Messages.command._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 2);
         }
     }
 }

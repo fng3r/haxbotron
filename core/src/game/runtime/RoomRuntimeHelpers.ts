@@ -1,5 +1,5 @@
 import type { PlayerObject } from "haxball.js";
-import * as LangRes from "../resource/strings.js";
+import * as Messages from "../resource/strings.js";
 import { RoomRuntime } from "../runtime/RoomRuntime.js";
 import * as Tst from "../shared/Translator.js";
 
@@ -38,7 +38,7 @@ export function updateAdmins(runtime: RoomRuntime): void {
     room.setPlayerAdmin(players[0].id, true); // Give admin to the first non admin player in the list
     playerList.get(players[0].id)!.admin = true;
     runtime.logger.i('updateAdmins', `${playerList.get(players[0].id)!.name}#${players[0].id} became an admin(value:${playerList.get(players[0].id)!.admin}), because there were no admin players.`);
-    runtime.room.sendAnnouncement(Tst.maketext(LangRes.funcUpdateAdmins.newAdmin, placeholderUpdateAdmins), null, 0xFFFFFF, "normal", 0);
+    runtime.room.sendAnnouncement(Tst.maketext(Messages.funcUpdateAdmins.newAdmin, placeholderUpdateAdmins), null, 0xFFFFFF, "normal", 0);
 }
 
 export function shuffleArray<T>(array: T[]): T[] {

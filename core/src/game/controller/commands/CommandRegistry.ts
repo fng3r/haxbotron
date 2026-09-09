@@ -1,6 +1,6 @@
 import type { PlayerObject } from "haxball.js";
 import P, { type Parser } from "parsimmon";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import { cmdAbout } from "./about.js";
 import { cmdAdm } from "./adm.js";
@@ -67,36 +67,36 @@ const registry = [
     defineCommand({
         name: "about",
         handle: cmdAbout,
-        help: LangRes.command.helpman.about,
+        help: Messages.command.helpman.about,
     }),
     defineCommand({
         name: "adm",
         handle: cmdAdm,
-        help: LangRes.command.helpman.adm,
+        help: Messages.command.helpman.adm,
     }),
     defineCommand({
         name: "auth",
         argsParser: (lang) => optional(P.whitespace.then(lang.playerIdNumber)),
         handle: cmdAuth,
-        help: LangRes.command.helpman.auth,
+        help: Messages.command.helpman.auth,
     }),
     defineCommand({
         name: "bb",
         altNames: ["BB", "ии", "ИИ"],
         handle: cmdBb,
-        help: LangRes.command.helpman.bb,
+        help: Messages.command.helpman.bb,
     }),
     defineCommand({
         name: "deanon",
         argsParser: (lang) =>
             P.whitespace.then(lang.playerIdNumber).map((id) => [id] as const),
         handle: cmdDeanon,
-        help: LangRes.command.helpman.deanon,
+        help: Messages.command.helpman.deanon,
     }),
     defineCommand({
         name: "freeze",
         handle: cmdFreeze,
-        help: LangRes.command.helpman.freeze,
+        help: Messages.command.helpman.freeze,
     }),
     defineCommand({
         name: "help",
@@ -106,26 +106,26 @@ const registry = [
             const cmdHelp = buildHelpCommand(helpMap);
             cmdHelp(runtime, byPlayer, commandName);
         },
-        help: LangRes.command.helpman.help,
+        help: Messages.command.helpman.help,
     }),
     defineCommand({
         name: "list",
         argsParser: () =>
             optional(P.whitespace.then(P.letter.atLeast(1).tie())).map((group) => [group] as const),
         handle: cmdList,
-        help: LangRes.command.helpman.list,
+        help: Messages.command.helpman.list,
     }),
     defineCommand({
         name: "listroles",
         handle: cmdListRoles,
-        help: LangRes.command.helpman.listroles,
+        help: Messages.command.helpman.listroles,
     }),
     defineCommand({
         name: "map",
         argsParser: () =>
             P.whitespace.then(P.regex(/\S+/)).map((name) => [name] as const),
         handle: cmdMap,
-        help: LangRes.command.helpman.map,
+        help: Messages.command.helpman.map,
     }),
     defineCommand({
         name: "ban",
@@ -136,12 +136,12 @@ const registry = [
                 (id, dur) => [id, dur] as const
             ),
         handle: cmdBan,
-        help: LangRes.command.helpman.ban,
+        help: Messages.command.helpman.ban,
     }),
     defineCommand({
         name: "bans",
         handle: cmdBans,
-        help: LangRes.command.helpman.bans,
+        help: Messages.command.helpman.bans,
     }),
     defineCommand({
         name: "mute",
@@ -152,28 +152,28 @@ const registry = [
                 (id, dur) => [id, dur] as const
             ),
         handle: cmdMute,
-        help: LangRes.command.helpman.mute,
+        help: Messages.command.helpman.mute,
     }),
     defineCommand({
         name: "mutes",
         handle: cmdMutes,
-        help: LangRes.command.helpman.mutes,
+        help: Messages.command.helpman.mutes,
     }),
     defineCommand({
         name: "setpassword",
         argsParser: () => optional(P.whitespace.then(P.regex(/\S+/))),
         handle: cmdSetPassword,
-        help: LangRes.command.helpman.setpassword,
+        help: Messages.command.helpman.setpassword,
     }),
     defineCommand({
         name: "staff",
         handle: cmdStaff,
-        help: LangRes.command.helpman.staff,
+        help: Messages.command.helpman.staff,
     }),
     defineCommand({
         name: "switch",
         handle: cmdSwitch,
-        help: LangRes.command.helpman.switch,
+        help: Messages.command.helpman.switch,
     }),
     defineCommand({
         name: "x",

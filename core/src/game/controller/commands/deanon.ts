@@ -1,20 +1,26 @@
 import type { PlayerObject } from "haxball.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import * as Tst from "../../shared/Translator.js";
 
 export async function cmdDeanon(runtime: RoomRuntime, byPlayer: PlayerObject, playerId: number) {
     const player = runtime.players.getPlayer(playerId);
     if (player === undefined) {
-        runtime.room.sendAnnouncement(LangRes.command.deanon._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 1);
+        runtime.room.sendAnnouncement(Messages.command._ErrorNoPlayer, byPlayer.id, 0xFF7777, "normal", 1);
         return;
     }
 
-    const nicknamesList = Array.from(player.nicknames.values()).join(', ');
-    const placeholder = {
-        playerID: player.id,
-        playerName: player.name,
-        nicknamesList: nicknamesList
+    const previousNicknames = Array.from(player.nicknames.values()).filter(name => name !== player.name);
+    if (previousNicknames.length === 0) {
+        runtime.room.sendAnnouncement(Tst.maketext(Messages.command.deanon.onlyKnownAs, {
+            playerID: player.id
+            ,playerName: player.name
+        }), byPlayer.id, 0x479947, "normal", 1);
+    } else {
+        runtime.room.sendAnnouncement(Tst.maketext(Messages.command.deanon.alsoKnownAs, {
+            playerID: player.id
+            ,playerName: player.name
+            ,nicknamesList: previousNicknames.join(', ')
+        }), byPlayer.id, 0x479947, "normal", 1);
     }
-    runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.deanon.playerNicknames, placeholder), byPlayer.id, 0x479947, "normal", 1);
 }

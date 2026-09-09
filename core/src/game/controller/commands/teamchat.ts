@@ -1,6 +1,6 @@
 import type { PlayerObject } from "haxball.js";
 import { TeamID } from "../../model/GameObject/TeamID.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function cmdTeamChat(runtime: RoomRuntime, byPlayer: PlayerObject, message: string): void {
@@ -8,7 +8,7 @@ export function cmdTeamChat(runtime: RoomRuntime, byPlayer: PlayerObject, messag
     
     const player = playerList.get(byPlayer.id)!;
     if (runtime.chat.isMessageBlockedByMute(player)) {
-        runtime.room.sendAnnouncement(LangRes.onChat.mutedChat, player.id, 0xFF0000, "bold", 2);
+        runtime.room.sendAnnouncement(Messages.onChat.mutedChat, player.id, 0xFF0000, "bold", 2);
         return;
     }
 

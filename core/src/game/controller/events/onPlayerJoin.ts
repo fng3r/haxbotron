@@ -1,6 +1,6 @@
 import type { PlayerJoinObject } from "haxball.js";
 import { PlayerRoles } from "../../model/PlayerRole/PlayerRoles.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import { updateAdmins } from "../../runtime/RoomRuntimeHelpers.js";
 import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge.js";
@@ -19,31 +19,19 @@ export async function onPlayerJoinListener(runtime: RoomRuntime, player: PlayerJ
     // logging into console
     runtime.logger.i('onPlayerJoin', `${player.name}#${player.id} has joined. CONN(${player.conn}),AUTH(${playerAuth || "null"})`);
 
-    // Event called when a new player joins the room.
-    let placeholderJoin = {
-        playerID: player.id,
-        playerName: player.name,
-        playerNameOld: player.name,
-        playerAuth: playerAuth,
-        playerRole: '',
-        banExpirationDate: '',
-        banListReason: ''
-    };
-
     // Check existing bans for this connection.
     const joinBanResult = await runtime.bans.evaluateJoinBan(player.conn, joinTimeStamp);
-    if (joinBanResult.ban) {
-        placeholderJoin.banListReason = joinBanResult.ban.reason;
-    }
     if (joinBanResult.status === "permanent_ban") {
         runtime.logger.i('onPlayerJoin', `${player.name}#${player.id} joined but was kicked due to a permanent ban. (conn:${player.conn},reason:${joinBanResult.ban!.reason})`);
-        room.kickPlayer(player.id, Tst.maketext(LangRes.onJoin.banList.permanentBan, placeholderJoin), false); // auto kick
+        room.kickPlayer(player.id, Tst.maketext(Messages.onJoin.banList.permanentBan, { playerName: player.name }), false); // auto kick
         return;
     }
     if (joinBanResult.status === "temporary_ban_active") {
-        placeholderJoin.banExpirationDate = new Date(joinBanResult.ban!.expire).toString();
         runtime.logger.i('onPlayerJoin', `${player.name}#${player.id} joined but was kicked due to an active temporary ban. (conn:${player.conn},reason:${joinBanResult.ban!.reason})`);
-        room.kickPlayer(player.id, Tst.maketext(LangRes.onJoin.banList.fixedTermBan, placeholderJoin), false); // auto kick
+        room.kickPlayer(player.id, Tst.maketext(Messages.onJoin.banList.fixedTermBan, {
+            playerName: player.name
+            ,banExpirationDate: new Date(joinBanResult.ban!.expire).toString()
+        }), false); // auto kick
         return;
     }
     if (joinBanResult.status === "temporary_ban_expired") {
@@ -53,7 +41,7 @@ export async function onPlayerJoinListener(runtime: RoomRuntime, player: PlayerJ
     // if this player use seperator (|,|) in nickname, then kick
     if (player.name.includes('|,|')) {
         runtime.logger.i('onPlayerJoin', `${player.name}#${player.id} was joined but kicked for including seperator word. (|,|)`);
-        room.kickPlayer(player.id, Tst.maketext(LangRes.onJoin.includeSeperator, placeholderJoin), false); // kick
+        room.kickPlayer(player.id, Messages.onJoin.includeSeparator, false); // kick
         return;
     }
     
@@ -63,7 +51,7 @@ export async function onPlayerJoinListener(runtime: RoomRuntime, player: PlayerJ
         Array.from(playerList.values()).some((existingPlayer) => existingPlayer.name.trim() === player.name.trim())
     ) {
         runtime.logger.i('onPlayerJoin', `${player.name}#${player.id} was joined but kicked for duplicated nickname.`);
-        room.kickPlayer(player.id, Tst.maketext(LangRes.onJoin.duplicatedNickname, placeholderJoin), false); // kick
+        room.kickPlayer(player.id, Messages.onJoin.duplicatedNickname, false); // kick
         return;
     }
 
@@ -73,8 +61,11 @@ export async function onPlayerJoinListener(runtime: RoomRuntime, player: PlayerJ
     await runtime.playerOnboarding.persistPlayer(hydration.player);
 
     if (hydration.previousName) {
-        placeholderJoin.playerNameOld = hydration.previousName;
-        runtime.room.sendAnnouncement(Tst.maketext(LangRes.onJoin.changename, placeholderJoin), null, 0xFFFFFF, "small", 0);
+        runtime.room.sendAnnouncement(Tst.maketext(Messages.onJoin.changename, {
+            playerID: player.id
+            ,playerName: player.name
+            ,playerNameOld: hydration.previousName
+        }), null, 0xFFFFFF, "small", 0);
     }
 
     const roleResolution = await runtime.playerOnboarding.resolveRole(playerAuth, player.name, rules.whitelistEnabled);
@@ -101,9 +92,13 @@ export async function onPlayerJoinListener(runtime: RoomRuntime, player: PlayerJ
     runtime.logger.i('onPlayerJoin', `Player ${playerRole.name} with public id ${playerRole.auth} has role '${playerRole.role}'`);
 
     runtime.playerRoles.setRole(player.id, playerRole);
-    placeholderJoin.playerRole = playerRole.role;
 
-    runtime.room.sendAnnouncement(Tst.maketext(LangRes.onJoin.playerJoined, placeholderJoin), null, 0xFFFFFF, "small", 0);
+    runtime.room.sendAnnouncement(Tst.maketext(Messages.onJoin.playerJoined, {
+        playerID: player.id
+        ,playerName: player.name
+        ,playerAuth: playerAuth
+        ,playerRole: playerRole.role
+    }), null, 0xFFFFFF, "small", 0);
 
     if (PlayerRoles.atLeast(playerRole, PlayerRoles.ADM)) {
         room.setPlayerAdmin(player.id, true);

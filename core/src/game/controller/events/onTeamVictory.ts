@@ -1,6 +1,6 @@
 import type { ScoresObject } from "haxball.js";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import * as Tst from "../../shared/Translator.js";
 
@@ -12,7 +12,7 @@ export async function onTeamVictoryListener(runtime: RoomRuntime, scores: Scores
 
     let message = '';
     const winnerTeam = scores.red > scores.blue ? TeamID.Red : TeamID.Blue;
-    message = Tst.maketext(LangRes.onVictory.victory, {
+    message = Tst.maketext(Messages.onVictory.victory, {
         winnerTeam: convertTeamID2Name(winnerTeam),
         redScore: scores.red,
         blueScore: scores.blue,

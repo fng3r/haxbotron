@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 
 import { HelpCircle, Trash2 } from 'lucide-react';
 
+import { WebhookBlurSection } from '@/components/Admin/WebhookBlurSection';
 import SnackBarNotification from '@/components/Notifications/SnackBarNotification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -189,106 +190,123 @@ export default function RoomSocial({ ruid }: { ruid: string }) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Discord Webhook</CardTitle>
-          <CardDescription>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <span>
-                Create a webhook in the Discord application and submit your webhook&apos;s ID and Token. (e.g.
-                https://discord.com/api/webhooks/id/token)
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  window.open('https://github.com/dapucita/haxbotron/wiki/Discord-Webhook-Configuration', '_blank')
-                }
-                aria-label="Help"
-              >
-                <HelpCircle className="size-5" />
-              </Button>
-            </div>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="flex flex-col gap-4 w-full" onSubmit={handleDiscordWebhookSet} method="post">
-            <div className="flex flex-col gap-4 mb-2">
-              <div className="flex gap-2 items-center">
-                <Label htmlFor="discordWebhookFeed">Enable</Label>
-                <Switch
-                  id="discordWebhookFeed"
-                  name="discordWebhookFeed"
-                  checked={newDiscordWebhookFeed}
-                  onCheckedChange={onChangeDiscordWebhookFeed}
-                />
+      <WebhookBlurSection>
+        {({ blurred, toggle }) => (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Discord Webhook</CardTitle>
+                {toggle}
               </div>
-              <div className="ml-1 flex gap-2 items-center">
-                <Label htmlFor="discordWebhookReplayUpload">Replay Upload</Label>
-                <Switch
-                  id="discordWebhookReplayUpload"
-                  name="discordWebhookReplayUpload"
-                  checked={newDiscordWebhookReplayUpload}
-                  onCheckedChange={onChangeDiscordWebhookReplayUpload}
-                  disabled={!newDiscordWebhookFeed}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col md:flex-row flex-wrap gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="discordReplaysWebhookID">Replays Webhook ID</Label>
-                <Input
-                  id="discordReplaysWebhookID"
-                  name="discordReplaysWebhookID"
-                  value={newReplaysWebhookID}
-                  onChange={onChangeReplaysWebhookID}
-                  autoComplete="off"
-                />
-              </div>
-              <div className="flex flex-col gap-2 flex-1">
-                <Label htmlFor="discordReplaysWebhookToken">Replays Webhook Token</Label>
-                <Input
-                  id="discordReplaysWebhookToken"
-                  name="discordReplaysWebhookToken"
-                  value={newReplaysWebhookToken}
-                  onChange={onChangeReplaysWebhookToken}
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-            <div className="flex flex-col md:flex-row flex-wrap gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="discordPasswordWebhookID">Password Webhook ID</Label>
-                <Input
-                  id="discordPasswordWebhookID"
-                  name="discordPasswordWebhookID"
-                  value={newPasswordWebhookID}
-                  onChange={onChangePasswordWebhookID}
-                  autoComplete="off"
-                />
-              </div>
-              <div className="flex flex-col gap-2 flex-1">
-                <Label htmlFor="discordPasswordWebhookToken">Password Webhook Token</Label>
-                <Input
-                  id="discordPasswordWebhookToken"
-                  name="discordPasswordWebhookToken"
-                  value={newPasswordWebhookToken}
-                  onChange={onChangePasswordWebhookToken}
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 mt-2">
-              <Button type="submit" variant="default">
-                Apply
-              </Button>
-              <Button type="button" variant="outline" onClick={handleDiscordWebhookLoad}>
-                Load
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              <CardDescription>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <span>
+                    Create a webhook in the Discord application and submit your webhook&apos;s ID and Token. (e.g.
+                    https://discord.com/api/webhooks/id/token)
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() =>
+                      window.open('https://github.com/dapucita/haxbotron/wiki/Discord-Webhook-Configuration', '_blank')
+                    }
+                    aria-label="Help"
+                  >
+                    <HelpCircle className="size-5" />
+                  </Button>
+                </div>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form className="flex flex-col gap-4 w-full" onSubmit={handleDiscordWebhookSet} method="post">
+                <div className="flex flex-col gap-4 mb-2">
+                  <div className="flex gap-2 items-center">
+                    <Label htmlFor="discordWebhookFeed">Enable</Label>
+                    <Switch
+                      id="discordWebhookFeed"
+                      name="discordWebhookFeed"
+                      checked={newDiscordWebhookFeed}
+                      onCheckedChange={onChangeDiscordWebhookFeed}
+                    />
+                  </div>
+                  <div className="ml-1 flex gap-2 items-center">
+                    <Label htmlFor="discordWebhookReplayUpload">Replay Upload</Label>
+                    <Switch
+                      id="discordWebhookReplayUpload"
+                      name="discordWebhookReplayUpload"
+                      checked={newDiscordWebhookReplayUpload}
+                      onCheckedChange={onChangeDiscordWebhookReplayUpload}
+                      disabled={!newDiscordWebhookFeed}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row flex-wrap gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="discordReplaysWebhookID">Replays Webhook ID</Label>
+                    <Input
+                      id="discordReplaysWebhookID"
+                      name="discordReplaysWebhookID"
+                      value={newReplaysWebhookID}
+                      onChange={onChangeReplaysWebhookID}
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1">
+                    <Label htmlFor="discordReplaysWebhookToken">Replays Webhook Token</Label>
+                    <div
+                      className="transition-[filter] duration-150"
+                      style={{ filter: blurred ? 'blur(5px)' : 'none' }}
+                    >
+                      <Input
+                        id="discordReplaysWebhookToken"
+                        name="discordReplaysWebhookToken"
+                        value={newReplaysWebhookToken}
+                        onChange={onChangeReplaysWebhookToken}
+                        autoComplete="off"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row flex-wrap gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="discordPasswordWebhookID">Password Webhook ID</Label>
+                    <Input
+                      id="discordPasswordWebhookID"
+                      name="discordPasswordWebhookID"
+                      value={newPasswordWebhookID}
+                      onChange={onChangePasswordWebhookID}
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1">
+                    <Label htmlFor="discordPasswordWebhookToken">Password Webhook Token</Label>
+                    <div
+                      className="transition-[filter] duration-150"
+                      style={{ filter: blurred ? 'blur(5px)' : 'none' }}
+                    >
+                      <Input
+                        id="discordPasswordWebhookToken"
+                        name="discordPasswordWebhookToken"
+                        value={newPasswordWebhookToken}
+                        onChange={onChangePasswordWebhookToken}
+                        autoComplete="off"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <Button type="submit" variant="default">
+                    Apply
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleDiscordWebhookLoad}>
+                    Load
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+      </WebhookBlurSection>
     </div>
   );
 }

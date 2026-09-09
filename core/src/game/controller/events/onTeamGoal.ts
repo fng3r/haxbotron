@@ -1,6 +1,6 @@
 import type { ScoresObject } from "haxball.js";
 import { TeamID } from "../../model/GameObject/TeamID.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import * as Tst from "../../shared/Translator.js";
 
@@ -12,55 +12,59 @@ export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Pr
     let scores: ScoresObject | null = room.getScores(); //get scores object (it includes time data about seconds elapsed)
     runtime.logger.i('onTeamGoal', `Goal time logger (secs):${Math.round(scores?.time || 0)}`);
 
-    var placeholderGoal = { 
-        teamID: team,
-        teamName: '',
-        scorerName: '',
-        assistantName: '',
-        ogName: '',
-        score: formatScore(scores?.red, scores?.blue),
-        time: formatMatchTime(scores?.time),
-    };
-
-    if (team === TeamID.Red) {
-        placeholderGoal.teamName = 'Red';
-    } else {
-        placeholderGoal.teamName = 'Blue';
-    }
+    const score = formatScore(scores?.red, scores?.blue);
+    const time = formatMatchTime(scores?.time);
 
     const { scorer, assistant } = runtime.match.consumeGoalTouches();
     if (scorer !== undefined) {
         const scoringPlayer = playerList.get(scorer);
         if (!scoringPlayer) {
-            placeholderGoal.scorerName = `Player#${scorer} [LEFT]`;
-            const goalMsg = Tst.maketext(LangRes.onGoal.goal, placeholderGoal);
+            const goalMsg = Tst.maketext(Messages.onGoal.goal, {
+                scorerName: `Player#${scorer} [LEFT]`
+                ,score
+                ,time
+            });
             runtime.room.sendAnnouncement(goalMsg, null, 0xFFFFFF, "normal", 0);
             runtime.logger.i('onTeamGoal', goalMsg);
             return;
         }
 
         if (scoringPlayer.team === team) { // if the goal is normal goal (not OG)
-            placeholderGoal.scorerName = scoringPlayer.name;
             scoringPlayer.matchRecord.goals++;
-            let goalMsg: string = Tst.maketext(LangRes.onGoal.goal, placeholderGoal);
-            if (assistant !== undefined && scorer != assistant) {
+            let goalMsg: string = Tst.maketext(Messages.onGoal.goal, {
+                scorerName: scoringPlayer.name
+                ,score
+                ,time
+            });
+            if (assistant !== undefined && scorer !== assistant) {
                 const assistingPlayer = playerList.get(assistant);
                 if (!assistingPlayer) {
-                    placeholderGoal.assistantName = `Player#${assistant} [LEFT]`;
-                    goalMsg = Tst.maketext(LangRes.onGoal.goalWithAssist, placeholderGoal);
+                    goalMsg = Tst.maketext(Messages.onGoal.goalWithAssist, {
+                        scorerName: scoringPlayer.name
+                        ,assistantName: `Player#${assistant} [LEFT]`
+                        ,score
+                        ,time
+                    });
                 } else if (assistingPlayer.team === team) {
                     // records assist when the player who assists is not same as the player scored, and is not from other team.
-                    placeholderGoal.assistantName = assistingPlayer.name;
                     assistingPlayer.matchRecord.assists++;
-                    goalMsg = Tst.maketext(LangRes.onGoal.goalWithAssist, placeholderGoal);
+                    goalMsg = Tst.maketext(Messages.onGoal.goalWithAssist, {
+                        scorerName: scoringPlayer.name
+                        ,assistantName: assistingPlayer.name
+                        ,score
+                        ,time
+                    });
                 }
             }
             runtime.room.sendAnnouncement(goalMsg, null, 0xFFFFFF, "normal", 0);
             runtime.logger.i('onTeamGoal', goalMsg);
         } else { // if the goal is OG
-            placeholderGoal.ogName = scoringPlayer.name;
             scoringPlayer.matchRecord.ogs++;
-            runtime.room.sendAnnouncement(Tst.maketext(LangRes.onGoal.og, placeholderGoal), null, 0xFFFFFF, "normal", 0);
+            runtime.room.sendAnnouncement(Tst.maketext(Messages.onGoal.og, {
+                ogName: scoringPlayer.name
+                ,score
+                ,time
+            }), null, 0xFFFFFF, "normal", 0);
             runtime.logger.i('onTeamGoal', `${scoringPlayer.name}#${scorer} made an OG.`);
         }
     }

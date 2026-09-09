@@ -1,4 +1,4 @@
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 
 export enum TeamID {
     Spec = 0,
@@ -9,13 +9,13 @@ export enum TeamID {
 export function convertTeamID2Name(teamID: TeamID): string {
     switch(teamID) {
         case TeamID.Spec: {
-            return LangRes.teamName.specTeam;
+            return Messages.teamName.specTeam;
         }
         case TeamID.Red: {
-            return LangRes.teamName.redTeam;
+            return Messages.teamName.redTeam;
         }
         case TeamID.Blue: {
-            return LangRes.teamName.blueTeam;
+            return Messages.teamName.blueTeam;
         }
     }
 }

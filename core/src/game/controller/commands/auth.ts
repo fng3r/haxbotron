@@ -1,5 +1,5 @@
 import type { PlayerObject } from "haxball.js";
-import * as LangRes from "../../resource/strings.js";
+import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import * as Tst from "../../shared/Translator.js";
 
@@ -8,7 +8,7 @@ export function cmdAuth(runtime: RoomRuntime, byPlayer: PlayerObject, playerId?:
     
     const player = runtime.players.getPlayer(playerId);
     if (!player) {
-        runtime.room.sendAnnouncement(LangRes.command.auth._ErrorNoPlayer, null, 0xFF7777, "normal", 2);
+        runtime.room.sendAnnouncement(Messages.command._ErrorNoPlayer, null, 0xFF7777, "normal", 2);
         return;
     }
 
@@ -18,5 +18,5 @@ export function cmdAuth(runtime: RoomRuntime, byPlayer: PlayerObject, playerId?:
         ,playerAuth: player.auth
     };
 
-    runtime.room.sendAnnouncement(Tst.maketext(LangRes.command.auth.playerAuth, placeholder), null, 0x479947, "normal", 1);
+    runtime.room.sendAnnouncement(Tst.maketext(Messages.command.auth.playerAuth, placeholder), null, 0x479947, "normal", 1);
 }
