@@ -26,7 +26,7 @@ interface LogMessage {
 
 export default function RoomLogs() {
   const ws = useWSocket();
-  const { ruid } = useParams<{ ruid: string }>();
+  const { ruid } = useParams<{ ruid: string }>()!;
 
   const [logMessages, setLogMessages] = useState<LogMessage[]>([]);
 

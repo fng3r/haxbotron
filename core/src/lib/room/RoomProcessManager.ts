@@ -1,3 +1,4 @@
+import type { LiveFrame, LiveStadium } from "./LiveProtocol.js";
 import { randomUUID } from "node:crypto";
 import { fork, type ChildProcess } from "node:child_process";
 import { Server as SIOserver } from "socket.io";
@@ -22,6 +23,8 @@ type RoomHandle = {
     ready: boolean;
     shuttingDown: boolean;
     roomLink?: string;
+    liveFrame?: LiveFrame;
+    liveStadium?: LiveStadium;
     startupTimer?: NodeJS.Timeout;
     startupResolve: () => void;
     startupReject: (reason?: unknown) => void;
@@ -41,6 +44,23 @@ export class RoomProcessManager {
 
     public attachSocketIOServer(server: SIOserver): void {
         this.sioServer = server;
+        server.on("connection", socket => {
+            socket.on("live:subscribe", (ruid: unknown, ack?: (result: { ok: boolean; error?: string }) => void) => {
+                if (typeof ruid !== "string" || !this.rooms.has(ruid)) {
+                    if (typeof ack === "function") ack({ ok: false, error: "Room is offline" });
+                    return;
+                }
+                // A socket watches one room at a time.
+                for (const joined of socket.rooms) if (joined.startsWith("live:")) void socket.leave(joined);
+                void socket.join(`live:${ruid}`);
+                const handle = this.rooms.get(ruid)!;
+                if (handle.liveFrame) socket.emit("live", { ruid, ...handle.liveFrame, stadium: handle.liveStadium });
+                if (typeof ack === "function") ack({ ok: true });
+            });
+            socket.on("live:unsubscribe", () => {
+                for (const joined of socket.rooms) if (joined.startsWith("live:")) void socket.leave(joined);
+            });
+        });
     }
 
     public hasRoom(ruid: string): boolean {
@@ -228,6 +248,7 @@ export class RoomProcessManager {
                 );
                 handle.startupReject(startupError);
             }
+            this.sioServer?.to(`live:${handle.ruid}`).emit("live:offline", { ruid: handle.ruid });
             this.rooms.delete(handle.ruid);
             this.emitSocketIOEvent("roomct", { ruid: handle.ruid });
         });
@@ -256,6 +277,13 @@ export class RoomProcessManager {
 
     private handleWorkerEvent(handle: RoomHandle, event: RoomWorkerEvent): void {
         switch (event.event) {
+            case "live":
+                handle.liveFrame = event.payload;
+                if (event.payload.stadium) handle.liveStadium = event.payload.stadium;
+                // Metadata is reliable; transient frames may be dropped for slow viewers.
+                if (event.payload.stadium) this.sioServer?.to(`live:${handle.ruid}`).emit("live", { ruid: handle.ruid, ...event.payload });
+                else this.sioServer?.to(`live:${handle.ruid}`).volatile.emit("live", { ruid: handle.ruid, ...event.payload });
+                return;
             case "roomReady":
                 handle.ready = true;
                 handle.roomLink = event.payload.link;

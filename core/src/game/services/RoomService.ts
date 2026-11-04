@@ -1,3 +1,4 @@
+import JSON5 from "json5";
 import type { RoomObject } from "haxball.js";
 import { getStadiumData } from "../../lib/stadiumLoader.js";
 
@@ -8,6 +9,7 @@ import { getStadiumData } from "../../lib/stadiumLoader.js";
 export class RoomService {
     private _room: RoomObject;
     private _link: string = '';
+    private stadiumSource: string | null = null;
     private defaultStadiumName: string = '';
     private teamColours: {
         red: {
@@ -78,6 +80,7 @@ export class RoomService {
     // Stadium management
     public setCustomStadium(stadium: string): void {
         this._room.setCustomStadium(stadium);
+        this.stadiumSource = stadium;
     }
 
     public setStadiumByName(mapName: string): boolean {
@@ -86,8 +89,22 @@ export class RoomService {
             return false;
         }
 
-        this._room.setCustomStadium(loadedStadium);
+        this.setCustomStadium(loadedStadium);
         return true;
+    }
+
+    public observeStadiumChange(name: string): void {
+        if (this.stadiumSource) {
+            try { if (JSON5.parse(this.stadiumSource).name === name) return; } catch { /* replace unknown geometry */ }
+        }
+        // The Headless API exposes the stadium name, but has no geometry getter.
+        // Resolve known maps; explicitly mark the fallback for external maps.
+        this.stadiumSource = getStadiumData(name.toLowerCase().replace(/[^a-z0-9]/g, ""))
+            ?? JSON.stringify({ name, width: 420, height: 200, approximate: true, bg: { type: "none" } });
+    }
+
+    public getStadiumSource(): string | null {
+        return this.stadiumSource;
     }
 
     public getDefaultStadium(): string {

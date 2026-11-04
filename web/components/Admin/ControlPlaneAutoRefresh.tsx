@@ -10,7 +10,7 @@ export default function ControlPlaneAutoRefresh() {
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!pathname.startsWith('/admin/control')) return;
+    if (!pathname?.startsWith('/admin/control')) return;
 
     const source = new EventSource('/api/v1/control/events');
     const scheduleRefresh = () => {

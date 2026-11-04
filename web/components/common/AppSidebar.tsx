@@ -35,7 +35,7 @@ import {
 } from '@/components/ui/sidebar';
 
 export default function AppSidebar() {
-  const { ruid } = useParams<{ ruid?: string }>();
+  const { ruid } = useParams<{ ruid?: string }>() ?? {};
   const pathName = usePathname();
   return (
     <Sidebar variant="inset" collapsible="icon">
@@ -106,6 +106,14 @@ export default function AppSidebar() {
                       <Link href={`/admin/room/${ruid}`}>
                         <Server className="size-5" />
                         <span>General</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/live`}>
+                      <Link href={`/admin/room/${ruid}/live`}>
+                        <Gamepad2 className="size-5" />
+                        <span>LIVE</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

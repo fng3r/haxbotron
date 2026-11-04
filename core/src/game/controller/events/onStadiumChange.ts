@@ -2,6 +2,7 @@ import type { PlayerObject } from "haxball.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 
 export function onStadiumChangeListner(runtime: RoomRuntime, newStadiumName: string, byPlayer: PlayerObject): void {
+    runtime.room.observeStadiumChange(newStadiumName);
     var placeholderStadium = {
         playerName: 'host',
         stadiumName: newStadiumName

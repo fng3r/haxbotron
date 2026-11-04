@@ -1,3 +1,4 @@
+import type { LiveFrame } from "./LiveProtocol.js";
 import Joi from "joi";
 import { Player } from "../../game/model/GameObject/Player.js";
 import { TeamID } from "../../game/model/GameObject/TeamID.js";
@@ -26,6 +27,7 @@ export interface TeamColourInfo {
 }
 
 export type RoomWorkerEvent =
+    | { type: "event"; event: "live"; payload: LiveFrame }
     | {
           type: "event";
           event: "roomReady";
@@ -103,7 +105,7 @@ type ValidationResult<T> =
           error: string;
       };
 
-const roomWorkerEvents: RoomWorkerEvent["event"][] = ["roomReady", "log", "joinleft", "statuschange"];
+const roomWorkerEvents: RoomWorkerEvent["event"][] = ["roomReady", "log", "joinleft", "statuschange", "live"];
 
 const undefinedSchema = Joi.any().custom((value, helpers) => {
     if (value !== undefined) {
@@ -295,6 +297,14 @@ export function isRoomRpcCommandName(value: unknown): value is RoomRpcCommand {
 }
 
 const eventPayloadSchemas: Record<RoomWorkerEvent["event"], Joi.Schema> = {
+    live: Joi.object({
+        sequence: Joi.number().integer().required(), timestamp: Joi.number().required(),
+        status: Joi.string().valid("playing", "paused", "stopped").required(),
+        scores: Joi.object().unknown(true).allow(null).required(),
+        discs: Joi.array().items(Joi.object().unknown(true).allow(null)).required(),
+        players: Joi.array().items(Joi.object().unknown(true)).required(),
+        stadium: Joi.object().unknown(true).optional(),
+    }).required(),
     roomReady: Joi.object({
         link: Joi.string().required(),
     }).required(),
