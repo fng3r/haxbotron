@@ -158,7 +158,7 @@ export class BroadcastRenderer {
     ctx.strokeStyle = kicking ? '#ffffff' : '#17201ddd';
     ctx.stroke();
     if (text) {
-      ctx.font = '600 11px sans-serif';
+      ctx.font = '700 14px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#fff';
@@ -206,6 +206,8 @@ export class BroadcastRenderer {
     const t =
       a.timestamp === b.timestamp ? 1 : Math.max(0, Math.min(1, (target - a.timestamp) / (b.timestamp - a.timestamp)));
     b.discs.forEach((disc, i) => {
+      // Disc 0 is the game ball; draw it last so labels cannot cover it.
+      if (i === 0) return;
       // getDiscCount includes player discs; those are rendered below with their labels.
       if (
         disc &&
@@ -232,5 +234,7 @@ export class BroadcastRenderer {
       ctx.fillStyle = '#fff';
       ctx.fillText(nickname, d.x, d.y + d.radius + 5);
     }
+    const ball = blendDisc(a.discs[0], b.discs[0] ?? null, t);
+    if (ball) this.disc(ball);
   };
 }
