@@ -1,9 +1,9 @@
 import type { PlayerObject } from "haxball.js";
 import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import { updateAdmins } from "../../runtime/RoomRuntimeHelpers.js";
 import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge.js";
 import { getUnixTimestamp } from "../../shared/DateTime.js";
-import { updateAdmins } from "../../runtime/RoomRuntimeHelpers.js";
 import * as Tst from "../../shared/Translator.js";
 
 export async function onPlayerLeaveListener(runtime: RoomRuntime, player: PlayerObject): Promise<void> {
@@ -38,8 +38,8 @@ export async function onPlayerLeaveListener(runtime: RoomRuntime, player: Player
     }
 
     const playersCount = room.getPlayerList().length;
-    // reset password to default one when more than one slot become available
-    if (playersCount === runtime.config.getMaxPlayers() - 2) {
+    // reset password to default one when more than one slot is available
+    if (playersCount < runtime.config.getMaxPlayers() - 1) {
         room.setPassword(runtime.config.getRoomPassword() || null);
     }
 
