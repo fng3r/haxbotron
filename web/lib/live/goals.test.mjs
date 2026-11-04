@@ -21,6 +21,7 @@ test('never replays existing scores on subscription or reconnection', () => {
   assert.equal(detectGoal(null, frame(3, 2)), null);
   assert.equal(detectGoal(frame(3, 2), frame(3, 2, 2, 1017)), null);
   assert.equal(detectGoal(frame(), frame(1, 0, 2, 5000)), null);
+  assert.equal(detectGoal({ ...frame(), matchId: 'first' }, { ...frame(1, 0, 2, 1017), matchId: 'second' }), null);
 });
 
 test('ignores duplicate and out-of-order frames, score corrections and match resets', () => {

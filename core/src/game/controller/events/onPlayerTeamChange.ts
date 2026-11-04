@@ -2,6 +2,7 @@ import type { PlayerObject } from "haxball.js";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge.js";
+import { recordLiveMatchEvent } from "../../runtime/LiveBroadcast.js";
 
 export function onPlayerTeamChangeListener(runtime: RoomRuntime, changedPlayer: PlayerObject, byPlayer: PlayerObject | null): void {
     // Event called when a player team is changed.
@@ -13,6 +14,8 @@ export function onPlayerTeamChangeListener(runtime: RoomRuntime, changedPlayer: 
         room.setPlayerTeam(0, TeamID.Spec); // stay host player in Spectators team.
         runtime.logger.i('onPlayerTeamChange', `Bot host is moved team but it is rejected.`);
     } else {
+        recordLiveMatchEvent(runtime, { type: "teamChange", player: changedPlayer, team: changedPlayer.team,
+            ...(byPlayer ? { actor: byPlayer } : {}) });
         playerList.get(changedPlayer.id)!.team = changedPlayer.team;
         runtime.logger.i('onPlayerTeamChange', `${changedPlayer.name}#${changedPlayer.id} is moved team to ${convertTeamID2Name(changedPlayer.team)}.`);
     }

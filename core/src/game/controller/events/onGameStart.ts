@@ -1,7 +1,7 @@
 import type { PlayerObject } from "haxball.js";
 import { TeamID } from "../../model/GameObject/TeamID.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
-import { clearLiveGoal } from "../../runtime/LiveBroadcast.js";
+import { clearLiveGoal, startLiveMatch } from "../../runtime/LiveBroadcast.js";
 
 const DEFAULT_KICKRATE = {
     min: 6,
@@ -23,6 +23,7 @@ export function onGameStartListener(runtime: RoomRuntime, byPlayer: PlayerObject
         blue: room.getPlayerList().filter(p => p.team === TeamID.Blue)
     };
     runtime.match.startMatch(startingLineup);
+    startLiveMatch(runtime, byPlayer);
 
     let msg = `The game has been started.`;
     if (byPlayer !== null && byPlayer.id !== 0) {

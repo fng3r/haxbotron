@@ -75,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: LiveResponse) {
             if (frame.ruid !== ruid) return;
             const newGoal = frame.goal && frame.goal.id !== latestGoalId;
             latestGoalId = frame.goal?.id;
-            if (frame.stadium || newGoal) socket.emit('live', frame);
+            if (frame.stadium || newGoal || frame.timeline) socket.emit('live', frame);
             else socket.volatile.emit('live', frame);
           });
           source.on('live:offline', () => socket.emit('live:error', 'Room is offline'));

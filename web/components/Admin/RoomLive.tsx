@@ -1,13 +1,18 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import GoalCelebration, { type GoalCelebrationData } from './GoalCelebration';
+import MatchTimeline from './MatchTimeline';
+import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { io } from 'socket.io-client';
+
+import { Button } from '@/components/ui/button';
 
 import { detectGoal, goalForScore } from '@/lib/live/goals';
 import { BroadcastRenderer, INTERPOLATION_DELAY_MS } from '@/lib/live/renderer';
-import type { LiveFrame } from '@/lib/live/types';
+import { mergeTimeline } from '@/lib/live/timeline';
+import type { LiveFrame, LiveMatchTimeline } from '@/lib/live/types';
 
 export default function RoomLive({ ruid }: { ruid: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -15,6 +20,9 @@ export default function RoomLive({ ruid }: { ruid: string }) {
   const [connection, setConnection] = useState('Connecting…');
   const [stadium, setStadium] = useState('Waiting for stadium');
   const [goal, setGoal] = useState<(GoalCelebrationData & { id: number }) | null>(null);
+  const [timeline, setTimeline] = useState<LiveMatchTimeline | null>(null);
+  const [timelineOpen, setTimelineOpen] = useState(true);
+  const timelineId = useId();
 
   useEffect(() => {
     let disposed = false;
@@ -49,7 +57,11 @@ export default function RoomLive({ ruid }: { ruid: string }) {
         });
         socket.on('live', (next: LiveFrame & { ruid: string }) => {
           if (next.ruid !== ruid) return;
+          if (previous && next.matchId !== previous.matchId) resetGoals();
           renderer.push(next);
+          if (next.timeline || next.matchId !== previous?.matchId) {
+            setTimeline((current) => mergeTimeline(current, next));
+          }
           const scoringTeam = detectGoal(previous, next);
           const before = previous?.scores;
           previous = next;
@@ -121,62 +133,83 @@ export default function RoomLive({ ruid }: { ruid: string }) {
     .toString()
     .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
   return (
-    <section className="overflow-hidden rounded-xl border bg-card" aria-label="Live game broadcast">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4">
-        <div>
-          <h1 className="text-lg font-semibold tracking-tight">Live broadcast</h1>
-          <p className="text-xs text-muted-foreground">
-            {stadium} · {ruid}
-          </p>
+    <div className={`grid items-stretch gap-4 ${timelineOpen ? 'lg:grid-cols-[minmax(0,1fr)_19rem]' : 'grid-cols-1'}`}>
+      <section className="overflow-hidden rounded-xl border bg-card" aria-label="Live game broadcast">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4">
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight">Live broadcast</h1>
+            <p className="text-xs text-muted-foreground">
+              {stadium} · {ruid}
+            </p>
+          </div>
+          <div
+            className="flex items-center gap-4 font-mono text-xl tabular-nums"
+            aria-label={`Red ${frame?.scores?.red ?? 0}, Blue ${frame?.scores?.blue ?? 0}, time ${time}`}
+          >
+            <span className="text-[#e66e55]">{frame?.scores?.red ?? 0}</span>
+            <span className="text-muted-foreground">:</span>
+            <span className="text-[#5a89e5]">{frame?.scores?.blue ?? 0}</span>
+            <span className="ml-3 text-base">{time}</span>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-expanded={timelineOpen}
+            aria-controls={timelineId}
+            aria-label={timelineOpen ? 'Hide match events' : 'Show match events'}
+            onClick={() => setTimelineOpen((open) => !open)}
+          >
+            {timelineOpen ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
+            Events
+          </Button>
+        </div>
+        <div className="relative bg-[#18251f]">
+          <canvas
+            ref={canvas}
+            className="block aspect-[16/9] w-full"
+            aria-label="Live top-down view of the pitch, players and ball"
+          >
+            Your browser needs Canvas support to display the broadcast.
+          </canvas>
+          {goal && <GoalCelebration key={goal.id} {...goal} />}
+          {(connection !== 'Connected' || frame?.status !== 'playing') && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span className="rounded-lg bg-black/65 px-5 py-3 text-sm font-medium text-white">
+                {connection !== 'Connected'
+                  ? connection
+                  : frame?.status === 'paused'
+                    ? 'Game paused'
+                    : 'Waiting for the next game'}
+              </span>
+            </div>
+          )}
         </div>
         <div
-          className="flex items-center gap-4 font-mono text-xl tabular-nums"
-          aria-label={`Red ${frame?.scores?.red ?? 0}, Blue ${frame?.scores?.blue ?? 0}, time ${time}`}
+          className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-xs text-muted-foreground"
+          role="status"
         >
-          <span className="text-[#e66e55]">{frame?.scores?.red ?? 0}</span>
-          <span className="text-muted-foreground">:</span>
-          <span className="text-[#5a89e5]">{frame?.scores?.blue ?? 0}</span>
-          <span className="ml-3 text-base">{time}</span>
+          <span className="flex items-center gap-2">
+            <span className={`size-2 rounded-full ${connection === 'Connected' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+            {connection === 'Connected'
+              ? frame?.status === 'playing'
+                ? 'LIVE'
+                : frame?.status?.toUpperCase()
+              : connection}
+          </span>
+          <span>
+            {frame?.players.filter((p) => p.team !== 0).length ?? 0} on pitch ·{' '}
+            {frame?.players.filter((p) => p.team === 0).length ?? 0} spectators
+          </span>
         </div>
-      </div>
-      <div className="relative bg-[#18251f]">
-        <canvas
-          ref={canvas}
-          className="block aspect-[16/9] w-full"
-          aria-label="Live top-down view of the pitch, players and ball"
-        >
-          Your browser needs Canvas support to display the broadcast.
-        </canvas>
-        {goal && <GoalCelebration key={goal.id} {...goal} />}
-        {(connection !== 'Connected' || frame?.status !== 'playing') && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <span className="rounded-lg bg-black/65 px-5 py-3 text-sm font-medium text-white">
-              {connection !== 'Connected'
-                ? connection
-                : frame?.status === 'paused'
-                  ? 'Game paused'
-                  : 'Waiting for the next game'}
-            </span>
-          </div>
-        )}
-      </div>
-      <div
-        className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-xs text-muted-foreground"
-        role="status"
-      >
-        <span className="flex items-center gap-2">
-          <span className={`size-2 rounded-full ${connection === 'Connected' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-          {connection === 'Connected'
-            ? frame?.status === 'playing'
-              ? 'LIVE'
-              : frame?.status?.toUpperCase()
-            : connection}
-        </span>
-        <span>
-          {frame?.players.filter((p) => p.team !== 0).length ?? 0} on pitch ·{' '}
-          {frame?.players.filter((p) => p.team === 0).length ?? 0} spectators
-        </span>
-      </div>
-    </section>
+      </section>
+      <MatchTimeline
+        id={timelineId}
+        timeline={timeline}
+        connected={connection === 'Connected'}
+        collapsed={!timelineOpen}
+        onCollapse={() => setTimelineOpen(false)}
+      />
+    </div>
   );
 }

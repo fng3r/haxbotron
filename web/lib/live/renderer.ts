@@ -67,7 +67,8 @@ export class BroadcastRenderer {
     }
     if (
       latest &&
-      (frame.sequence <= latest.sequence ||
+      (frame.matchId !== latest.matchId ||
+        frame.sequence <= latest.sequence ||
         frame.status !== latest.status ||
         frame.timestamp - latest.timestamp > 500 ||
         frame.stadium)

@@ -19,6 +19,28 @@ export interface LiveFrame {
     players: { id: number; name: string; team: number; kicking?: boolean; disc: LiveDisc | null }[];
     stadium?: LiveStadium;
     goal?: LiveGoal;
+    matchId?: string | null;
+    timeline?: LiveMatchTimeline;
+}
+
+export interface LiveMatchEvent {
+    id: string;
+    type: "start" | "goal" | "pause" | "resume" | "victory" | "stop" | "join" | "leave" | "teamChange";
+    time: number;
+    timestamp: number;
+    actor?: { id: number; name: string };
+    player?: { id: number; name: string };
+    team?: 0 | 1 | 2;
+    scores?: { red: number; blue: number };
+    goal?: LiveGoal;
+}
+
+export interface LiveMatchTimeline {
+    matchId: string;
+    startedAt: number;
+    endedAt: number | null;
+    revision: number;
+    events: LiveMatchEvent[];
 }
 
 export interface LiveGoal {

@@ -3,6 +3,7 @@ import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID.js";
 import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import * as Tst from "../../shared/Translator.js";
+import { recordLiveMatchEvent } from "../../runtime/LiveBroadcast.js";
 
 export async function onTeamVictoryListener(runtime: RoomRuntime, scores: ScoresObject): Promise<void> {
     // Event called when a team 'wins'. not just when game ended.
@@ -12,6 +13,7 @@ export async function onTeamVictoryListener(runtime: RoomRuntime, scores: Scores
 
     let message = '';
     const winnerTeam = scores.red > scores.blue ? TeamID.Red : TeamID.Blue;
+    recordLiveMatchEvent(runtime, { type: "victory", team: winnerTeam, scores });
     message = Tst.maketext(Messages.onVictory.victory, {
         winnerTeam: convertTeamID2Name(winnerTeam),
         redScore: scores.red,

@@ -10,6 +10,7 @@ export function goalForScore(
 
 export function detectGoal(previous: LiveFrame | null, next: LiveFrame): 1 | 2 | null {
   if (
+    previous?.matchId !== next.matchId ||
     !previous?.scores ||
     !next.scores ||
     previous.status === 'stopped' ||

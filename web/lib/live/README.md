@@ -50,3 +50,19 @@ history used by match statistics. Credits survive dropped snapshots and later
 nickname changes; a new goal's metadata is forwarded reliably by both WebSocket
 hops. Own goals are labelled and omit assists. Unknown/departed players use the
 existing statistics fallback, and credits are cleared when a new game starts.
+
+The LIVE page also shows a match events timeline beside the pitch (below it on
+small screens). The room worker owns the current match's full history, so a new
+page subscription restores events recorded before the viewer joined or while
+the page was closed. Events cover kickoff, goals/own goals with assists,
+pause/resume, victory/manual stop, and player joins, departures and team changes.
+Only public names and IDs are stored, with the match-clock time at each event.
+
+Every kickoff generates a unique `matchId`. `timeline` metadata is sent reliably
+when its revision changes, cached by core, and included in new WebSocket
+subscriptions; ordinary position frames carry only `matchId`. The browser
+replaces older revisions, avoiding duplicate events, and clears history when a
+different match begins. The completed match is retained until the next kickoff.
+This retention survives browser/web restarts while the room worker remains
+alive; closing/restarting the room ends this history. No host code patches,
+browser storage or additional database service are involved.

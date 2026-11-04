@@ -6,8 +6,10 @@ import { updateAdmins } from "../../runtime/RoomRuntimeHelpers.js";
 import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge.js";
 import { getUnixTimestamp } from "../../shared/DateTime.js";
 import * as Tst from "../../shared/Translator.js";
+import { recordLiveMatchEvent } from "../../runtime/LiveBroadcast.js";
 
 export async function onPlayerJoinListener(runtime: RoomRuntime, player: PlayerJoinObject): Promise<void> {
+    recordLiveMatchEvent(runtime, { type: "join", player });
     const room = runtime.room.getRoom();
     const playerList = runtime.players.getPlayerList();
     const settings = runtime.config.getSettings();

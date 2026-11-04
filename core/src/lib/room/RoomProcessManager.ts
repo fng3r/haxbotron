@@ -1,4 +1,4 @@
-import type { LiveFrame, LiveStadium } from "./LiveProtocol.js";
+import type { LiveFrame, LiveMatchTimeline, LiveStadium } from "./LiveProtocol.js";
 import { randomUUID } from "node:crypto";
 import { fork, type ChildProcess } from "node:child_process";
 import { Server as SIOserver } from "socket.io";
@@ -25,6 +25,7 @@ type RoomHandle = {
     roomLink?: string;
     liveFrame?: LiveFrame;
     liveStadium?: LiveStadium;
+    liveTimeline?: LiveMatchTimeline;
     startupTimer?: NodeJS.Timeout;
     startupResolve: () => void;
     startupReject: (reason?: unknown) => void;
@@ -54,7 +55,8 @@ export class RoomProcessManager {
                 for (const joined of socket.rooms) if (joined.startsWith("live:")) void socket.leave(joined);
                 void socket.join(`live:${ruid}`);
                 const handle = this.rooms.get(ruid)!;
-                if (handle.liveFrame) socket.emit("live", { ruid, ...handle.liveFrame, stadium: handle.liveStadium });
+                if (handle.liveFrame) socket.emit("live", { ruid, ...handle.liveFrame, stadium: handle.liveStadium,
+                    timeline: handle.liveTimeline?.matchId === handle.liveFrame.matchId ? handle.liveTimeline : undefined });
                 if (typeof ack === "function") ack({ ok: true });
             });
             socket.on("live:unsubscribe", () => {
@@ -279,10 +281,12 @@ export class RoomProcessManager {
         switch (event.event) {
             case "live":
                 const newGoal = event.payload.goal && event.payload.goal.id !== handle.liveFrame?.goal?.id;
+                if (handle.liveTimeline?.matchId !== event.payload.matchId) handle.liveTimeline = undefined;
+                if (event.payload.timeline?.matchId === event.payload.matchId) handle.liveTimeline = event.payload.timeline;
                 handle.liveFrame = event.payload;
                 if (event.payload.stadium) handle.liveStadium = event.payload.stadium;
                 // Metadata is reliable; transient frames may be dropped for slow viewers.
-                if (event.payload.stadium || newGoal) this.sioServer?.to(`live:${handle.ruid}`).emit("live", { ruid: handle.ruid, ...event.payload });
+                if (event.payload.stadium || newGoal || event.payload.timeline) this.sioServer?.to(`live:${handle.ruid}`).emit("live", { ruid: handle.ruid, ...event.payload });
                 else this.sioServer?.to(`live:${handle.ruid}`).volatile.emit("live", { ruid: handle.ruid, ...event.payload });
                 return;
             case "roomReady":

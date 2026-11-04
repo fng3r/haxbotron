@@ -6,9 +6,11 @@ import { emitPlayerJoinLeave } from "../../runtime/WorkerEventBridge.js";
 import { getUnixTimestamp } from "../../shared/DateTime.js";
 import * as Tst from "../../shared/Translator.js";
 import { getKickIndicator } from "../../runtime/KickIndicator.js";
+import { recordLiveMatchEvent } from "../../runtime/LiveBroadcast.js";
 
 export async function onPlayerLeaveListener(runtime: RoomRuntime, player: PlayerObject): Promise<void> {
     getKickIndicator(runtime).remove(player.id);
+    recordLiveMatchEvent(runtime, { type: "leave", player });
     // Event called when a player leaves the room.
     const room = runtime.room.getRoom();
     const playerList = runtime.players.getPlayerList();

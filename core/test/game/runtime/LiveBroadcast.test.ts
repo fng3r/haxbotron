@@ -7,6 +7,7 @@ import { getStadiumData } from '../../../src/lib/stadiumLoader.js';
 import { getKickIndicator } from '../../../src/game/runtime/KickIndicator.js';
 import { onGameTickListener } from '../../../src/game/controller/events/onGameTick.js';
 import { onPlayerBallKickListener } from '../../../src/game/controller/events/onPlayerBallKick.js';
+import { getMatchTimeline } from '../../../src/game/runtime/MatchTimeline.js';
 
 const originalSend = process.send;
 const originalConnected = Object.getOwnPropertyDescriptor(process, 'connected');
@@ -40,6 +41,41 @@ function fixture() {
 }
 
 describe('live broadcast snapshots', () => {
+    it('sends retained timeline revisions on changes and preserves the completed match through idle frames', () => {
+        const send = jest.fn();
+        process.send = send as typeof process.send;
+        Object.defineProperty(process, 'connected', { configurable: true, value: true });
+        const { runtime, stop } = fixture();
+        const history = getMatchTimeline(runtime);
+        history.start({ id: 1, name: 'Admin' });
+        const matchId = history.getSnapshot()!.matchId;
+        const message = (index: number) => send.mock.calls[index][0];
+        const complete = (index: number) => (send.mock.calls[index][1] as () => void)();
+        publishLiveFrame(runtime);
+        expect(parseRoomWorkerMessage(message(0)).success).toBe(true);
+        expect(message(0)).toMatchObject({ payload: { matchId, timeline: { revision: 1, events: [{ type: 'start' }] } } });
+        // Event happens while a previous frame is still being sent.
+        history.append({ type: 'pause' }, 12);
+        publishLiveFrame(runtime);
+        expect(send).toHaveBeenCalledTimes(1);
+        complete(0);
+        publishLiveFrame(runtime);
+        expect(message(1)).toMatchObject({ payload: { matchId, timeline: { revision: 2, events: [{ type: 'start' }, { type: 'pause' }] } } });
+        complete(1);
+        publishLiveFrame(runtime);
+        expect(message(2)).not.toHaveProperty('payload.timeline');
+        complete(2);
+        history.append({ type: 'stop', scores: { red: 1, blue: 2 } }, 12);
+        stop();
+        publishLiveFrame(runtime);
+        expect(parseRoomWorkerMessage(message(3)).success).toBe(true);
+        expect(message(3)).toMatchObject({ payload: { matchId, status: 'stopped', timeline: { endedAt: expect.any(Number), revision: 3 } } });
+        complete(3);
+        history.start();
+        publishLiveFrame(runtime);
+        expect(message(4)).toMatchObject({ payload: { matchId: history.getSnapshot()!.matchId, timeline: { revision: 1, events: [{ type: 'start' }] } } });
+        expect(history.getSnapshot()!.matchId).not.toBe(matchId);
+    });
     it('never publishes a transient armed press consumed by physics in the same tick', async () => {
         const send = jest.fn();
         process.send = send as typeof process.send;

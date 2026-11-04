@@ -296,6 +296,28 @@ export function isRoomRpcCommandName(value: unknown): value is RoomRpcCommand {
     return typeof value === "string" && roomRpcCommands.includes(value as RoomRpcCommand);
 }
 
+const livePersonSchema = Joi.object({ id: Joi.number().required(), name: Joi.string().allow("").required() });
+const liveGoalSchema = Joi.object({
+    id: Joi.string().required(), team: Joi.number().valid(1, 2).required(),
+    scores: Joi.object({ red: Joi.number().integer().min(0).required(), blue: Joi.number().integer().min(0).required() }).required(),
+    scorer: livePersonSchema.allow(null).required(),
+    assistant: livePersonSchema.allow(null).required(),
+    ownGoal: Joi.boolean().required(),
+});
+const liveTimelineSchema = Joi.object({
+    matchId: Joi.string().required(), startedAt: Joi.number().required(),
+    endedAt: Joi.number().allow(null).required(), revision: Joi.number().integer().min(1).required(),
+    events: Joi.array().items(Joi.object({
+        id: Joi.string().required(),
+        type: Joi.string().valid("start", "goal", "pause", "resume", "victory", "stop", "join", "leave", "teamChange").required(),
+        time: Joi.number().min(0).required(), timestamp: Joi.number().required(),
+        actor: livePersonSchema.optional(), player: livePersonSchema.optional(),
+        team: Joi.number().valid(0, 1, 2).optional(),
+        scores: Joi.object({ red: Joi.number().integer().min(0).required(), blue: Joi.number().integer().min(0).required() }).optional(),
+        goal: liveGoalSchema.optional(),
+    })).required(),
+});
+
 const eventPayloadSchemas: Record<RoomWorkerEvent["event"], Joi.Schema> = {
     live: Joi.object({
         sequence: Joi.number().integer().required(), timestamp: Joi.number().required(),
@@ -304,13 +326,9 @@ const eventPayloadSchemas: Record<RoomWorkerEvent["event"], Joi.Schema> = {
         discs: Joi.array().items(Joi.object().unknown(true).allow(null)).required(),
         players: Joi.array().items(Joi.object().unknown(true)).required(),
         stadium: Joi.object().unknown(true).optional(),
-        goal: Joi.object({
-            id: Joi.string().required(), team: Joi.number().valid(1, 2).required(),
-            scores: Joi.object({ red: Joi.number().integer().min(0).required(), blue: Joi.number().integer().min(0).required() }).required(),
-            scorer: Joi.object({ id: Joi.number().required(), name: Joi.string().allow("").required() }).allow(null).required(),
-            assistant: Joi.object({ id: Joi.number().required(), name: Joi.string().allow("").required() }).allow(null).required(),
-            ownGoal: Joi.boolean().required(),
-        }).optional(),
+        goal: liveGoalSchema.optional(),
+        matchId: Joi.string().allow(null).optional(),
+        timeline: liveTimelineSchema.optional(),
     }).required(),
     roomReady: Joi.object({
         link: Joi.string().required(),

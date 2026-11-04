@@ -1,10 +1,11 @@
 import JSON5 from "json5";
 import { randomUUID } from "node:crypto";
 import { getKickIndicator } from "./KickIndicator.js";
+import { getMatchTimeline, type MatchEventInput } from "./MatchTimeline.js";
 import type { RoomRuntime } from "./RoomRuntime.js";
 import type { LiveDisc, LiveFrame, LiveGoal, LiveStadium } from "../../lib/room/LiveProtocol.js";
 
-const states = new WeakMap<RoomRuntime, { sequence: number; source: string | null; stadium?: LiveStadium; busy: boolean }>();
+const states = new WeakMap<RoomRuntime, { sequence: number; source: string | null; stadium?: LiveStadium; busy: boolean; timelineRevision?: number; timelineMatchId?: string }>();
 const latestGoals = new WeakMap<RoomRuntime, LiveGoal>();
 const pendingFrames = new WeakSet<RoomRuntime>();
 
@@ -19,7 +20,22 @@ export function scheduleLiveFrame(runtime: RoomRuntime): void {
 }
 
 export function recordLiveGoal(runtime: RoomRuntime, goal: Omit<LiveGoal, "id">): void {
-    latestGoals.set(runtime, { ...goal, id: randomUUID() });
+    const recorded = { ...goal, id: randomUUID() };
+    latestGoals.set(runtime, recorded);
+    recordLiveMatchEvent(runtime, { type: "goal", team: goal.team, scores: goal.scores, goal: recorded });
+}
+
+export function startLiveMatch(runtime: RoomRuntime, actor: { id: number; name: string } | null): void {
+    getMatchTimeline(runtime).start(actor);
+    scheduleLiveFrame(runtime);
+}
+
+export function recordLiveMatchEvent(runtime: RoomRuntime, event: MatchEventInput): void {
+    const history = getMatchTimeline(runtime);
+    const snapshot = history.getSnapshot();
+    if (!snapshot || snapshot.endedAt !== null) return;
+    const time = runtime.room.getRoom().getScores()?.time ?? runtime.match.getMatchStats().scores.time;
+    if (history.append(event, time)) scheduleLiveFrame(runtime);
 }
 
 export function clearLiveGoal(runtime: RoomRuntime): void {
@@ -62,6 +78,8 @@ export function publishLiveFrame(runtime: RoomRuntime): void {
     const scores = room.getScores();
     if (!scores) latestGoals.delete(runtime);
     const goal = latestGoals.get(runtime);
+    const timeline = getMatchTimeline(runtime).getSnapshot();
+    const timelineChanged = timeline && (timeline.matchId !== state.timelineMatchId || timeline.revision !== state.timelineRevision);
     const indicator = getKickIndicator(runtime);
     const players = room.getPlayerList();
     for (const player of players) indicator.input(player.id, (player.input & room.InputFlags.kick) !== 0);
@@ -78,7 +96,11 @@ export function publishLiveFrame(runtime: RoomRuntime): void {
             disc: scores && p.team !== 0 ? pick(room.getPlayerDiscProperties(p.id)) : null })),
         ...(stadium ? { stadium } : {}),
         ...(goal ? { goal } : {}),
+        matchId: timeline?.matchId ?? null,
+        ...(timelineChanged ? { timeline } : {}),
     };
+    state.timelineMatchId = timeline?.matchId;
+    state.timelineRevision = timeline?.revision;
     state.busy = true;
     process.send({ type: "event", event: "live", payload: frame }, () => { state!.busy = false; });
 }
