@@ -3,7 +3,7 @@
 import Link from 'next/link';
 
 import { useQuery } from '@tanstack/react-query';
-import { ArrowUpRight, Radio, RefreshCw, Users } from 'lucide-react';
+import { ArrowUpRight, Eye, Radio, RefreshCw, Users } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
@@ -24,7 +24,7 @@ export default function PublicLiveRooms() {
       const data = await response.json();
       return data.rooms;
     },
-    refetchInterval: 10_000,
+    refetchInterval: 5_000,
     staleTime: 5_000,
     retry: 1,
   });
@@ -73,13 +73,17 @@ export default function PublicLiveRooms() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <h2 className="break-words text-lg font-semibold tracking-tight">{room.roomName}</h2>
-                  <p className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                  <p className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1.5">
                       <span className="size-1.5 rounded-full bg-emerald-500" /> Room online
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Users className="size-3" aria-hidden="true" />
                       {room.onlinePlayers} players
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Eye className="size-3" aria-hidden="true" />
+                      {room.viewers ?? 0} {room.viewers === 1 ? 'viewer' : 'viewers'}
                     </span>
                   </p>
                 </div>

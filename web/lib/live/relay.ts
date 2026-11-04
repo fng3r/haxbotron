@@ -72,6 +72,9 @@ export function ensureLiveRelay(server: RelayHTTPServer, publicAccess: boolean):
             if (event.ruid === ruid) source.emit('live:subscribe', ruid);
           });
           let latestGoalId: string | undefined;
+          source.on('live:viewers', (payload: { ruid: string; viewers: number }) => {
+            if (payload.ruid === ruid) socket.emit('live:viewers', payload);
+          });
           source.on('live', (frame) => {
             if (frame.ruid !== ruid) return;
             const newGoal = frame.goal && frame.goal.id !== latestGoalId;

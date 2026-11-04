@@ -4,6 +4,7 @@ export interface PublicLiveRoom {
   ruid: string;
   roomName: string;
   onlinePlayers: number;
+  viewers: number;
 }
 
 export function selectPublicLiveRooms(
@@ -12,7 +13,12 @@ export function selectPublicLiveRooms(
 ): PublicLiveRoom[] {
   return rooms
     .filter((room) => room.online && !room.blockingReason && supportedHostIds.has(room.hostId))
-    .map((room) => ({ ruid: room.ruid, roomName: room.roomName || room.ruid, onlinePlayers: room.onlinePlayers ?? 0 }))
+    .map((room) => ({
+      ruid: room.ruid,
+      roomName: room.roomName || room.ruid,
+      onlinePlayers: room.onlinePlayers ?? 0,
+      viewers: room.viewers ?? 0,
+    }))
     .sort((a, b) => a.roomName.localeCompare(b.roomName));
 }
 

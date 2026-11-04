@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 
 import GoalCelebration, { type GoalCelebrationData } from './GoalCelebration';
 import MatchTimeline from './MatchTimeline';
-import { PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { Eye, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { io } from 'socket.io-client';
 
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ export default function RoomLive({
   const [goal, setGoal] = useState<(GoalCelebrationData & { id: number }) | null>(null);
   const [timeline, setTimeline] = useState<LiveMatchTimeline | null>(null);
   const [timelineOpen, setTimelineOpen] = useState(true);
+  const [viewers, setViewers] = useState<number | null>(null);
   const timelineId = useId();
 
   useEffect(() => {
@@ -59,9 +60,14 @@ export default function RoomLive({
         if (disposed) return;
         socket = io({ path: publicView ? '/public-live-ws' : '/live-ws', transports: ['websocket'], forceNew: true });
         socket.on('connect', () => {
+          setViewers(null);
           resetGoals();
           setConnection('Waiting for game state…');
           socket!.emit('live:subscribe', ruid);
+        });
+        socket.on('live:viewers', (payload: { ruid: string; viewers: number }) => {
+          if (payload.ruid === ruid && Number.isInteger(payload.viewers) && payload.viewers >= 0)
+            setViewers(payload.viewers);
         });
         socket.on('live', (next: LiveFrame & { ruid: string }) => {
           if (next.ruid !== ruid) return;
@@ -113,10 +119,12 @@ export default function RoomLive({
           }
         });
         socket.on('live:error', (error: string) => {
+          setViewers(null);
           resetGoals();
           setConnection(error);
         });
         socket.on('disconnect', () => {
+          setViewers(null);
           resetGoals();
           setConnection('Disconnected. Reconnecting…');
         });
@@ -205,9 +213,15 @@ export default function RoomLive({
                 : frame?.status?.toUpperCase()
               : connection}
           </span>
-          <span>
-            {frame?.players.filter((p) => p.team !== 0).length ?? 0} on pitch ·{' '}
-            {frame?.players.filter((p) => p.team === 0).length ?? 0} spectators
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="inline-flex items-center gap-1.5">
+              <Eye className="size-3.5" aria-hidden="true" />
+              {viewers ?? 0} {viewers === 1 ? 'viewer' : 'viewers'}
+            </span>
+            <span>
+              {frame?.players.filter((p) => p.team !== 0).length ?? 0} on pitch ·{' '}
+              {frame?.players.filter((p) => p.team === 0).length ?? 0} spectators
+            </span>
           </span>
         </div>
       </section>

@@ -44,6 +44,7 @@ export type ManagedRoomInfo = {
   roomName?: string;
   roomLink?: string;
   onlinePlayers?: number;
+  viewers?: number;
   blockingReason?: string;
 };
 
@@ -75,6 +76,7 @@ export type RuntimeRoomInfo = {
     roomName: string;
     link: string;
     onlinePlayers: number;
+    viewers?: number;
   };
 };
 

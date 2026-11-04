@@ -240,6 +240,7 @@ class ControlPlaneService {
                     roomName: detailResponse.data.roomName,
                     link: detailResponse.data.link,
                     onlinePlayers: detailResponse.data.onlinePlayers,
+                    viewers: detailResponse.data.viewers ?? 0,
                   });
                 } catch {
                   detailByRuid.set(ruid, undefined);
@@ -436,6 +437,7 @@ class ControlPlaneService {
         roomName: runtime?.detail?.roomName,
         roomLink: runtime?.detail?.link,
         onlinePlayers: runtime?.detail?.onlinePlayers,
+        viewers: runtime?.detail?.viewers ?? 0,
       };
 
       const hostRuntime = host ? snapshot.hosts.get(host.id) : undefined;

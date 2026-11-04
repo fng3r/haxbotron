@@ -32,12 +32,14 @@ export class RoomOperationsAPI {
         return await this.roomProcessManager.requestRoom(ruid, "getRoomLink", undefined);
     }
 
-    public async getRoomInfo(ruid: string): Promise<RoomInfo> {
-        return await this.roomProcessManager.requestRoom(ruid, "getRoomInfo", undefined);
+    public async getRoomInfo(ruid: string): Promise<RoomInfo & { viewers: number }> {
+        return { ...await this.roomProcessManager.requestRoom(ruid, "getRoomInfo", undefined),
+            viewers: this.roomProcessManager.getLiveViewerCount(ruid) };
     }
 
-    public async getRoomDetailInfo(ruid: string): Promise<RoomDetailInfo> {
-        return await this.roomProcessManager.requestRoom(ruid, "getRoomDetailInfo", undefined);
+    public async getRoomDetailInfo(ruid: string): Promise<RoomDetailInfo & { viewers: number }> {
+        return { ...await this.roomProcessManager.requestRoom(ruid, "getRoomDetailInfo", undefined),
+            viewers: this.roomProcessManager.getLiveViewerCount(ruid) };
     }
 
     public async getOnlinePlayersIDList(ruid: string): Promise<number[]> {

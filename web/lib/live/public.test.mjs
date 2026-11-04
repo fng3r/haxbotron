@@ -5,13 +5,13 @@ import { isPublicLivePath, selectPublicLiveRooms } from './public.ts';
 
 test('public discovery includes only online rooms on capable, available hosts', () => {
   const rooms = [
-    { ruid: 'a', hostId: 'capable', online: true, roomName: 'Arena', onlinePlayers: 4 },
+    { ruid: 'a', hostId: 'capable', online: true, roomName: 'Arena', onlinePlayers: 4, viewers: 3 },
     { ruid: 'b', hostId: 'capable', online: false },
     { ruid: 'c', hostId: 'old-core', online: true },
     { ruid: 'd', hostId: 'capable', online: true, blockingReason: 'Disabled host' },
   ];
   assert.deepEqual(selectPublicLiveRooms(rooms, new Set(['capable'])), [
-    { ruid: 'a', roomName: 'Arena', onlinePlayers: 4 },
+    { ruid: 'a', roomName: 'Arena', onlinePlayers: 4, viewers: 3 },
   ]);
 });
 
@@ -31,7 +31,7 @@ test('public responses contain no host information, room links or administrative
     },
   ];
   assert.deepEqual(selectPublicLiveRooms(rooms, new Set(['private-host'])), [
-    { ruid: 'room', roomName: 'Public name', onlinePlayers: 2 },
+    { ruid: 'room', roomName: 'Public name', onlinePlayers: 2, viewers: 0 },
   ]);
   assert.doesNotMatch(
     JSON.stringify(selectPublicLiveRooms(rooms, new Set(['private-host']))),

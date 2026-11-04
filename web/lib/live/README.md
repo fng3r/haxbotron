@@ -28,6 +28,14 @@ Run `npm run build && npm run test:public-live` in web for a production
 HTTP/WebSocket check. It uses temporary storage, synthetic hosts and test-only
 credentials, without modifying the configured room/host state.
 
+Viewer counts are active core `live:<ruid>` subscriptions, shared across public
+and admin broadcasts and across web processes. Each open broadcast tab counts
+once; players and administrative control connections do not count. Core emits
+`live:viewers` when subscriptions join/leave, including disconnect cleanup;
+the relay forwards it to the broadcast page. Public discovery includes the
+count from core room info and refreshes every five seconds (subject to core
+health snapshot caching). Repeated subscriptions do not increment the count.
+
 Core captures public scores, shot-button state, player positions, and disc positions
 after each simulation step, scheduled from `onGameTick`, with a one-second heartbeat
 during pauses/stops. Stadium metadata

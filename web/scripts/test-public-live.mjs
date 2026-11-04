@@ -68,6 +68,7 @@ async function mockHost(room, capable) {
         ack?.({ ok: false });
         return;
       }
+      client.emit('live:viewers', { ruid: room, viewers: 1 });
       client.emit('live', {
         ruid: room,
         sequence: 1,
@@ -167,7 +168,7 @@ try {
     assert.doesNotMatch(body, /MUST-NOT-LEAK|PRIVATE-ROOM-LINK|Private capable host/);
   }
   const rooms = await (await fetch(base + '/api/public/rooms')).json();
-  assert.deepEqual(rooms, { rooms: [{ ruid: 'arena', roomName: 'Public Arena', onlinePlayers: 2 }] });
+  assert.deepEqual(rooms, { rooms: [{ ruid: 'arena', roomName: 'Public Arena', onlinePlayers: 2, viewers: 0 }] });
   for (const path of ['/live/legacy', '/live/offline']) {
     assert.equal((await fetch(base + path, { redirect: 'manual' })).status, 404, path);
   }
@@ -181,9 +182,11 @@ try {
   }
   assert.equal((await fetch(base + '/api/public/live')).status, 200);
   const viewer = await connect(base, '/public-live-ws');
+  const viewerCount = once(viewer, 'live:viewers');
   const received = once(viewer, 'live');
   viewer.emit('live:subscribe', 'arena');
   const [frame] = await received;
+  assert.deepEqual((await viewerCount)[0], { ruid: 'arena', viewers: 1 });
   assert.equal(frame.ruid, 'arena');
   assert.equal(frame.timeline.events[0].type, 'start');
   // Public sockets accept no administrative commands and cannot subscribe to old hosts.
