@@ -4,6 +4,8 @@ export type TimelineFilter = 'all' | 'goals';
 
 export function filterEvents(events: readonly LiveMatchEvent[], filter: TimelineFilter): LiveMatchEvent[] {
   return events.filter((event) => {
+    // Hide legacy entries retained by rooms running an earlier version.
+    if (event.type === 'join' || event.type === 'leave') return false;
     // Match boundaries stay visible in every filter, including natural full time.
     if (event.type === 'start' || event.type === 'stop' || event.type === 'victory') return true;
     return filter === 'all' || event.type === 'goal';

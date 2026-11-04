@@ -14,10 +14,13 @@ const history = (matchId = 'match-a', revision = 2) => ({
   ],
 });
 
-test('All shows every event; Goals keeps goals and every match boundary', () => {
+test('All excludes joins/departures; Goals keeps goals and every match boundary', () => {
   const types = ['start', 'join', 'teamChange', 'goal', 'pause', 'resume', 'goal', 'leave', 'victory', 'stop'];
   const events = types.map((type, i) => ({ id: String(i), type, time: i, timestamp: i }));
-  assert.deepEqual(filterEvents(events, 'all'), events);
+  assert.deepEqual(
+    filterEvents(events, 'all').map((event) => event.type),
+    ['start', 'teamChange', 'goal', 'pause', 'resume', 'goal', 'victory', 'stop'],
+  );
   assert.deepEqual(
     filterEvents(events, 'goals').map((event) => event.type),
     ['start', 'goal', 'goal', 'victory', 'stop'],

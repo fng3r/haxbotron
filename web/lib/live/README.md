@@ -73,7 +73,8 @@ The LIVE page also shows a match events timeline beside the pitch (below it on
 small screens). The room worker owns the current match's full history, so a new
 page subscription restores events recorded before the viewer joined or while
 the page was closed. Events cover kickoff, goals/own goals with assists,
-pause/resume, victory/manual stop, and player joins, departures and team changes.
+pause/resume, victory/manual stop, and team changes. Joins and departures are not
+recorded; any legacy entries are hidden from the timeline and event counts.
 Only public names and IDs are stored, with the match-clock time at each event.
 
 Every kickoff generates a unique `matchId`. `timeline` metadata is sent reliably

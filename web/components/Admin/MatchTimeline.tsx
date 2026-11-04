@@ -47,7 +47,7 @@ export default function MatchTimeline({
 }) {
   const [filter, setFilter] = useState<TimelineFilter>('all');
   const events = filterEvents(timeline?.events ?? [], filter);
-  const total = timeline?.events.length ?? 0;
+  const total = filterEvents(timeline?.events ?? [], 'all').length;
   return (
     <aside
       id={id}
