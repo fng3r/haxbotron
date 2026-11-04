@@ -8,6 +8,29 @@ import { Button } from '@/components/ui/button';
 
 import type { ChatMessage } from '@/lib/live/chat';
 
+const nicknameColors = [
+  'text-emerald-700 dark:text-emerald-400',
+  'text-sky-700 dark:text-sky-400',
+  'text-amber-700 dark:text-amber-400',
+  'text-rose-700 dark:text-rose-400',
+  'text-violet-700 dark:text-violet-400',
+  'text-teal-700 dark:text-teal-400',
+  'text-orange-700 dark:text-orange-400',
+  'text-fuchsia-700 dark:text-fuchsia-400',
+  'text-lime-700 dark:text-lime-400',
+  'text-indigo-700 dark:text-indigo-400',
+  'text-cyan-700 dark:text-cyan-400',
+  'text-pink-700 dark:text-pink-400',
+];
+
+function nicknameColor(nickname: string): string {
+  let hash = 2166136261;
+  for (const character of nickname.trim().normalize('NFC').toLowerCase()) {
+    hash = Math.imul(hash ^ character.codePointAt(0)!, 16777619);
+  }
+  return nicknameColors[(hash >>> 0) % nicknameColors.length];
+}
+
 export default function BroadcastChat({
   messages,
   connected,
@@ -70,26 +93,33 @@ export default function BroadcastChat({
         {messages.map((message) => (
           <div key={message.id} className="mb-3 text-xs leading-5">
             <div className="flex items-baseline justify-between gap-2">
-              <span className="min-w-0 truncate font-semibold text-emerald-500" title={message.nickname}>
+              <span
+                className={`min-w-0 truncate font-semibold ${nicknameColor(message.nickname)}`}
+                title={message.nickname}
+              >
                 {message.nickname}
               </span>
               <time
                 className="shrink-0 font-mono text-[10px] text-muted-foreground"
                 dateTime={new Date(message.sentAt).toISOString()}
               >
-                {new Date(message.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })}
+                {new Date(message.sentAt).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hourCycle: 'h23',
+                })}
               </time>
             </div>
             <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{message.text}</p>
           </div>
         ))}
       </div>
-      <div className="border-t p-3">
+      <div className="shrink-0 border-t p-3">
         {nickname ? (
           <>
             <div className="mb-2 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
               <span className="truncate">
-                Chatting as <span className="font-medium text-foreground">{nickname}</span>
+                Chatting as <span className={`font-medium ${nicknameColor(nickname)}`}>{nickname}</span>
               </span>
               <button
                 type="button"

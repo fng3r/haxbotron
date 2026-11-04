@@ -55,10 +55,10 @@ export default function MatchTimeline({
     <aside
       id={id}
       hidden={collapsed}
-      className={`${collapsed ? 'hidden' : 'flex'} min-w-0 flex-col overflow-hidden rounded-xl border bg-card`}
+      className={`${collapsed ? 'hidden' : 'flex'} min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border bg-card lg:absolute lg:inset-0`}
       aria-label="Broadcast side panel"
     >
-      <div className="flex items-center justify-between border-b px-3 py-2">
+      <div className="flex shrink-0 items-center justify-between border-b px-3 py-2">
         <div className="flex gap-1" role="tablist" aria-label="Broadcast panel">
           {(['chat', 'events'] as const).map((value) => (
             <Button
@@ -106,7 +106,7 @@ export default function MatchTimeline({
         hidden={tab !== 'events'}
         className={tab === 'events' ? 'flex min-h-0 flex-1 flex-col' : 'hidden'}
       >
-        <header className="flex min-h-[60px] items-center justify-between gap-2 border-b px-3 py-3">
+        <header className="flex min-h-[60px] shrink-0 items-center justify-between gap-2 border-b px-3 py-3">
           <div>
             <h2 className="text-sm font-semibold tracking-tight">Match events</h2>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -128,7 +128,7 @@ export default function MatchTimeline({
             </span>
           </div>
         </header>
-        <div className="border-b px-3 py-1.5">
+        <div className="shrink-0 border-b px-3 py-1.5">
           <div className="inline-flex gap-1 rounded-md bg-muted/40 p-0.5" role="group" aria-label="Filter match events">
             {(['all', 'goals'] as const).map((value) => (
               <Button
@@ -146,7 +146,7 @@ export default function MatchTimeline({
             ))}
           </div>
         </div>
-        <div id={`${id}-events`} className="max-h-96 overflow-y-auto overscroll-contain lg:h-0 lg:max-h-none lg:flex-1">
+        <div id={`${id}-events`} className="min-h-0 max-h-96 overflow-y-auto overscroll-contain lg:h-0 lg:max-h-none lg:flex-1">
           {timeline ? (
             <ol className="px-3 py-1">
               {[...events].reverse().map((event) => {

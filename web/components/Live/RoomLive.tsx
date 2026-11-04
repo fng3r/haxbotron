@@ -161,7 +161,10 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
     .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
   return (
     <div className={`grid items-stretch gap-4 ${timelineOpen ? 'lg:grid-cols-[minmax(0,1fr)_19rem]' : 'grid-cols-1'}`}>
-      <section className="overflow-hidden rounded-xl border bg-card" aria-label="Live game broadcast">
+      <section
+        className="min-w-0 self-start overflow-hidden rounded-xl border bg-card"
+        aria-label="Live game broadcast"
+      >
         <div className="flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4">
           <div>
             <h1 className="text-lg font-semibold tracking-tight">{roomName ?? 'Live broadcast'}</h1>
@@ -236,38 +239,42 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
           </span>
         </div>
       </section>
-      <MatchTimeline
-        id={timelineId}
-        timeline={timeline}
-        connected={connection === 'Connected'}
-        collapsed={!timelineOpen}
-        onCollapse={() => setTimelineOpen(false)}
-        chat={
-          <BroadcastChat
-            messages={messages}
-            connected={chatConnected}
-            send={(nickname, text) =>
-              new Promise((resolve) => {
-                const socket = liveSocket.current;
-                if (!socket?.connected || !chatConnected) return resolve({ ok: false, error: 'Chat is disconnected.' });
-                socket
-                  .timeout(5000)
-                  .emit(
-                    'chat:send',
-                    { nickname, text },
-                    (error: Error | null, result: { ok: boolean; error?: string }) => {
-                      resolve(
-                        error
-                          ? { ok: false, error: 'Message could not be confirmed. Check the chat before retrying.' }
-                          : result,
-                      );
-                    },
-                  );
-              })
-            }
-          />
-        }
-      />
+      {/* On desktop the panel fills this grid cell without contributing to the row height. */}
+      <div hidden={!timelineOpen} className={timelineOpen ? 'relative min-h-0 min-w-0' : 'hidden'}>
+        <MatchTimeline
+          id={timelineId}
+          timeline={timeline}
+          connected={connection === 'Connected'}
+          collapsed={!timelineOpen}
+          onCollapse={() => setTimelineOpen(false)}
+          chat={
+            <BroadcastChat
+              messages={messages}
+              connected={chatConnected}
+              send={(nickname, text) =>
+                new Promise((resolve) => {
+                  const socket = liveSocket.current;
+                  if (!socket?.connected || !chatConnected)
+                    return resolve({ ok: false, error: 'Chat is disconnected.' });
+                  socket
+                    .timeout(5000)
+                    .emit(
+                      'chat:send',
+                      { nickname, text },
+                      (error: Error | null, result: { ok: boolean; error?: string }) => {
+                        resolve(
+                          error
+                            ? { ok: false, error: 'Message could not be confirmed. Check the chat before retrying.' }
+                            : result,
+                        );
+                      },
+                    );
+                })
+              }
+            />
+          }
+        />
+      </div>
     </div>
   );
 }
