@@ -1,4 +1,5 @@
 import HaxballJS from "haxball.js";
+import tls from "node:tls";
 import { openRoomRuntime } from "./RoomBootstrap.js";
 import { handleRoomCommand } from "./RoomCommandHandler.js";
 import { RoomRuntime } from "./RoomRuntime.js";
@@ -22,6 +23,14 @@ async function handleRequest(request: AnyRoomRpcRequest): Promise<void> {
         if (request.command === "openRoom") {
             if (roomOpen) {
                 throw new Error("Room is already initialized in this worker");
+            }
+
+            const curve = process.env.ROOM_TLS_ECDH_CURVE?.trim();
+            if (curve) {
+                // This worker is a separate process. Apply before HaxballJS
+                // creates its HTTP and WebSocket TLS connections.
+                tls.createSecureContext({ ecdhCurve: curve });
+                tls.DEFAULT_ECDH_CURVE = curve;
             }
 
             const HBInit: HBInitFunction = await HaxballJS();

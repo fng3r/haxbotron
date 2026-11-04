@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import tls from "node:tls";
 import type { RuntimeRoomRpcRequest } from "../../../src/lib/room/RoomProtocol.js";
 
 const mockHaxballJS = jest.fn() as jest.Mock;
@@ -16,6 +17,8 @@ let originalProcessOn: typeof process.on;
 let originalProcessExit: typeof process.exit;
 let originalProcessNextTick: typeof process.nextTick;
 let roomWorkerModule: typeof import("../../../src/game/runtime/roomWorker.js");
+const originalCurve = tls.DEFAULT_ECDH_CURVE;
+const originalCurveEnv = process.env.ROOM_TLS_ECDH_CURVE;
 
 async function flushWorkerPipeline(): Promise<void> {
     await new Promise<void>((resolve) => {
@@ -45,6 +48,7 @@ describe("roomWorker pipeline", () => {
     beforeEach(async () => {
         jest.resetModules();
         jest.clearAllMocks();
+        delete process.env.ROOM_TLS_ECDH_CURVE;
 
         messageHandler = undefined;
         originalProcessOn = process.on.bind(process);
@@ -90,16 +94,23 @@ describe("roomWorker pipeline", () => {
     });
 
     afterEach(() => {
+        tls.DEFAULT_ECDH_CURVE = originalCurve;
+        if (originalCurveEnv === undefined) delete process.env.ROOM_TLS_ECDH_CURVE;
+        else process.env.ROOM_TLS_ECDH_CURVE = originalCurveEnv;
         process.on = originalProcessOn;
         process.exit = originalProcessExit;
         process.nextTick = originalProcessNextTick;
         jest.restoreAllMocks();
     });
 
-    it("opens a room and sends a success response", async () => {
+    it("applies the configured TLS group before loading HaxballJS and opens the room", async () => {
+        process.env.ROOM_TLS_ECDH_CURVE = "X25519";
         const hbInit = jest.fn();
         const runtime = { id: "runtime-1" };
-        mockHaxballJS.mockImplementation(async () => hbInit);
+        mockHaxballJS.mockImplementation(async () => {
+            expect(tls.DEFAULT_ECDH_CURVE).toBe("X25519");
+            return hbInit;
+        });
         mockOpenRoomRuntime.mockImplementation(async () => runtime);
 
         messageHandler?.({
