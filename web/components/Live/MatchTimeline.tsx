@@ -146,7 +146,11 @@ export default function MatchTimeline({
             ))}
           </div>
         </div>
-        <div id={`${id}-events`} className="min-h-0 max-h-96 overflow-y-auto overscroll-contain lg:h-0 lg:max-h-none lg:flex-1">
+        <div
+          data-broadcast-scroll
+          id={`${id}-events`}
+          className="min-h-0 max-h-96 overflow-y-auto overscroll-contain lg:h-0 lg:max-h-none lg:flex-1"
+        >
           {timeline ? (
             <ol className="px-3 py-1">
               {[...events].reverse().map((event) => {

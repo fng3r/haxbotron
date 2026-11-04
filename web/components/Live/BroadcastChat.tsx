@@ -74,6 +74,7 @@ export default function BroadcastChat({
     <div className="flex min-h-0 flex-1 flex-col">
       <div
         ref={list}
+        data-broadcast-scroll
         role="log"
         aria-label="Broadcast chat messages"
         aria-live="polite"

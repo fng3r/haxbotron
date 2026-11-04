@@ -1,11 +1,13 @@
 'use client';
 
+import styles from './RoomLive.module.css';
+
 import { useEffect, useId, useRef, useState } from 'react';
 
 import BroadcastChat from './BroadcastChat';
 import GoalCelebration, { type GoalCelebrationData } from './GoalCelebration';
 import MatchTimeline from './MatchTimeline';
-import { Eye, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { Eye, Maximize, Minimize, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { io } from 'socket.io-client';
 
 import { Button } from '@/components/ui/button';
@@ -18,6 +20,8 @@ import type { LiveFrame, LiveMatchTimeline } from '@/lib/live/types';
 
 export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const broadcast = useRef<HTMLDivElement>(null);
+  const [fullscreen, setFullscreen] = useState(false);
   const liveSocket = useRef<ReturnType<typeof io> | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatConnected, setChatConnected] = useState(false);
@@ -29,6 +33,45 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   const [timelineOpen, setTimelineOpen] = useState(true);
   const [viewers, setViewers] = useState<number | null>(null);
   const timelineId = useId();
+
+  useEffect(() => {
+    const syncFullscreen = () => setFullscreen(document.fullscreenElement === broadcast.current);
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !document.fullscreenElement) setFullscreen(false);
+    };
+    document.addEventListener('fullscreenchange', syncFullscreen);
+    document.addEventListener('keydown', escape);
+    return () => {
+      document.removeEventListener('fullscreenchange', syncFullscreen);
+      document.removeEventListener('keydown', escape);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = overflow;
+    };
+  }, [fullscreen]);
+
+  async function toggleFullscreen() {
+    if (fullscreen) {
+      if (document.fullscreenElement === broadcast.current) await document.exitFullscreen();
+      else setFullscreen(false);
+      return;
+    }
+    if (document.fullscreenEnabled && broadcast.current?.requestFullscreen) {
+      try {
+        await broadcast.current.requestFullscreen();
+        return;
+      } catch {
+        /* Use a viewport-filling mode when native fullscreen is unavailable. */
+      }
+    }
+    setFullscreen(true);
+  }
 
   useEffect(() => {
     let disposed = false;
@@ -160,9 +203,13 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
     .toString()
     .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
   return (
-    <div className={`grid items-stretch gap-4 ${timelineOpen ? 'lg:grid-cols-[minmax(0,1fr)_19rem]' : 'grid-cols-1'}`}>
+    <div
+      ref={broadcast}
+      data-sidebar-open={timelineOpen}
+      className={`${styles.root} ${fullscreen ? styles.fullscreen : ''} grid items-stretch gap-4 ${timelineOpen ? 'lg:grid-cols-[minmax(0,1fr)_19rem]' : 'grid-cols-1'}`}
+    >
       <section
-        className="min-w-0 self-start overflow-hidden rounded-xl border bg-card"
+        className={`${styles.broadcast} min-w-0 self-start overflow-hidden rounded-xl border bg-card`}
         aria-label="Live game broadcast"
       >
         <div className="flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4">
@@ -181,20 +228,33 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
             <span className="text-[#5a89e5]">{frame?.scores?.blue ?? 0}</span>
             <span className="ml-3 text-base">{time}</span>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            aria-expanded={timelineOpen}
-            aria-controls={timelineId}
-            aria-label={timelineOpen ? 'Hide side panel' : 'Show side panel'}
-            onClick={() => setTimelineOpen((open) => !open)}
-          >
-            {timelineOpen ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
-            Events & Chat
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-expanded={timelineOpen}
+              aria-controls={timelineId}
+              aria-label={timelineOpen ? 'Hide side panel' : 'Show side panel'}
+              onClick={() => setTimelineOpen((open) => !open)}
+            >
+              {timelineOpen ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
+              Events & Chat
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              title={fullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen'}
+              aria-pressed={fullscreen}
+              onClick={() => void toggleFullscreen()}
+            >
+              {fullscreen ? <Minimize aria-hidden="true" /> : <Maximize aria-hidden="true" />}
+            </Button>
+          </div>
         </div>
-        <div className="relative bg-[#18251f]">
+        <div className={`${styles.pitch} relative bg-[#18251f]`}>
           <canvas
             ref={canvas}
             className="block aspect-[16/9] w-full"
@@ -240,7 +300,10 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
         </div>
       </section>
       {/* On desktop the panel fills this grid cell without contributing to the row height. */}
-      <div hidden={!timelineOpen} className={timelineOpen ? 'relative min-h-0 min-w-0' : 'hidden'}>
+      <div
+        hidden={!timelineOpen}
+        className={`${styles.sidebar} ${timelineOpen ? 'relative min-h-0 min-w-0' : 'hidden'}`}
+      >
         <MatchTimeline
           id={timelineId}
           timeline={timeline}
