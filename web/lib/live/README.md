@@ -10,16 +10,23 @@ WebSockets to core's `/ws`. Serverless platforms that cannot retain WebSocket
 connections do not support this relay. No additional port or environment
 variable is required.
 
-Core captures public scores, shot-button state, player positions, and disc positions on every
-`onGameTick`, with a one-second heartbeat during pauses/stops. Stadium metadata
+Core captures public scores, shot-button state, player positions, and disc positions
+after each simulation step, scheduled from `onGameTick`, with a one-second heartbeat
+during pauses/stops. Stadium metadata
 is sent reliably on change and subscription; transient frames are volatile so
 slow connections do not accumulate stale updates. IPC skips frames while a prior
 send is pending. The canvas uses an 80 ms interpolation buffer and freezes at
-the latest known position during outages. Shot presses/releases also trigger snapshots
-through `onPlayerInput`; players have a white outline while holding shot, including
-away from the ball. This uses `player.input & room.InputFlags.kick` from haxball.js
-5.1.0 rather than inferring input from successful ball kicks. Only the derived
-`kicking` boolean is transmitted, not the other input flags.
+the latest known position during outages. `onPlayerInput` updates kick readiness
+without publishing an intermediate snapshot. The white outline mirrors kick readiness: a press arms
+it, a successful `onPlayerBallKick` consumes it, and a release/new press rearms
+it. Minimum kick cooldown and rate/burst budgets suppress the outline until the
+player is ready again. Counters advance on simulation ticks only; paused games
+show no kick outline. The indicator uses actual kick events, including custom
+kickable discs, rather than estimating contact from interpolated positions.
+Only the derived `kicking` readiness boolean is transmitted, not raw input flags.
+The tick hook runs before physics; a microtask takes the snapshot after the
+synchronous step/batch has finished, so a press consumed immediately by a kick
+never becomes a visible white-outline frame. Catch-up steps are coalesced.
 
 Headless Host has no stadium geometry getter. RoomService retains HBS data for
 maps loaded by this application, resolves bundled maps selected in-game, and
@@ -31,3 +38,15 @@ stripes and avatars are not reproduced.
 
 `types.ts` mirrors core's public `LiveProtocol.ts`; update both for protocol
 changes. Frames exclude auth, IP/connection data, passwords and room configs.
+
+Fresh score increases trigger a 2.4-second team-colored goal celebration,
+synchronized with the renderer's interpolation delay. Initial subscriptions,
+reconnections, stale frames and match resets do not replay old goals. The
+celebration respects reduced-motion preferences. Run `npm run test:live` for
+the goal-detection checks (Node 22.18+).
+
+Goal snapshots include public scorer/assist names from the same consumed touch
+history used by match statistics. Credits survive dropped snapshots and later
+nickname changes; a new goal's metadata is forwarded reliably by both WebSocket
+hops. Own goals are labelled and omit assists. Unknown/departed players use the
+existing statistics fallback, and credits are cleared when a new game starts.

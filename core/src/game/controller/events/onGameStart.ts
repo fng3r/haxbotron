@@ -1,6 +1,7 @@
 import type { PlayerObject } from "haxball.js";
 import { TeamID } from "../../model/GameObject/TeamID.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
+import { clearLiveGoal } from "../../runtime/LiveBroadcast.js";
 
 const DEFAULT_KICKRATE = {
     min: 6,
@@ -9,6 +10,7 @@ const DEFAULT_KICKRATE = {
 }
 
 export function onGameStartListener(runtime: RoomRuntime, byPlayer: PlayerObject | null): void {
+    clearLiveGoal(runtime);
     /* Event called when a game starts.
         byPlayer is the player which caused the event (can be null if the event wasn't caused by a player). */
     const room = runtime.room.getRoom();

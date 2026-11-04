@@ -70,9 +70,12 @@ export default async function handler(req: NextApiRequest, res: LiveResponse) {
           source.on('roomct', (event: { ruid: string }) => {
             if (event.ruid === ruid) source.emit('live:subscribe', ruid);
           });
+          let latestGoalId: string | undefined;
           source.on('live', (frame) => {
             if (frame.ruid !== ruid) return;
-            if (frame.stadium) socket.emit('live', frame);
+            const newGoal = frame.goal && frame.goal.id !== latestGoalId;
+            latestGoalId = frame.goal?.id;
+            if (frame.stadium || newGoal) socket.emit('live', frame);
             else socket.volatile.emit('live', frame);
           });
           source.on('live:offline', () => socket.emit('live:error', 'Room is offline'));

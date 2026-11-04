@@ -1,8 +1,30 @@
 import JSON5 from "json5";
+import { randomUUID } from "node:crypto";
+import { getKickIndicator } from "./KickIndicator.js";
 import type { RoomRuntime } from "./RoomRuntime.js";
-import type { LiveDisc, LiveFrame, LiveStadium } from "../../lib/room/LiveProtocol.js";
+import type { LiveDisc, LiveFrame, LiveGoal, LiveStadium } from "../../lib/room/LiveProtocol.js";
 
 const states = new WeakMap<RoomRuntime, { sequence: number; source: string | null; stadium?: LiveStadium; busy: boolean }>();
+const latestGoals = new WeakMap<RoomRuntime, LiveGoal>();
+const pendingFrames = new WeakSet<RoomRuntime>();
+
+/** onGameTick runs before physics. Snapshot after the synchronous simulation batch settles. */
+export function scheduleLiveFrame(runtime: RoomRuntime): void {
+    if (pendingFrames.has(runtime)) return;
+    pendingFrames.add(runtime);
+    queueMicrotask(() => {
+        pendingFrames.delete(runtime);
+        publishLiveFrame(runtime);
+    });
+}
+
+export function recordLiveGoal(runtime: RoomRuntime, goal: Omit<LiveGoal, "id">): void {
+    latestGoals.set(runtime, { ...goal, id: randomUUID() });
+}
+
+export function clearLiveGoal(runtime: RoomRuntime): void {
+    latestGoals.delete(runtime);
+}
 
 /** Extract only geometry from the loaded HBS. Traits are resolved before transmission. */
 export function parseLiveStadium(source: string): LiveStadium {
@@ -38,6 +60,11 @@ export function publishLiveFrame(runtime: RoomRuntime): void {
     }
     const room = runtime.room.getRoom();
     const scores = room.getScores();
+    if (!scores) latestGoals.delete(runtime);
+    const goal = latestGoals.get(runtime);
+    const indicator = getKickIndicator(runtime);
+    const players = room.getPlayerList();
+    for (const player of players) indicator.input(player.id, (player.input & room.InputFlags.kick) !== 0);
     const pick = (d: ReturnType<typeof room.getDiscProperties>): LiveDisc | null => d ? ({
         x: d.x, y: d.y, radius: d.radius, color: d.color,
     }) : null;
@@ -46,10 +73,11 @@ export function publishLiveFrame(runtime: RoomRuntime): void {
         status: !scores ? "stopped" : runtime.match.isPlaying() ? "playing" : "paused",
         scores,
         discs: scores ? Array.from({ length: room.getDiscCount() }, (_, i) => pick(room.getDiscProperties(i))) : [],
-        players: room.getPlayerList().map(p => ({ id: p.id, name: p.name, team: p.team,
-            kicking: !!scores && p.team !== 0 && (p.input & room.InputFlags.kick) !== 0,
+        players: players.map(p => ({ id: p.id, name: p.name, team: p.team,
+            kicking: !!scores && runtime.match.isPlaying() && p.team !== 0 && indicator.ready(p.id),
             disc: scores && p.team !== 0 ? pick(room.getPlayerDiscProperties(p.id)) : null })),
         ...(stadium ? { stadium } : {}),
+        ...(goal ? { goal } : {}),
     };
     state.busy = true;
     process.send({ type: "event", event: "live", payload: frame }, () => { state!.busy = false; });

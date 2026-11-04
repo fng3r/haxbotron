@@ -1,5 +1,7 @@
 import type { LiveDisc, LiveFrame, LiveStadium } from './types';
 
+export const INTERPOLATION_DELAY_MS = 80;
+
 export function color(value: string | number | undefined, fallback = '#c5cbb7') {
   if (typeof value === 'number') return value < 0 ? 'transparent' : `#${value.toString(16).padStart(6, '0')}`;
   return value && /^[\da-f]{6}$/i.test(value) ? `#${value}` : fallback;
@@ -195,7 +197,8 @@ export class BroadcastRenderer {
     ctx.scale(scale, scale);
     const latest = this.frames[this.frames.length - 1];
     if (!latest) return;
-    const target = latest.timestamp - 80 + Math.min(performance.now() - this.receivedAt, 80);
+    const target =
+      latest.timestamp - INTERPOLATION_DELAY_MS + Math.min(performance.now() - this.receivedAt, INTERPOLATION_DELAY_MS);
     while (this.frames.length > 2 && this.frames[1].timestamp <= target) this.frames.shift();
     const a = this.frames[0],
       b = this.frames[1] ?? a;
@@ -214,7 +217,7 @@ export class BroadcastRenderer {
     for (const player of b.players) {
       const d = blendDisc(a.players.find((p) => p.id === player.id && p.team === player.team)?.disc, player.disc, t);
       if (!d) continue;
-      // Input is discrete: use the state at the buffered playback time, without blending it.
+      // Kick readiness is discrete: use the buffered state without blending it.
       const previous = a.players.find((p) => p.id === player.id && p.team === player.team);
       const kicking = (t < 1 ? previous : player)?.kicking ?? false;
       this.disc(d, String(player.id), player.team, kicking);

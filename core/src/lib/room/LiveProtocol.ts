@@ -18,4 +18,14 @@ export interface LiveFrame {
     discs: (LiveDisc | null)[];
     players: { id: number; name: string; team: number; kicking?: boolean; disc: LiveDisc | null }[];
     stadium?: LiveStadium;
+    goal?: LiveGoal;
+}
+
+export interface LiveGoal {
+    id: string;
+    team: 1 | 2;
+    scores: { red: number; blue: number };
+    scorer: { id: number; name: string } | null;
+    assistant: { id: number; name: string } | null;
+    ownGoal: boolean;
 }

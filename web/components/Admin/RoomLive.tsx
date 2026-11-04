@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import GoalCelebration, { type GoalCelebrationData } from './GoalCelebration';
 import { io } from 'socket.io-client';
 
-import { BroadcastRenderer } from '@/lib/live/renderer';
+import { detectGoal, goalForScore } from '@/lib/live/goals';
+import { BroadcastRenderer, INTERPOLATION_DELAY_MS } from '@/lib/live/renderer';
 import type { LiveFrame } from '@/lib/live/types';
 
 export default function RoomLive({ ruid }: { ruid: string }) {
@@ -12,12 +14,24 @@ export default function RoomLive({ ruid }: { ruid: string }) {
   const [frame, setFrame] = useState<LiveFrame | null>(null);
   const [connection, setConnection] = useState('Connecting…');
   const [stadium, setStadium] = useState('Waiting for stadium');
+  const [goal, setGoal] = useState<(GoalCelebrationData & { id: number }) | null>(null);
 
   useEffect(() => {
     let disposed = false;
     let socket: ReturnType<typeof io> | undefined;
     let lastFrame = 0;
     let lastUIUpdate = 0;
+    let previous: LiveFrame | null = null;
+    let activeGoal: (GoalCelebrationData & { id: number }) | null = null;
+    let goalStart: ReturnType<typeof setTimeout> | undefined;
+    let goalEnd: ReturnType<typeof setTimeout> | undefined;
+    const resetGoals = () => {
+      previous = null;
+      activeGoal = null;
+      clearTimeout(goalStart);
+      clearTimeout(goalEnd);
+      setGoal(null);
+    };
     const renderer = new BroadcastRenderer(canvas.current!);
     const timer = setInterval(() => {
       if (lastFrame && Date.now() - lastFrame > 3000) setConnection('Signal lost. Waiting for host…');
@@ -29,12 +43,47 @@ export default function RoomLive({ ruid }: { ruid: string }) {
         if (disposed) return;
         socket = io({ path: '/live-ws', transports: ['websocket'], forceNew: true });
         socket.on('connect', () => {
+          resetGoals();
           setConnection('Waiting for game state…');
           socket!.emit('live:subscribe', ruid);
         });
         socket.on('live', (next: LiveFrame & { ruid: string }) => {
           if (next.ruid !== ruid) return;
           renderer.push(next);
+          const scoringTeam = detectGoal(previous, next);
+          const before = previous?.scores;
+          previous = next;
+          if (scoringTeam && before && next.scores) {
+            // Copy both scores now; later snapshots must not replace this goal's transition.
+            const celebration = {
+              team: scoringTeam,
+              id: next.sequence,
+              before: { red: before.red, blue: before.blue },
+              after: { red: next.scores.red, blue: next.scores.blue },
+              attribution: goalForScore(next.goal, scoringTeam, next.scores),
+            };
+            activeGoal = celebration;
+            clearTimeout(goalStart);
+            clearTimeout(goalEnd);
+            // Match the pitch renderer's interpolation delay.
+            goalStart = setTimeout(() => {
+              setGoal(activeGoal);
+              goalEnd = setTimeout(() => {
+                activeGoal = null;
+                setGoal(null);
+              }, 2400);
+            }, INTERPOLATION_DELAY_MS);
+          } else if (!next.scores) {
+            resetGoals();
+          } else if (activeGoal && !activeGoal.attribution) {
+            // Metadata may follow the first score snapshot. Enrich without restarting the animation.
+            const attribution = goalForScore(next.goal, activeGoal.team, activeGoal.after);
+            if (attribution) {
+              activeGoal = { ...activeGoal, attribution };
+              const enriched = activeGoal;
+              setGoal((current) => (current?.id === enriched.id ? enriched : current));
+            }
+          }
           lastFrame = Date.now();
           setConnection('Connected');
           if (next.stadium) setStadium(next.stadium.name + (next.stadium.approximate ? ' (geometry unavailable)' : ''));
@@ -43,8 +92,14 @@ export default function RoomLive({ ruid }: { ruid: string }) {
             lastUIUpdate = lastFrame;
           }
         });
-        socket.on('live:error', (error: string) => setConnection(error));
-        socket.on('disconnect', () => setConnection('Disconnected. Reconnecting…'));
+        socket.on('live:error', (error: string) => {
+          resetGoals();
+          setConnection(error);
+        });
+        socket.on('disconnect', () => {
+          resetGoals();
+          setConnection('Disconnected. Reconnecting…');
+        });
         socket.on('connect_error', () => setConnection('Connection failed. Reconnecting…'));
       } catch {
         if (!disposed) setConnection('Unable to connect to broadcast. Reload to retry.');
@@ -54,6 +109,8 @@ export default function RoomLive({ ruid }: { ruid: string }) {
     return () => {
       disposed = true;
       clearInterval(timer);
+      clearTimeout(goalStart);
+      clearTimeout(goalEnd);
       socket?.disconnect();
       renderer.destroy();
     };
@@ -90,6 +147,7 @@ export default function RoomLive({ ruid }: { ruid: string }) {
         >
           Your browser needs Canvas support to display the broadcast.
         </canvas>
+        {goal && <GoalCelebration key={goal.id} {...goal} />}
         {(connection !== 'Connected' || frame?.status !== 'playing') && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <span className="rounded-lg bg-black/65 px-5 py-3 text-sm font-medium text-white">

@@ -1,0 +1,237 @@
+.celebration {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
+  animation: finish 2.4s ease both;
+}
+
+.wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--goal-color) 24%, transparent),
+    transparent 70%
+  );
+  box-shadow: inset 0 0 70px color-mix(in srgb, var(--goal-color) 35%, transparent);
+  animation: flash 800ms 650ms ease-out both;
+}
+
+.ring {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  border: 3px solid var(--goal-color);
+  border-radius: 50%;
+  animation: expand 950ms 650ms ease-out both;
+}
+
+.banner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 48px;
+  color: white;
+  background: linear-gradient(110deg, transparent, #101719ed 20%, #101719ed 80%, transparent);
+  text-align: center;
+  animation: arrive 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.team {
+  font-size: clamp(10px, 1.2vw, 13px);
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.score {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  margin-top: 8px;
+  font-family: ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(46px, 8vw, 100px);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.red {
+  color: #e66e55;
+}
+.blue {
+  color: #5a89e5;
+}
+.separator {
+  color: #ffffff80;
+}
+
+.number {
+  display: grid;
+  overflow: hidden;
+}
+
+.previous,
+.current {
+  grid-area: 1 / 1;
+}
+
+.previous {
+  animation: score-out 480ms 650ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.current {
+  animation: score-in 480ms 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  text-shadow: 0 0 20px color-mix(in srgb, var(--goal-color) 45%, transparent);
+}
+
+.rule {
+  width: 52px;
+  height: 3px;
+  margin-top: 12px;
+  background: var(--goal-color);
+}
+
+.credits {
+  display: grid;
+  gap: 4px;
+  max-width: min(65vw, 360px);
+  margin-top: 8px;
+  font-size: clamp(11px, 1.3vw, 15px);
+}
+
+.credit {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.creditLabel {
+  flex-shrink: 0;
+  color: #ffffff99;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.player {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.particles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.particles i {
+  position: absolute;
+  width: 5px;
+  height: 11px;
+  background: var(--goal-color);
+  animation: burst 1100ms calc(650ms + var(--delay)) ease-out both;
+}
+
+.particles i:nth-child(3n) {
+  background: white;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes score-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-110%);
+  }
+}
+
+@keyframes score-in {
+  from {
+    opacity: 0;
+    transform: translateY(110%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes expand {
+  from {
+    opacity: 0.9;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 0;
+    transform: scale(4.5);
+  }
+}
+
+@keyframes burst {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rotation));
+  }
+}
+
+@keyframes flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.25;
+  }
+}
+
+@keyframes finish {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebration,
+  .banner,
+  .wash {
+    animation: none;
+  }
+  .ring,
+  .particles,
+  .previous {
+    display: none;
+  }
+  .current {
+    animation: none;
+  }
+}

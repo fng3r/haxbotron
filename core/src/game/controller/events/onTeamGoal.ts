@@ -3,6 +3,8 @@ import { TeamID } from "../../model/GameObject/TeamID.js";
 import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import * as Tst from "../../shared/Translator.js";
+import { recordLiveGoal } from "../../runtime/LiveBroadcast.js";
+import { getGoalAttribution } from "../../runtime/GoalAttribution.js";
 
 export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Promise<void> {
     // Event called when a team scores a goal.
@@ -16,6 +18,12 @@ export async function onTeamGoalListener(runtime: RoomRuntime, team: TeamID): Pr
     const time = formatMatchTime(scores?.time);
 
     const { scorer, assistant } = runtime.match.consumeGoalTouches();
+    if (scores && (team === TeamID.Red || team === TeamID.Blue)) {
+        recordLiveGoal(runtime, {
+            team, scores: { red: scores.red, blue: scores.blue },
+            ...getGoalAttribution(playerList, team, scorer, assistant),
+        });
+    }
     if (scorer !== undefined) {
         const scoringPlayer = playerList.get(scorer);
         if (!scoringPlayer) {

@@ -278,10 +278,11 @@ export class RoomProcessManager {
     private handleWorkerEvent(handle: RoomHandle, event: RoomWorkerEvent): void {
         switch (event.event) {
             case "live":
+                const newGoal = event.payload.goal && event.payload.goal.id !== handle.liveFrame?.goal?.id;
                 handle.liveFrame = event.payload;
                 if (event.payload.stadium) handle.liveStadium = event.payload.stadium;
                 // Metadata is reliable; transient frames may be dropped for slow viewers.
-                if (event.payload.stadium) this.sioServer?.to(`live:${handle.ruid}`).emit("live", { ruid: handle.ruid, ...event.payload });
+                if (event.payload.stadium || newGoal) this.sioServer?.to(`live:${handle.ruid}`).emit("live", { ruid: handle.ruid, ...event.payload });
                 else this.sioServer?.to(`live:${handle.ruid}`).volatile.emit("live", { ruid: handle.ruid, ...event.payload });
                 return;
             case "roomReady":

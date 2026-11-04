@@ -1,8 +1,12 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import type { PlayerObject } from 'haxball.js';
 import type { RoomRuntime } from '../../../src/game/runtime/RoomRuntime.js';
-import { parseLiveStadium, publishLiveFrame } from '../../../src/game/runtime/LiveBroadcast.js';
+import { clearLiveGoal, parseLiveStadium, publishLiveFrame, recordLiveGoal } from '../../../src/game/runtime/LiveBroadcast.js';
 import { parseRoomWorkerMessage } from '../../../src/lib/room/RoomProtocol.js';
 import { getStadiumData } from '../../../src/lib/stadiumLoader.js';
+import { getKickIndicator } from '../../../src/game/runtime/KickIndicator.js';
+import { onGameTickListener } from '../../../src/game/controller/events/onGameTick.js';
+import { onPlayerBallKickListener } from '../../../src/game/controller/events/onPlayerBallKick.js';
 
 const originalSend = process.send;
 const originalConnected = Object.getOwnPropertyDescriptor(process, 'connected');
@@ -15,7 +19,10 @@ afterEach(() => {
 function fixture() {
     let scores: object | null = { red: 1, blue: 2, time: 12, scoreLimit: 3, timeLimit: 5 };
     const disc = { x: 3, y: 5, radius: 10, color: 0xffffff, xspeed: 1, cGroup: 1 };
-    const player = { id: 7, name: 'Player', team: 1, input: 0, auth: 'secret-auth', conn: 'private-ip' };
+    const player: PlayerObject & { auth: string; conn: string } = {
+        id: 7, name: 'Player', team: 1, input: 0, admin: false, position: { x: 3, y: 5 },
+        auth: 'secret-auth', conn: 'private-ip',
+    };
     const native = {
         InputFlags: { kick: 16 },
         getScores: () => scores,
@@ -26,12 +33,121 @@ function fixture() {
     };
     const runtime = {
         room: { getRoom: () => native, getStadiumSource: () => getStadiumData('classic') },
-        match: { isPlaying: () => true },
+        match: { isPlaying: () => true, updateScores: jest.fn(), recordBallKick: jest.fn() },
+        players: { getPlayerList: () => new Map() },
     } as unknown as RoomRuntime;
     return { runtime, player, stop: () => { scores = null; } };
 }
 
 describe('live broadcast snapshots', () => {
+    it('never publishes a transient armed press consumed by physics in the same tick', async () => {
+        const send = jest.fn();
+        process.send = send as typeof process.send;
+        Object.defineProperty(process, 'connected', { configurable: true, value: true });
+        const { runtime, player } = fixture();
+        player.input = 16;
+        getKickIndicator(runtime).input(player.id, true);
+        // Real host order: input -> onGameTick -> successful kick -> physics ends.
+        onGameTickListener(runtime);
+        expect(send).not.toHaveBeenCalled();
+        onPlayerBallKickListener(runtime, player);
+        await Promise.resolve();
+        expect(send).toHaveBeenCalledTimes(1);
+        expect(send.mock.calls[0][0]).toMatchObject({ payload: { players: [{ id: player.id, kicking: false }, { kicking: false }] } });
+    });
+
+    it('does not flash when a cooldown expires and a new press is consumed in that same step', async () => {
+        const send = jest.fn();
+        process.send = send as typeof process.send;
+        Object.defineProperty(process, 'connected', { configurable: true, value: true });
+        const { runtime, player } = fixture();
+        const indicator = getKickIndicator(runtime);
+        indicator.setLimits(1, 1, 0);
+        player.input = 16;
+        indicator.input(player.id, true);
+        indicator.kicked(player.id);
+        indicator.input(player.id, false);
+        indicator.input(player.id, true);
+        onGameTickListener(runtime);
+        expect(indicator.ready(player.id)).toBe(true);
+        onPlayerBallKickListener(runtime, player);
+        await Promise.resolve();
+        expect(send.mock.calls[0][0]).toMatchObject({ payload: { players: [{ kicking: false }, { kicking: false }] } });
+    });
+
+    it('coalesces catch-up steps and preserves a genuine ready press away from the ball', async () => {
+        const send = jest.fn();
+        process.send = send as typeof process.send;
+        Object.defineProperty(process, 'connected', { configurable: true, value: true });
+        const { runtime, player } = fixture();
+        player.input = 16;
+        onGameTickListener(runtime);
+        onGameTickListener(runtime);
+        onGameTickListener(runtime);
+        expect(send).not.toHaveBeenCalled();
+        await Promise.resolve();
+        expect(send).toHaveBeenCalledTimes(1);
+        expect(send.mock.calls[0][0]).toMatchObject({ payload: { players: [{ kicking: true }, { kicking: false }] } });
+        (send.mock.calls[0][1] as () => void)();
+        player.input = 0;
+        onGameTickListener(runtime);
+        await Promise.resolve();
+        expect(send.mock.calls[1][0]).toMatchObject({ payload: { players: [{ kicking: false }, { kicking: false }] } });
+    });
+    it('sends a dark outline after a successful kick even while shot stays held', () => {
+        const send = jest.fn();
+        process.send = send as typeof process.send;
+        Object.defineProperty(process, 'connected', { configurable: true, value: true });
+        const { runtime, player } = fixture();
+        const capture = () => {
+            publishLiveFrame(runtime);
+            const call = send.mock.calls[send.mock.calls.length - 1];
+            (call[1] as () => void)();
+            return (call[0] as { payload: { players: { kicking: boolean }[] } }).payload.players[0].kicking;
+        };
+        player.input = 16;
+        expect(capture()).toBe(true);
+        getKickIndicator(runtime).kicked(player.id);
+        expect(capture()).toBe(false);
+        getKickIndicator(runtime).advance([player.id]);
+        getKickIndicator(runtime).advance([player.id]);
+        expect(capture()).toBe(false);
+        player.input = 0; capture();
+        player.input = 16;
+        expect(capture()).toBe(true);
+        runtime.match.isPlaying = () => false;
+        expect(capture()).toBe(false);
+    });
+    it('retains goal credits across dropped snapshots and clears them when the match stops', () => {
+        const send = jest.fn();
+        process.send = send as typeof process.send;
+        Object.defineProperty(process, 'connected', { configurable: true, value: true });
+        const { runtime, stop } = fixture();
+        publishLiveFrame(runtime);
+        recordLiveGoal(runtime, {
+            team: 1, scores: { red: 1, blue: 2 }, scorer: { id: 7, name: 'Scorer' },
+            assistant: { id: 9, name: 'Assistant' }, ownGoal: false,
+        });
+        publishLiveFrame(runtime);
+        expect(send).toHaveBeenCalledTimes(1);
+        (send.mock.calls[0][1] as () => void)();
+        publishLiveFrame(runtime);
+        const message = send.mock.calls[1][0];
+        expect(parseRoomWorkerMessage(message).success).toBe(true);
+        expect(message).toMatchObject({ payload: { goal: { id: expect.any(String), scorer: { name: 'Scorer' }, assistant: { name: 'Assistant' } } } });
+        (send.mock.calls[1][1] as () => void)();
+        publishLiveFrame(runtime);
+        expect(send.mock.calls[2][0]).toMatchObject({ payload: { goal: (message as { payload: { goal: unknown } }).payload.goal } });
+        (send.mock.calls[2][1] as () => void)();
+        stop();
+        publishLiveFrame(runtime);
+        expect(send.mock.calls[3][0]).not.toHaveProperty('payload.goal');
+        (send.mock.calls[3][1] as () => void)();
+        recordLiveGoal(runtime, { team: 1, scores: { red: 1, blue: 0 }, scorer: null, assistant: null, ownGoal: false });
+        clearLiveGoal(runtime);
+        publishLiveFrame(runtime);
+        expect(send.mock.calls[4][0]).not.toHaveProperty('payload.goal');
+    });
     it('streams held shot input and releases independently of ball contact', () => {
         const send = jest.fn();
         process.send = send as typeof process.send;

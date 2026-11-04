@@ -304,6 +304,13 @@ const eventPayloadSchemas: Record<RoomWorkerEvent["event"], Joi.Schema> = {
         discs: Joi.array().items(Joi.object().unknown(true).allow(null)).required(),
         players: Joi.array().items(Joi.object().unknown(true)).required(),
         stadium: Joi.object().unknown(true).optional(),
+        goal: Joi.object({
+            id: Joi.string().required(), team: Joi.number().valid(1, 2).required(),
+            scores: Joi.object({ red: Joi.number().integer().min(0).required(), blue: Joi.number().integer().min(0).required() }).required(),
+            scorer: Joi.object({ id: Joi.number().required(), name: Joi.string().allow("").required() }).allow(null).required(),
+            assistant: Joi.object({ id: Joi.number().required(), name: Joi.string().allow("").required() }).allow(null).required(),
+            ownGoal: Joi.boolean().required(),
+        }).optional(),
     }).required(),
     roomReady: Joi.object({
         link: Joi.string().required(),
