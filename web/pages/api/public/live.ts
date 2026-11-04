@@ -10,6 +10,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse & { so
     res.status(405).end();
     return;
   }
-  ensureLiveRelay(res.socket.server, true);
+  ensureLiveRelay(res.socket.server);
   res.status(200).json({ ok: true });
 }

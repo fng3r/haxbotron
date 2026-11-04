@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 
+import BroadcastChat from './BroadcastChat';
 import GoalCelebration, { type GoalCelebrationData } from './GoalCelebration';
 import MatchTimeline from './MatchTimeline';
 import { Eye, PanelRightClose, PanelRightOpen } from 'lucide-react';
@@ -9,21 +10,17 @@ import { io } from 'socket.io-client';
 
 import { Button } from '@/components/ui/button';
 
+import type { ChatMessage } from '@/lib/live/chat';
 import { detectGoal, goalForScore } from '@/lib/live/goals';
 import { BroadcastRenderer, INTERPOLATION_DELAY_MS } from '@/lib/live/renderer';
 import { mergeTimeline } from '@/lib/live/timeline';
 import type { LiveFrame, LiveMatchTimeline } from '@/lib/live/types';
 
-export default function RoomLive({
-  ruid,
-  publicView = false,
-  roomName,
-}: {
-  ruid: string;
-  publicView?: boolean;
-  roomName?: string;
-}) {
+export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const liveSocket = useRef<ReturnType<typeof io> | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatConnected, setChatConnected] = useState(false);
   const [frame, setFrame] = useState<LiveFrame | null>(null);
   const [connection, setConnection] = useState('Connecting…');
   const [stadium, setStadium] = useState('Waiting for stadium');
@@ -55,11 +52,22 @@ export default function RoomLive({
     }, 1000);
     async function connect() {
       try {
-        const response = await fetch(publicView ? '/api/public/live' : '/api/live');
+        const response = await fetch('/api/public/live');
         if (!response.ok || response.redirected) throw new Error('Unable to connect');
         if (disposed) return;
-        socket = io({ path: publicView ? '/public-live-ws' : '/live-ws', transports: ['websocket'], forceNew: true });
+        socket = io({ path: '/public-live-ws', transports: ['websocket'], forceNew: true });
+        liveSocket.current = socket;
+        socket.on('chat:history', (payload: { ruid: string; messages: ChatMessage[] }) => {
+          if (payload.ruid !== ruid) return;
+          setMessages(payload.messages);
+          setChatConnected(true);
+        });
+        socket.on('chat:message', (message: ChatMessage) => {
+          if (message.ruid === ruid)
+            setMessages((current) => [...current.filter((m) => m.id !== message.id), message].slice(-100));
+        });
         socket.on('connect', () => {
+          setChatConnected(false);
           setViewers(null);
           resetGoals();
           setConnection('Waiting for game state…');
@@ -119,11 +127,13 @@ export default function RoomLive({
           }
         });
         socket.on('live:error', (error: string) => {
+          setChatConnected(false);
           setViewers(null);
           resetGoals();
           setConnection(error);
         });
         socket.on('disconnect', () => {
+          setChatConnected(false);
           setViewers(null);
           resetGoals();
           setConnection('Disconnected. Reconnecting…');
@@ -140,9 +150,10 @@ export default function RoomLive({
       clearTimeout(goalStart);
       clearTimeout(goalEnd);
       socket?.disconnect();
+      liveSocket.current = null;
       renderer.destroy();
     };
-  }, [ruid, publicView]);
+  }, [ruid]);
 
   const seconds = Math.floor(frame?.scores?.time ?? 0);
   const time = `${Math.floor(seconds / 60)
@@ -173,11 +184,11 @@ export default function RoomLive({
             size="sm"
             aria-expanded={timelineOpen}
             aria-controls={timelineId}
-            aria-label={timelineOpen ? 'Hide match events' : 'Show match events'}
+            aria-label={timelineOpen ? 'Hide side panel' : 'Show side panel'}
             onClick={() => setTimelineOpen((open) => !open)}
           >
             {timelineOpen ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
-            Events
+            Events & Chat
           </Button>
         </div>
         <div className="relative bg-[#18251f]">
@@ -231,6 +242,31 @@ export default function RoomLive({
         connected={connection === 'Connected'}
         collapsed={!timelineOpen}
         onCollapse={() => setTimelineOpen(false)}
+        chat={
+          <BroadcastChat
+            messages={messages}
+            connected={chatConnected}
+            send={(nickname, text) =>
+              new Promise((resolve) => {
+                const socket = liveSocket.current;
+                if (!socket?.connected || !chatConnected) return resolve({ ok: false, error: 'Chat is disconnected.' });
+                socket
+                  .timeout(5000)
+                  .emit(
+                    'chat:send',
+                    { nickname, text },
+                    (error: Error | null, result: { ok: boolean; error?: string }) => {
+                      resolve(
+                        error
+                          ? { ok: false, error: 'Message could not be confirmed. Check the chat before retrying.' }
+                          : result,
+                      );
+                    },
+                  );
+              })
+            }
+          />
+        }
       />
     </div>
   );

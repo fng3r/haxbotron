@@ -3,28 +3,26 @@ import type { Server as HTTPServer } from 'node:http';
 import { Server } from 'socket.io';
 import { io } from 'socket.io-client';
 
-import { generateToken, verifyToken } from '@/lib/auth/jwt';
+import { generateToken } from '@/lib/auth/jwt';
 import { getControlPlaneService } from '@/lib/control-plane/service';
+import { LiveChat } from '@/lib/live/chat';
 
-type RelayHTTPServer = HTTPServer & { liveIO?: Server; publicLiveIO?: Server };
+type RelayHTTPServer = HTTPServer & { publicLiveIO?: Server; liveChat?: LiveChat };
 
-// The public relay only forwards broadcast data. It never forwards arbitrary client events.
+// The relay forwards broadcast data and handles viewer chat locally.
+// It never forwards arbitrary client events to core.
 // The core host remains authenticated; no upstream credentials reach the browser.
-export function ensureLiveRelay(server: RelayHTTPServer, publicAccess: boolean): void {
-  const serverKey = publicAccess ? 'publicLiveIO' : 'liveIO';
-  if (!server[serverKey]) {
+export function ensureLiveRelay(server: RelayHTTPServer): void {
+  const chat = (server.liveChat ??= new LiveChat());
+  if (!server.publicLiveIO) {
     const live = new Server(server, {
-      path: publicAccess ? '/public-live-ws' : '/live-ws',
+      path: '/public-live-ws',
       transports: ['websocket'],
+      maxHttpBufferSize: 8192,
       serveClient: false,
     });
-    server[serverKey] = live;
+    server.publicLiveIO = live;
     live.use(async (socket, next) => {
-      const cookie = socket.request.headers.cookie
-        ?.split(';')
-        .map((v) => v.trim())
-        .find((v) => v.startsWith('access_token='));
-      const token = cookie?.slice('access_token='.length);
       const origin = socket.request.headers.origin;
       let sameOrigin = !origin;
       try {
@@ -32,7 +30,7 @@ export function ensureLiveRelay(server: RelayHTTPServer, publicAccess: boolean):
       } catch {
         sameOrigin = false;
       }
-      if (!sameOrigin || (!publicAccess && (!token || !(await verifyToken(token))))) {
+      if (!sameOrigin) {
         next(new Error('Unauthorized'));
         return;
       }
@@ -41,13 +39,28 @@ export function ensureLiveRelay(server: RelayHTTPServer, publicAccess: boolean):
     live.on('connection', (socket) => {
       let upstream: ReturnType<typeof io> | undefined;
       let generation = 0;
+      let chatRoom: string | undefined;
+      const leaveChat = () => {
+        if (chatRoom) void socket.leave(`chat:${chatRoom}`);
+        chatRoom = undefined;
+      };
+      socket.on('chat:send', (payload: unknown, ack?: (result: { ok: boolean; error?: string }) => void) => {
+        if (typeof ack !== 'function') return;
+        if (!chatRoom) return ack({ ok: false, error: 'Connect to a broadcast before chatting.' });
+        const result = chat.send(chatRoom, socket.id, payload);
+        if (result.ok) {
+          live.to(`chat:${chatRoom}`).emit('chat:message', result.message);
+        }
+        ack(result.ok ? { ok: true } : result);
+      });
       socket.on('live:subscribe', async (ruid: unknown) => {
         const current = ++generation;
+        leaveChat();
         upstream?.disconnect();
         if (typeof ruid !== 'string' || !ruid || ruid.length > 200) return;
         try {
           const service = getControlPlaneService();
-          if (publicAccess && !(await service.listPublicLiveRooms()).some((room) => room.ruid === ruid)) {
+          if (!(await service.listPublicLiveRooms()).some((room) => room.ruid === ruid)) {
             throw new Error('Broadcast unavailable');
           }
           const state = await service.getState();
@@ -63,13 +76,21 @@ export function ensureLiveRelay(server: RelayHTTPServer, publicAccess: boolean):
             extraHeaders: { cookie: `access_token=${token}` },
           });
           upstream = source;
-          source.on('connect', () =>
+          const subscribe = () =>
             source.emit('live:subscribe', ruid, (result: { ok: boolean; error?: string }) => {
-              if (!result.ok) socket.emit('live:error', result.error || 'Room is offline');
-            }),
-          );
+              if (!socket.connected || current !== generation) return;
+              if (!result.ok) {
+                leaveChat();
+                socket.emit('live:error', result.error || 'Room is offline');
+              } else {
+                chatRoom = ruid;
+                void socket.join(`chat:${ruid}`);
+                socket.emit('chat:history', { ruid, messages: chat.history(ruid) });
+              }
+            });
+          source.on('connect', subscribe);
           source.on('roomct', (event: { ruid: string }) => {
-            if (event.ruid === ruid) source.emit('live:subscribe', ruid);
+            if (event.ruid === ruid) subscribe();
           });
           let latestGoalId: string | undefined;
           source.on('live:viewers', (payload: { ruid: string; viewers: number }) => {
@@ -82,8 +103,14 @@ export function ensureLiveRelay(server: RelayHTTPServer, publicAccess: boolean):
             if (frame.stadium || newGoal || frame.timeline) socket.emit('live', frame);
             else socket.volatile.emit('live', frame);
           });
-          source.on('live:offline', () => socket.emit('live:error', 'Room is offline'));
-          source.on('disconnect', () => socket.emit('live:error', 'Host disconnected. Reconnecting…'));
+          source.on('live:offline', () => {
+            leaveChat();
+            socket.emit('live:error', 'Room is offline');
+          });
+          source.on('disconnect', () => {
+            leaveChat();
+            socket.emit('live:error', 'Host disconnected. Reconnecting…');
+          });
           source.on('connect_error', () => socket.emit('live:error', 'Host unavailable. Reconnecting…'));
         } catch {
           socket.emit('live:error', 'Room or host is unavailable');

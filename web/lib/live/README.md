@@ -1,11 +1,11 @@
-The room's LIVE page initializes `/api/live`, then opens an authenticated,
-same-origin Socket.IO connection at `/live-ws` using WebSocket transport only.
+The public broadcast page initializes `/api/public/live`, then opens a
+same-origin Socket.IO connection at `/public-live-ws` using WebSocket transport only.
 The Node HTTP server relays a dedicated authenticated WebSocket to the room's
 mapped core host. Core frames are scoped to `live:<ruid>`. Host URLs and JWTs
 stay on the server. Existing admin SSE events are unchanged.
 
 Run with `next start` or `next dev` on a persistent Node process. Forward
-WebSocket upgrades for `/live-ws` through the reverse proxy and allow outbound
+WebSocket upgrades for `/public-live-ws` through the reverse proxy and allow outbound
 WebSockets to core's `/ws`. Serverless platforms that cannot retain WebSocket
 connections do not support this relay. No additional port or environment
 variable is required.
@@ -14,27 +14,39 @@ Public viewing is available at `/live` (directory) and `/live/<ruid>` (broadcast
 The directory exposes only online rooms mapped to enabled, healthy hosts that
 advertise `capabilities.liveBroadcast: true` in their authenticated system API.
 Older hosts are excluded until updated. Room discovery returns only room IDs,
-names and online player counts. All such rooms are publicly watchable.
+names, online player counts and viewer counts. All such rooms are publicly watchable.
 
-The public viewer initializes `/api/public/live` and uses the read-only
+The public viewer initializes `/api/public/live` and uses the broadcast
 `/public-live-ws` WebSocket relay. Also forward upgrades for this path through
-the reverse proxy. The public socket accepts only broadcast subscriptions;
+the reverse proxy. The public socket accepts broadcast subscriptions and viewer chat;
 upstream core JWTs remain on the web server. `/api/public/rooms` and
-`/api/public/live` are the only public API exceptions. Admin pages, private
-WebSockets, control APIs and administrative SSE remain authenticated; the SSE
+`/api/public/live` are the only public API exceptions. Admin pages,
+control APIs and administrative SSE remain authenticated; the SSE
 provider is mounted only in the admin layout.
 
 Run `npm run build && npm run test:public-live` in web for a production
 HTTP/WebSocket check. It uses temporary storage, synthetic hosts and test-only
 credentials, without modifying the configured room/host state.
 
-Viewer counts are active core `live:<ruid>` subscriptions, shared across public
-and admin broadcasts and across web processes. Each open broadcast tab counts
+Viewer counts are active core `live:<ruid>` subscriptions, shared across broadcasts
+and across web processes. Each open broadcast tab counts
 once; players and administrative control connections do not count. Core emits
 `live:viewers` when subscriptions join/leave, including disconnect cleanup;
 the relay forwards it to the broadcast page. Public discovery includes the
 count from core room info and refreshes every five seconds (subject to core
 health snapshot caching). Repeated subscriptions do not increment the count.
+
+The collapsible broadcast side panel has Events and Chat tabs. Viewer chat is
+separate from the in-game chat and shared by viewers of the same
+room on one web process. It uses the existing WebSocket connection; no core or
+nginx changes are needed. A successful broadcast subscription is required to
+send or receive chat. Messages are handled locally and never forwarded to core.
+Nicknames are self-chosen (not authenticated or reserved), 1–24 characters,
+and remembered in browser local storage. Messages are plain text, 1–500
+characters, with at most one accepted message per second per connection.
+The web process keeps the latest 100 messages per room (up to 500 recently
+active rooms) and replays them on reload/reconnect. History resets on web
+restart; separate web processes do not share chat history or delivery.
 
 Core captures public scores, shot-button state, player positions, and disc positions
 after each simulation step, scheduled from `onGameTick`, with a one-second heartbeat
@@ -77,7 +89,7 @@ nickname changes; a new goal's metadata is forwarded reliably by both WebSocket
 hops. Own goals are labelled and omit assists. Unknown/departed players use the
 existing statistics fallback, and credits are cleared when a new game starts.
 
-The LIVE page also shows a match events timeline beside the pitch (below it on
+The public broadcast page also shows a match events timeline beside the pitch (below it on
 small screens). The room worker owns the current match's full history, so a new
 page subscription restores events recorded before the viewer joined or while
 the page was closed. Events cover kickoff, goals/own goals with assists,
@@ -93,3 +105,6 @@ different match begins. The completed match is retained until the next kickoff.
 This retention survives browser/web restarts while the room worker remains
 alive; closing/restarting the room ends this history. No host code patches,
 browser storage or additional database service are involved.
+
+The former admin LIVE page, its navigation entry, `/api/live`, and `/live-ws`
+relay have been removed. Broadcasts are accessed exclusively at `/live/<ruid>`.

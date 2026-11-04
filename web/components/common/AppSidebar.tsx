@@ -110,14 +110,6 @@ export default function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/live`}>
-                      <Link href={`/admin/room/${ruid}/live`}>
-                        <Gamepad2 className="size-5" />
-                        <span>LIVE</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathName === `/admin/room/${ruid}/logs`}>
                       <Link href={`/admin/room/${ruid}/logs`}>
                         <List className="size-5" />

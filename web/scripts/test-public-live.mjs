@@ -184,39 +184,56 @@ try {
   const viewer = await connect(base, '/public-live-ws');
   const viewerCount = once(viewer, 'live:viewers');
   const received = once(viewer, 'live');
+  const initialChat = once(viewer, 'chat:history');
   viewer.emit('live:subscribe', 'arena');
   const [frame] = await received;
   assert.deepEqual((await viewerCount)[0], { ruid: 'arena', viewers: 1 });
   assert.equal(frame.ruid, 'arena');
   assert.equal(frame.timeline.events[0].type, 'start');
+  assert.deepEqual((await initialChat)[0], { ruid: 'arena', messages: [] });
+  const sendChat = (client, payload) =>
+    new Promise((resolve, reject) => {
+      client.timeout(3000).emit('chat:send', payload, (error, result) => (error ? reject(error) : resolve(result)));
+    });
+  assert.equal((await sendChat(viewer, { text: 'No nickname' })).ok, false);
+  const chatMessage = once(viewer, 'chat:message');
+  assert.equal((await sendChat(viewer, { nickname: 'Viewer', text: '<b>Hello</b>' })).ok, true);
+  const [message] = await chatMessage;
+  assert.equal(message.nickname, 'Viewer');
+  assert.equal(message.text, '<b>Hello</b>');
+  assert.equal((await sendChat(viewer, { nickname: 'Viewer', text: 'Too fast' })).ok, false);
   // Public sockets accept no administrative commands and cannot subscribe to old hosts.
   viewer.emit('setPassword', { password: 'do-not-forward' });
   const rejected = once(viewer, 'live:error');
   viewer.emit('live:subscribe', 'legacy');
   assert.equal(typeof (await rejected)[0], 'string');
+  assert.equal((await sendChat(viewer, { nickname: 'Viewer', text: 'No room' })).ok, false);
   assert.ok(coreEvents.every((event) => event === 'live:subscribe'));
   const token = await new SignJWT({ username: 'synthetic-admin' })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('1m')
     .sign(key);
   const cookie = `access_token=${token}`;
-  assert.equal((await fetch(base + '/api/live', { headers: { Cookie: cookie } })).status, 200);
-  const unauthenticated = io(base, {
-    path: '/live-ws',
-    transports: ['websocket'],
-    reconnection: false,
-    forceNew: true,
-  });
-  clients.push(unauthenticated);
-  const [error] = await once(unauthenticated, 'connect_error');
-  assert.equal(error.message, 'Unauthorized');
-  const admin = await connect(base, '/live-ws', cookie);
-  const adminFrame = once(admin, 'live');
-  admin.emit('live:subscribe', 'arena');
-  assert.equal((await adminFrame)[0].ruid, 'arena');
-  assert.equal(viewer.connected, true, 'initializing the admin relay must not close the public socket');
+  for (const path of ['/api/live', '/admin/room/arena/live']) {
+    assert.equal((await fetch(base + path, { headers: { Cookie: cookie } })).status, 404);
+  }
+  const secondViewer = await connect(base, '/public-live-ws');
+  const secondHistory = once(secondViewer, 'chat:history');
+  secondViewer.emit('live:subscribe', 'arena');
+  assert.deepEqual((await secondHistory)[0].messages, [message]);
+  const viewerHistory = once(viewer, 'chat:history');
+  viewer.emit('live:subscribe', 'arena');
+  assert.deepEqual((await viewerHistory)[0].messages, [message]);
+  const publicChat = once(viewer, 'chat:message');
+  const secondChat = once(secondViewer, 'chat:message');
+  assert.equal((await sendChat(secondViewer, { nickname: 'Another viewer', text: 'Shared chat' })).ok, true);
+  assert.deepEqual((await publicChat)[0], (await secondChat)[0]);
+  assert.ok(
+    coreEvents.every((event) => event === 'live:subscribe'),
+    'chat never reaches core',
+  );
   console.log(
-    'Public production checks passed: directory/page access, sanitized discovery, anonymous live/timeline delivery, unsupported room rejection, read-only relay, and protected admin HTTP/WebSocket paths.',
+    'Public production checks passed: directory/page access, sanitized discovery, live/timeline delivery, chat validation, history replay, shared delivery, removed admin live routes, and protected admin APIs.',
   );
 } catch (error) {
   console.error(error);

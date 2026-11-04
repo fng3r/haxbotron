@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 
 import { ArrowLeft } from 'lucide-react';
 
-import RoomLive from '@/components/Admin/RoomLive';
+import RoomLive from '@/components/Live/RoomLive';
 
 import { getControlPlaneService } from '@/lib/control-plane/service';
 
@@ -26,7 +26,7 @@ export default async function PublicBroadcastPage({ params }: { params: Promise<
       >
         <ArrowLeft className="size-4" aria-hidden="true" /> All broadcasts
       </Link>
-      <RoomLive key={ruid} ruid={ruid} roomName={room.roomName} publicView />
+      <RoomLive key={ruid} ruid={ruid} roomName={room.roomName} />
     </>
   );
 }
