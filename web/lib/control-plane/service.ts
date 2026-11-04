@@ -21,6 +21,7 @@ import 'server-only';
 import socketClient from 'socket.io-client';
 
 import { generateToken } from '@/lib/auth/jwt';
+import { type PublicLiveRoom, selectPublicLiveRooms } from '@/lib/live/public';
 
 type HostSocketHandle = {
   socket: ReturnType<typeof socketClient>;
@@ -307,7 +308,7 @@ class ControlPlaneService {
             extraHeaders: {
               cookie: `access_token=${token}`,
             },
-          } as any);
+          });
 
           const emit = (event: AggregatedSocketEvent) => {
             getControlPlaneEventBus().emit(event);
@@ -447,6 +448,22 @@ class ControlPlaneService {
 
       return base;
     });
+  }
+
+  public async listPublicLiveRooms(): Promise<PublicLiveRoom[]> {
+    const rooms = await this.listManagedRooms();
+    const state = await this.loadState();
+    const supportedHostIds = new Set(
+      state.hosts
+        .filter(
+          (host) =>
+            host.enabled &&
+            this.runtimeSnapshot.hosts.get(host.id)?.healthy &&
+            this.runtimeSnapshot.hosts.get(host.id)?.system?.capabilities?.liveBroadcast === true,
+        )
+        .map((host) => host.id),
+    );
+    return selectPublicLiveRooms(rooms, supportedHostIds);
   }
 
   public async getRoomLocation(ruid: string): Promise<RoomLocationInfo> {
@@ -740,7 +757,7 @@ const globalForControlPlane = globalThis as typeof globalThis & {
   __controlPlaneServiceVersion?: string;
 };
 
-const CONTROL_PLANE_SERVICE_VERSION = 'hosts-v3';
+const CONTROL_PLANE_SERVICE_VERSION = 'hosts-v4-public-live';
 
 export function getControlPlaneService(): ControlPlaneService {
   const existing = globalForControlPlane.__controlPlaneService as ControlPlaneService | undefined;

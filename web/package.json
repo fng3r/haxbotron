@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test:live": "node --test lib/live/*.test.mjs",
+    "test:public-live": "node scripts/test-public-live.mjs",
     "prettier": "prettier './**/*.{ts,tsx}' --write"
   },
   "dependencies": {

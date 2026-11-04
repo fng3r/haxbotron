@@ -10,6 +10,24 @@ WebSockets to core's `/ws`. Serverless platforms that cannot retain WebSocket
 connections do not support this relay. No additional port or environment
 variable is required.
 
+Public viewing is available at `/live` (directory) and `/live/<ruid>` (broadcast).
+The directory exposes only online rooms mapped to enabled, healthy hosts that
+advertise `capabilities.liveBroadcast: true` in their authenticated system API.
+Older hosts are excluded until updated. Room discovery returns only room IDs,
+names and online player counts. All such rooms are publicly watchable.
+
+The public viewer initializes `/api/public/live` and uses the read-only
+`/public-live-ws` WebSocket relay. Also forward upgrades for this path through
+the reverse proxy. The public socket accepts only broadcast subscriptions;
+upstream core JWTs remain on the web server. `/api/public/rooms` and
+`/api/public/live` are the only public API exceptions. Admin pages, private
+WebSockets, control APIs and administrative SSE remain authenticated; the SSE
+provider is mounted only in the admin layout.
+
+Run `npm run build && npm run test:public-live` in web for a production
+HTTP/WebSocket check. It uses temporary storage, synthetic hosts and test-only
+credentials, without modifying the configured room/host state.
+
 Core captures public scores, shot-button state, player positions, and disc positions
 after each simulation step, scheduled from `onGameTick`, with a one-second heartbeat
 during pauses/stops. Stadium metadata

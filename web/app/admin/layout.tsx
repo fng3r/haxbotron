@@ -4,9 +4,11 @@ import Footer from '@/components/common/Footer';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
+import { WSocketProvider } from '@/context/ws';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <WSocketProvider>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset className="m-0!">
@@ -22,6 +24,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
         </SidebarInset>
       </SidebarProvider>
-    </>
+    </WSocketProvider>
   );
 }

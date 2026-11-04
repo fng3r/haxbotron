@@ -14,7 +14,15 @@ import { BroadcastRenderer, INTERPOLATION_DELAY_MS } from '@/lib/live/renderer';
 import { mergeTimeline } from '@/lib/live/timeline';
 import type { LiveFrame, LiveMatchTimeline } from '@/lib/live/types';
 
-export default function RoomLive({ ruid }: { ruid: string }) {
+export default function RoomLive({
+  ruid,
+  publicView = false,
+  roomName,
+}: {
+  ruid: string;
+  publicView?: boolean;
+  roomName?: string;
+}) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [frame, setFrame] = useState<LiveFrame | null>(null);
   const [connection, setConnection] = useState('Connecting…');
@@ -46,10 +54,10 @@ export default function RoomLive({ ruid }: { ruid: string }) {
     }, 1000);
     async function connect() {
       try {
-        const response = await fetch('/api/live');
+        const response = await fetch(publicView ? '/api/public/live' : '/api/live');
         if (!response.ok || response.redirected) throw new Error('Unable to connect');
         if (disposed) return;
-        socket = io({ path: '/live-ws', transports: ['websocket'], forceNew: true });
+        socket = io({ path: publicView ? '/public-live-ws' : '/live-ws', transports: ['websocket'], forceNew: true });
         socket.on('connect', () => {
           resetGoals();
           setConnection('Waiting for game state…');
@@ -126,7 +134,7 @@ export default function RoomLive({ ruid }: { ruid: string }) {
       socket?.disconnect();
       renderer.destroy();
     };
-  }, [ruid]);
+  }, [ruid, publicView]);
 
   const seconds = Math.floor(frame?.scores?.time ?? 0);
   const time = `${Math.floor(seconds / 60)
@@ -137,7 +145,7 @@ export default function RoomLive({ ruid }: { ruid: string }) {
       <section className="overflow-hidden rounded-xl border bg-card" aria-label="Live game broadcast">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4">
           <div>
-            <h1 className="text-lg font-semibold tracking-tight">Live broadcast</h1>
+            <h1 className="text-lg font-semibold tracking-tight">{roomName ?? 'Live broadcast'}</h1>
             <p className="text-xs text-muted-foreground">
               {stadium} · {ruid}
             </p>

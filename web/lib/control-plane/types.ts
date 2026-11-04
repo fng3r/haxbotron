@@ -66,6 +66,7 @@ export type HostSystemInfo = {
   usedMemoryMB: number;
   upTimeSecs: number;
   serverVersion: string;
+  capabilities?: { liveBroadcast?: boolean };
 };
 
 export type RuntimeRoomInfo = {

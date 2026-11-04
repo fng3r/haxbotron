@@ -40,6 +40,7 @@ describe('System API Integration Tests', () => {
       expect(response.body).toHaveProperty('usedMemoryMB');
       expect(response.body).toHaveProperty('upTimeSecs');
       expect(response.body).toHaveProperty('serverVersion');
+      expect(response.body.capabilities).toEqual({ liveBroadcast: true });
     });
 
     it('should return memory usage as number', async () => {

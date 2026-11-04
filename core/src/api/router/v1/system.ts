@@ -9,6 +9,7 @@ systemRouter.get('/', async (ctx: Context, next: Next) => {
         usedMemoryMB: Math.round(process.memoryUsage().rss / 1024 / 1024 * 100) / 100
         ,upTimeSecs: Math.round(process.uptime())
         ,serverVersion: process.env.npm_package_version || '0.0'
+        ,capabilities: { liveBroadcast: true }
     }
     ctx.status = 200; // return success code
 });

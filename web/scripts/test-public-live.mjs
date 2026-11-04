@@ -1,0 +1,230 @@
+// Production HTTP/WebSocket test with isolated storage and synthetic core hosts.
+// Run after `npm run build`. Never reads or changes configured hosts/rooms.
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { once } from 'node:events';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { SignJWT, jwtVerify } from 'jose';
+import { Server } from 'socket.io';
+import { io } from 'socket.io-client';
+
+const root = dirname(dirname(fileURLToPath(import.meta.url)));
+const directory = await mkdtemp(join(tmpdir(), 'haxbotron-public-live-test-'));
+const secret = 'synthetic-public-live-test-key';
+const key = new TextEncoder().encode(secret);
+const clients = [];
+const hosts = [];
+const coreEvents = [];
+let web;
+let webOutput = '';
+
+async function mockHost(room, capable) {
+  const http = createServer((request, response) => {
+    if (request.headers['x-api-key'] !== 'synthetic-api-key') {
+      response.writeHead(401).end();
+      return;
+    }
+    response.setHeader('Content-Type', 'application/json');
+    if (request.url === '/api/v1/system')
+      response.end(
+        JSON.stringify({
+          usedMemoryMB: 10,
+          upTimeSecs: 1,
+          serverVersion: 'test',
+          ...(capable ? { capabilities: { liveBroadcast: true } } : {}),
+        }),
+      );
+    else if (request.url === '/api/v1/room') response.end(JSON.stringify([room]));
+    else if (request.url === `/api/v1/room/${room}/info`)
+      response.end(
+        JSON.stringify({
+          roomName: 'Public Arena',
+          onlinePlayers: 2,
+          link: 'PRIVATE-ROOM-LINK',
+          adminPassword: 'MUST-NOT-LEAK',
+        }),
+      );
+    else response.writeHead(404).end('{}');
+  });
+  const socket = new Server(http, { path: '/ws', transports: ['websocket'] });
+  socket.use(async (client, next) => {
+    try {
+      await jwtVerify(client.request.headers.cookie?.split('access_token=')[1] ?? '', key);
+      next();
+    } catch {
+      next(new Error('Unauthorized'));
+    }
+  });
+  socket.on('connection', (client) => {
+    client.onAny((event) => coreEvents.push(event));
+    client.on('live:subscribe', (ruid, ack) => {
+      if (ruid !== room) {
+        ack?.({ ok: false });
+        return;
+      }
+      client.emit('live', {
+        ruid: room,
+        sequence: 1,
+        timestamp: Date.now(),
+        status: 'playing',
+        matchId: 'test-match',
+        scores: { red: 0, blue: 0, time: 10, scoreLimit: 3, timeLimit: 300 },
+        players: [],
+        discs: [],
+        stadium: { name: 'Test pitch', width: 420, height: 200 },
+        timeline: {
+          matchId: 'test-match',
+          revision: 1,
+          startedAt: 1000,
+          endedAt: null,
+          events: [{ id: 'start', type: 'start', time: 0, timestamp: 1000 }],
+        },
+      });
+      ack?.({ ok: true });
+    });
+  });
+  await new Promise((resolve) => http.listen(0, '127.0.0.1', resolve));
+  hosts.push(socket);
+  return `http://127.0.0.1:${http.address().port}`;
+}
+
+async function connect(base, path, cookie) {
+  const socket = io(base, {
+    path,
+    transports: ['websocket'],
+    reconnection: false,
+    forceNew: true,
+    extraHeaders: { Origin: base, ...(cookie ? { Cookie: cookie } : {}) },
+  });
+  clients.push(socket);
+  await new Promise((resolve, reject) => {
+    socket.once('connect', resolve);
+    socket.once('connect_error', reject);
+  });
+  return socket;
+}
+
+try {
+  const capable = await mockHost('arena', true);
+  const old = await mockHost('legacy', false);
+  const state = {
+    hosts: [
+      { id: 'capable', name: 'Private capable host', baseUrl: capable, enabled: true },
+      { id: 'old', name: 'Private old host', baseUrl: old, enabled: true },
+    ],
+    mappings: [
+      { ruid: 'arena', hostId: 'capable' },
+      { ruid: 'legacy', hostId: 'old' },
+      { ruid: 'offline', hostId: 'capable' },
+    ],
+  };
+  const storage = join(directory, '.node-persist/storage');
+  await mkdir(storage, { recursive: true });
+  await writeFile(
+    join(storage, createHash('sha256').update('control-plane-state').digest('hex')),
+    JSON.stringify({ key: 'control-plane-state', value: JSON.stringify(state) }),
+  );
+  const portProbe = createServer();
+  await new Promise((resolve) => portProbe.listen(0, '127.0.0.1', resolve));
+  const port = portProbe.address().port;
+  await new Promise((resolve) => portProbe.close(resolve));
+  const base = `http://127.0.0.1:${port}`;
+  web = spawn(
+    process.execPath,
+    [join(root, 'node_modules/next/dist/bin/next'), 'start', root, '-H', '127.0.0.1', '-p', String(port)],
+    {
+      cwd: directory,
+      env: { ...process.env, JWT_SECRET: secret, CORE_API_KEY: 'synthetic-api-key' },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Next server startup timeout')), 15000);
+    const read = (chunk) => {
+      webOutput += chunk;
+      if (webOutput.includes('Ready in')) {
+        clearTimeout(timer);
+        resolve();
+      }
+    };
+    web.stdout.on('data', read);
+    web.stderr.on('data', read);
+    web.once('exit', (code) => {
+      clearTimeout(timer);
+      reject(new Error(`Next exited (${code})`));
+    });
+  });
+  for (const path of ['/live', '/live/arena']) {
+    const response = await fetch(base + path, { redirect: 'manual' });
+    assert.equal(response.status, 200, path);
+    const body = await response.text();
+    assert.doesNotMatch(body, /MUST-NOT-LEAK|PRIVATE-ROOM-LINK|Private capable host/);
+  }
+  const rooms = await (await fetch(base + '/api/public/rooms')).json();
+  assert.deepEqual(rooms, { rooms: [{ ruid: 'arena', roomName: 'Public Arena', onlinePlayers: 2 }] });
+  for (const path of ['/live/legacy', '/live/offline']) {
+    assert.equal((await fetch(base + path, { redirect: 'manual' })).status, 404, path);
+  }
+  for (const path of ['/admin', '/api/v1/room', '/api/v1/control/events', '/api/live', '/api/public/hosts']) {
+    const response = await fetch(base + path, { redirect: 'manual' });
+    assert.ok([307, 308].includes(response.status), path);
+    assert.match(response.headers.get('location'), /\/login$/);
+  }
+  for (const path of ['/api/public/rooms', '/api/public/live']) {
+    assert.equal((await fetch(base + path, { method: 'POST', redirect: 'manual' })).status, 405, path);
+  }
+  assert.equal((await fetch(base + '/api/public/live')).status, 200);
+  const viewer = await connect(base, '/public-live-ws');
+  const received = once(viewer, 'live');
+  viewer.emit('live:subscribe', 'arena');
+  const [frame] = await received;
+  assert.equal(frame.ruid, 'arena');
+  assert.equal(frame.timeline.events[0].type, 'start');
+  // Public sockets accept no administrative commands and cannot subscribe to old hosts.
+  viewer.emit('setPassword', { password: 'do-not-forward' });
+  const rejected = once(viewer, 'live:error');
+  viewer.emit('live:subscribe', 'legacy');
+  assert.equal(typeof (await rejected)[0], 'string');
+  assert.ok(coreEvents.every((event) => event === 'live:subscribe'));
+  const token = await new SignJWT({ username: 'synthetic-admin' })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('1m')
+    .sign(key);
+  const cookie = `access_token=${token}`;
+  assert.equal((await fetch(base + '/api/live', { headers: { Cookie: cookie } })).status, 200);
+  const unauthenticated = io(base, {
+    path: '/live-ws',
+    transports: ['websocket'],
+    reconnection: false,
+    forceNew: true,
+  });
+  clients.push(unauthenticated);
+  const [error] = await once(unauthenticated, 'connect_error');
+  assert.equal(error.message, 'Unauthorized');
+  const admin = await connect(base, '/live-ws', cookie);
+  const adminFrame = once(admin, 'live');
+  admin.emit('live:subscribe', 'arena');
+  assert.equal((await adminFrame)[0].ruid, 'arena');
+  assert.equal(viewer.connected, true, 'initializing the admin relay must not close the public socket');
+  console.log(
+    'Public production checks passed: directory/page access, sanitized discovery, anonymous live/timeline delivery, unsupported room rejection, read-only relay, and protected admin HTTP/WebSocket paths.',
+  );
+} catch (error) {
+  console.error(error);
+  if (webOutput.includes('Error')) console.error(webOutput);
+  process.exitCode = 1;
+} finally {
+  clients.forEach((client) => client.disconnect());
+  if (web && web.exitCode === null) {
+    web.kill('SIGTERM');
+    await once(web, 'exit');
+  }
+  await Promise.all(hosts.map((host) => new Promise((resolve) => host.close(resolve))));
+  await rm(directory, { recursive: true, force: true });
+}
