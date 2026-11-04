@@ -53,8 +53,6 @@ export async function openRoomRuntime(
     setEventHandlers(runtime);
     runBackgroundTasks(runtime);
 
-    console.log(`Haxbotron loaded room runtime. (RUID ${runtime.config.getRUID()}, TOKEN ${runtime.config.getRoomToken()})`);
-
     return runtime;
 }
 
