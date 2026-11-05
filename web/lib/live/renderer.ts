@@ -1,6 +1,7 @@
 import type { LiveDisc, LiveFrame, LiveStadium } from './types';
 
 export const INTERPOLATION_DELAY_MS = 80;
+export const ZOOM_LEVELS = [1, 1.25, 1.5, 1.75, 2] as const;
 
 export function color(value: string | number | undefined, fallback = '#c5cbb7') {
   if (typeof value === 'number') return value < 0 ? 'transparent' : `#${value.toString(16).padStart(6, '0')}`;
@@ -20,6 +21,7 @@ export class BroadcastRenderer {
   private animation = 0;
   private context: CanvasRenderingContext2D;
   private background = document.createElement('canvas');
+  private backgroundScale = 0;
   private concrete: CanvasPattern | null;
   private concreteBorder: CanvasPattern | null;
   private grass: CanvasPattern | null;
@@ -27,6 +29,7 @@ export class BroadcastRenderer {
   private canvas: HTMLCanvasElement;
   private logo = new Image();
   private logoLoaded = false;
+  private zoom = 1;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -122,6 +125,12 @@ export class BroadcastRenderer {
   destroy() {
     cancelAnimationFrame(this.animation);
     this.logo.onload = null;
+  }
+
+  setZoom(zoom: number) {
+    if (!(ZOOM_LEVELS as readonly number[]).includes(zoom) || zoom === this.zoom) return;
+    this.zoom = zoom;
+    this.dirty = true;
   }
 
   private field(ctx: CanvasRenderingContext2D, stadium: LiveStadium, visibleWidth: number, visibleHeight: number) {
@@ -228,19 +237,6 @@ export class BroadcastRenderer {
     ctx.fillStyle = '#18251f';
     ctx.fillRect(0, 0, width, height);
     if (!stadium) return;
-    const scale = Math.min(width / (stadium.width * 2 + 40), height / (stadium.height * 2 + 40));
-    if (this.dirty) {
-      this.background.width = width;
-      this.background.height = height;
-      const bg = this.background.getContext('2d')!;
-      bg.translate(width / 2, height / 2);
-      bg.scale(scale, scale);
-      this.field(bg, stadium, width / scale, height / scale);
-      this.dirty = false;
-    }
-    ctx.drawImage(this.background, 0, 0);
-    ctx.translate(width / 2, height / 2);
-    ctx.scale(scale, scale);
     const latest = this.frames[this.frames.length - 1];
     if (!latest) return;
     const target =
@@ -250,6 +246,38 @@ export class BroadcastRenderer {
       b = this.frames[1] ?? a;
     const t =
       a.timestamp === b.timestamp ? 1 : Math.max(0, Math.min(1, (target - a.timestamp) / (b.timestamp - a.timestamp)));
+    const ball = blendDisc(a.discs[0], b.discs[0] ?? null, t);
+    // Native zoom: one world unit per CSS pixel at 1x, independent of viewport size.
+    const scale = ratio * this.zoom;
+    const cameraX = this.cameraAxis(ball?.x ?? 0, stadium.width, width / scale);
+    const cameraY = this.cameraAxis(ball?.y ?? 0, stadium.height, height / scale);
+    const worldWidth = Math.max(width / scale, stadium.width * 2 + 40);
+    const worldHeight = Math.max(height / scale, stadium.height * 2 + 40);
+    // Cache the stadium once, including space needed when following the ball.
+    // Bound texture size for unusually large maps/high-DPI displays.
+    const backgroundScale = Math.min(scale, 4096 / worldWidth, 4096 / worldHeight);
+    if (this.dirty || backgroundScale !== this.backgroundScale) {
+      this.background.width = Math.ceil(worldWidth * backgroundScale);
+      this.background.height = Math.ceil(worldHeight * backgroundScale);
+      const bg = this.background.getContext('2d')!;
+      bg.translate(this.background.width / 2, this.background.height / 2);
+      bg.scale(backgroundScale, backgroundScale);
+      this.field(bg, stadium, this.background.width / backgroundScale, this.background.height / backgroundScale);
+      this.dirty = false;
+      this.backgroundScale = backgroundScale;
+    }
+    const cachedWidth = (this.background.width * scale) / backgroundScale;
+    const cachedHeight = (this.background.height * scale) / backgroundScale;
+    ctx.drawImage(
+      this.background,
+      (width - cachedWidth) / 2 - cameraX * scale,
+      (height - cachedHeight) / 2 - cameraY * scale,
+      cachedWidth,
+      cachedHeight,
+    );
+    ctx.translate(width / 2, height / 2);
+    ctx.scale(scale, scale);
+    ctx.translate(-cameraX, -cameraY);
     b.discs.forEach((disc, i) => {
       // Disc 0 is the game ball; draw it last so labels cannot cover it.
       if (i === 0) return;
@@ -279,7 +307,11 @@ export class BroadcastRenderer {
       ctx.fillStyle = '#fff';
       ctx.fillText(nickname, d.x, d.y + d.radius + 5);
     }
-    const ball = blendDisc(a.discs[0], b.discs[0] ?? null, t);
     if (ball) this.disc(ball);
   };
+
+  private cameraAxis(position: number, halfExtent: number, visibleSize: number) {
+    const limit = Math.max(0, halfExtent + 20 - visibleSize / 2);
+    return Math.max(-limit, Math.min(limit, position));
+  }
 }

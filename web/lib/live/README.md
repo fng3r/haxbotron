@@ -131,6 +131,13 @@ uses lighter concrete inside and darker concrete outside. Plain backgrounds
 use their color across the viewport. Textures are generated once per renderer
 and the stadium layer is cached until the map or canvas dimensions change.
 
+Broadcast zoom uses native world scale: 1 game unit per CSS pixel at 1×, with
+1×/1.25×/1.5×/1.75×/2× levels selected by keys 1–5 or the canvas zoom button.
+Shortcuts ignore editable controls and modifier combinations. The camera follows
+the interpolated ball and clamps to stadium bounds; maps that fit remain centered.
+Zoom also works in theater/fullscreen mode. The stadium cache is rebuilt on zoom
+changes, with a maximum texture dimension of 4096 pixels, and reused while panning.
+
 `types.ts` mirrors core's public `LiveProtocol.ts`; update both for protocol
 changes. Frames exclude auth, IP/connection data, passwords and room configs.
 

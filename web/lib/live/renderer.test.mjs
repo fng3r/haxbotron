@@ -20,7 +20,9 @@ function setup(t, width, height) {
   Object.defineProperty(globalThis, 'Image', {
     configurable: true,
     value: class {
-      constructor() { logo = this; }
+      constructor() {
+        logo = this;
+      }
     },
   });
   function canvas() {
@@ -28,6 +30,14 @@ function setup(t, width, height) {
       fills: [],
       clips: [],
       images: [],
+      scales: [],
+      translations: [],
+      scale(...values) {
+        this.scales.push(values);
+      },
+      translate(...values) {
+        this.translations.push(values);
+      },
       drawImage(image, ...bounds) {
         this.images.push({ image, bounds, alpha: this.globalAlpha });
       },
@@ -46,8 +56,6 @@ function setup(t, width, height) {
     for (const method of [
       'putImageData',
       'setTransform',
-      'translate',
-      'scale',
       'save',
       'restore',
       'beginPath',
@@ -55,6 +63,9 @@ function setup(t, width, height) {
       'moveTo',
       'lineTo',
       'arc',
+      'fill',
+      'fillText',
+      'strokeText',
     ])
       context[method] = () => {};
     return { width: 0, height: 0, clientWidth: width, clientHeight: height, getContext: () => context, context };
@@ -123,7 +134,10 @@ function frame(stadium, sequence = 1) {
 }
 
 function assertCoverage(fill, stadium, width, height) {
-  const scale = Math.min(width / (stadium.width * 2 + 40), height / (stadium.height * 2 + 40));
+  // At native 1x the cached layer covers both the map and the viewport.
+  width = Math.max(width, stadium.width * 2 + 40);
+  height = Math.max(height, stadium.height * 2 + 40);
+  const scale = 1;
   const epsilon = 0.000001;
   assert.ok(Math.abs(width / 2 + fill.x * scale) < epsilon, 'background reaches left edge');
   assert.ok(Math.abs(height / 2 + fill.y * scale) < epsilon, 'background reaches top edge');
@@ -153,6 +167,52 @@ test('all background types cover the viewport for bundled and arbitrary maps', (
     else if (stadium.bg?.color === 0x234567) assert.equal(fill.style, '#234567');
     else assert.equal(fill.style, '#718c5a');
   }
+});
+
+test('native zoom levels follow the ball, keep the viewport covered and reuse the stadium cache', (t) => {
+  const { renderer, target, background, draw } = setup(t, 800, 450);
+  const stadium = { name: 'Large', width: 800, height: 400 };
+  const next = frame(stadium);
+  next.discs = [{ x: 600, y: 200, radius: 10, color: 0xffffff }];
+  renderer.push(next);
+  for (const zoom of [1, 1.25, 1.5, 1.75, 2]) {
+    renderer.setZoom(zoom);
+    draw();
+    assert.deepEqual(target.context.scales.at(-1), [zoom, zoom]);
+    const [x, y, width, height] = target.context.images.at(-1).bounds;
+    assert.ok(x <= 0 && y <= 0 && x + width >= 800 && y + height >= 450);
+    const fillCount = background.fills.length;
+    draw();
+    assert.equal(background.fills.length, fillCount, 'camera frames reuse the cached layer');
+  }
+  assert.deepEqual(target.context.translations.at(-1), [-600, -200]);
+  renderer.setZoom(1);
+  draw();
+  assert.deepEqual(target.context.translations.at(-1), [-420, -195], 'camera stops at stadium edges');
+  window.devicePixelRatio = 2;
+  target.clientWidth = 400;
+  target.clientHeight = 225;
+  const previousFills = background.fills.length;
+  draw();
+  assert.deepEqual(target.context.scales.at(-1), [2, 2], 'native scale accounts for display density');
+  assert.ok(background.fills.length > previousFills, 'density changes invalidate the cache even at the same pixel size');
+  renderer.setZoom(9);
+  draw();
+  assert.deepEqual(target.context.scales.at(-1), [2, 2], 'invalid zoom levels are ignored');
+});
+
+test('small stadiums stay centered and oversized background caches are bounded', (t) => {
+  const { renderer, target, draw } = setup(t, 1280, 720);
+  const small = frame({ name: 'Small', width: 200, height: 100 });
+  small.discs = [{ x: 100, y: 50, radius: 10, color: 0xffffff }];
+  renderer.push(small);
+  draw();
+  assert.deepEqual(target.context.translations.at(-1), [-0, -0]);
+  renderer.push(frame({ name: 'Huge', width: 10000, height: 5000 }, 2));
+  renderer.setZoom(2);
+  draw();
+  const cache = target.context.images.at(-1).image;
+  assert.ok(cache.width <= 4096 && cache.height <= 4096);
 });
 
 test('grass uses a textured pitch inside its rounded bounds and preserves the surrounding map color', (t) => {

@@ -18,13 +18,16 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import type { BroadcastAudio } from '@/lib/live/audio';
 import type { ChatMessage } from '@/lib/live/chat';
 import { detectGoal, goalForScore } from '@/lib/live/goals';
-import { BroadcastRenderer, INTERPOLATION_DELAY_MS } from '@/lib/live/renderer';
+import { BroadcastRenderer, INTERPOLATION_DELAY_MS, ZOOM_LEVELS } from '@/lib/live/renderer';
 import { mergeTimeline } from '@/lib/live/timeline';
 import { isOvertime, isTimeRunningOut } from '@/lib/live/timer';
 import type { LiveFrame, LiveKick, LiveMatchTimeline } from '@/lib/live/types';
 
 export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const rendererRef = useRef<BroadcastRenderer | null>(null);
+  const [zoom, setZoom] = useState<number>(1);
+  const zoomRef = useRef(1);
   const broadcast = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [theater, setTheater] = useState(false);
@@ -42,6 +45,38 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   const [viewers, setViewers] = useState<number | null>(null);
   const timelineId = useId();
   const sidebarVisible = timelineOpen && !fullscreen;
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+    rendererRef.current?.setZoom(zoom);
+  }, [zoom]);
+
+  useEffect(() => {
+    const changeZoom = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.isComposing ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey
+      )
+        return;
+      if (
+        event.target instanceof Element &&
+        event.target.closest(
+          'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="slider"]',
+        )
+      )
+        return;
+      const level = /^[1-5]$/.test(event.key) ? ZOOM_LEVELS[Number(event.key) - 1] : undefined;
+      if (level === undefined) return;
+      event.preventDefault();
+      setZoom(level);
+    };
+    document.addEventListener('keydown', changeZoom);
+    return () => document.removeEventListener('keydown', changeZoom);
+  }, []);
 
   useEffect(() => {
     const syncFullscreen = () => setFullscreen(document.fullscreenElement === broadcast.current);
@@ -103,6 +138,8 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
       setGoal(null);
     };
     const renderer = new BroadcastRenderer(canvas.current!);
+    renderer.setZoom(zoomRef.current);
+    rendererRef.current = renderer;
     const timer = setInterval(() => {
       if (lastFrame && Date.now() - lastFrame > 3000) setConnection('Signal lost. Waiting for host…');
     }, 1000);
@@ -219,6 +256,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
       liveSocket.current = null;
       kickAudio?.clear();
       renderer.destroy();
+      rendererRef.current = null;
     };
   }, [ruid]);
 
@@ -246,8 +284,11 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
             <h1 className="text-lg font-semibold tracking-tight">{roomName ?? 'Live broadcast'}</h1>
             <p className="text-xs text-muted-foreground">
               {stadium.name}
-              {stadium.approximate && <span className="text-amber-700 dark:text-amber-400"> (stadium unavailable)</span>}
-              {' · '}{ruid}
+              {stadium.approximate && (
+                <span className="text-amber-700 dark:text-amber-400"> (stadium unavailable)</span>
+              )}
+              {' · '}
+              {ruid}
             </p>
           </div>
           <div
@@ -317,6 +358,19 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
             aria-label="Broadcast view controls"
             className="absolute bottom-3 right-3 z-20 flex h-9 items-center gap-1 rounded-md border border-white/15 bg-black/65 p-0.5 text-white"
           >
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 min-w-14 px-2 font-mono text-xs hover:bg-white/15 hover:text-white focus-visible:ring-white/70"
+              aria-label={`Zoom ${zoom} times. Click for next zoom level`}
+              title="Zoom (keys 1–5; click to cycle)"
+              onClick={() =>
+                setZoom(ZOOM_LEVELS[((ZOOM_LEVELS as readonly number[]).indexOf(zoom) + 1) % ZOOM_LEVELS.length])
+              }
+            >
+              {zoom}×
+            </Button>
             {!fullscreen && (
               <>
                 <Button
