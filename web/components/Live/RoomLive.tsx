@@ -8,7 +8,7 @@ import BroadcastChat from './BroadcastChat';
 import BroadcastSound from './BroadcastSound';
 import GoalCelebration, { type GoalCelebrationData } from './GoalCelebration';
 import MatchTimeline from './MatchTimeline';
-import { Eye, Maximize, Minimize, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { Eye, Maximize, Minimize, PanelRightClose, PanelRightOpen, RectangleHorizontal } from 'lucide-react';
 import { io } from 'socket.io-client';
 
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,8 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   const canvas = useRef<HTMLCanvasElement>(null);
   const broadcast = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [theater, setTheater] = useState(false);
+  const expanded = theater || fullscreen;
   const audio = useRef<BroadcastAudio | null>(null);
   const liveSocket = useRef<ReturnType<typeof io> | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -37,11 +39,14 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   const [timelineOpen, setTimelineOpen] = useState(true);
   const [viewers, setViewers] = useState<number | null>(null);
   const timelineId = useId();
+  const sidebarVisible = timelineOpen && !fullscreen;
 
   useEffect(() => {
     const syncFullscreen = () => setFullscreen(document.fullscreenElement === broadcast.current);
     const escape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !document.fullscreenElement) setFullscreen(false);
+      if (event.key !== 'Escape' || document.fullscreenElement) return;
+      if (fullscreen) setFullscreen(false);
+      else setTheater(false);
     };
     document.addEventListener('fullscreenchange', syncFullscreen);
     document.addEventListener('keydown', escape);
@@ -49,16 +54,16 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
       document.removeEventListener('fullscreenchange', syncFullscreen);
       document.removeEventListener('keydown', escape);
     };
-  }, []);
+  }, [fullscreen]);
 
   useEffect(() => {
-    if (!fullscreen) return;
+    if (!expanded) return;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = overflow;
     };
-  }, [fullscreen]);
+  }, [expanded]);
 
   async function toggleFullscreen() {
     if (fullscreen) {
@@ -222,16 +227,18 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   return (
     <div
       ref={broadcast}
-      data-sidebar-open={timelineOpen}
-      className={`${styles.root} ${fullscreen ? styles.fullscreen : ''} grid items-stretch gap-4 ${timelineOpen ? 'lg:grid-cols-[minmax(0,1fr)_19rem]' : 'grid-cols-1'}`}
+      data-sidebar-open={sidebarVisible}
+      className={`${styles.root} ${expanded ? styles.expanded : ''} grid items-stretch gap-4 ${sidebarVisible ? 'lg:grid-cols-[minmax(0,1fr)_19rem]' : 'grid-cols-1'}`}
     >
       <Card
         className={`${styles.broadcast} min-w-0 self-start gap-0 overflow-hidden py-0`}
         role="region"
         aria-label="Live game broadcast"
       >
-        <CardHeader className="flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4 [.border-b]:pb-4">
-          <div>
+        <CardHeader
+          className={`${fullscreen ? 'grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]' : 'flex flex-wrap justify-between'} items-center gap-4 border-b px-5 py-4 [.border-b]:pb-4`}
+        >
+          <div className={fullscreen ? 'min-w-0 [&_h1]:truncate [&_p]:truncate' : undefined}>
             <h1 className="text-lg font-semibold tracking-tight">{roomName ?? 'Live broadcast'}</h1>
             <p className="text-xs text-muted-foreground">
               {stadium} · {ruid}
@@ -246,7 +253,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
             <span className="text-[#5a89e5]">{frame?.scores?.blue ?? 0}</span>
             <span className="ml-3 text-base">{time}</span>
           </div>
-          <div className="flex items-center gap-1">
+          {!fullscreen && (
             <Button
               type="button"
               variant="ghost"
@@ -259,18 +266,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
               {timelineOpen ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
               Events & Chat
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-              title={fullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen'}
-              aria-pressed={fullscreen}
-              onClick={() => void toggleFullscreen()}
-            >
-              {fullscreen ? <Minimize aria-hidden="true" /> : <Maximize aria-hidden="true" />}
-            </Button>
-          </div>
+          )}
         </CardHeader>
         <CardContent className={`${styles.pitch} relative bg-[#18251f] px-0`}>
           <canvas
@@ -292,6 +288,40 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
               </span>
             </div>
           )}
+          <div
+            role="group"
+            aria-label="Broadcast view controls"
+            className="absolute bottom-3 right-3 z-20 flex h-9 items-center gap-1 rounded-md border border-white/15 bg-black/65 p-0.5 text-white"
+          >
+            {!fullscreen && (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 hover:bg-white/15 hover:text-white focus-visible:ring-white/70 aria-pressed:bg-white/15"
+                  aria-label={theater ? 'Exit theater mode' : 'Enter theater mode'}
+                  title={theater ? 'Exit theater mode (Esc)' : 'Theater mode'}
+                  aria-pressed={theater}
+                  onClick={() => setTheater((active) => !active)}
+                >
+                  <RectangleHorizontal aria-hidden="true" />
+                </Button>
+              </>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8 hover:bg-white/15 hover:text-white focus-visible:ring-white/70 aria-pressed:bg-white/15"
+              aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              title={fullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen'}
+              aria-pressed={fullscreen}
+              onClick={() => void toggleFullscreen()}
+            >
+              {fullscreen ? <Minimize aria-hidden="true" /> : <Maximize aria-hidden="true" />}
+            </Button>
+          </div>
           <div className="absolute bottom-3 left-3 z-20">
             <BroadcastSound audioRef={audio} />
           </div>
@@ -323,14 +353,14 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
       </Card>
       {/* On desktop the panel fills this grid cell without contributing to the row height. */}
       <div
-        hidden={!timelineOpen}
-        className={`${styles.sidebar} ${timelineOpen ? 'relative min-h-0 min-w-0' : 'hidden'}`}
+        hidden={!sidebarVisible}
+        className={`${styles.sidebar} ${sidebarVisible ? 'relative min-h-0 min-w-0' : 'hidden'}`}
       >
         <MatchTimeline
           id={timelineId}
           timeline={timeline}
           connected={connection === 'Connected'}
-          collapsed={!timelineOpen}
+          collapsed={!sidebarVisible}
           onCollapse={() => setTimelineOpen(false)}
           chat={
             <BroadcastChat

@@ -160,3 +160,11 @@ Goal audio uses the existing guarded score-increase detection, scheduled with
 the same 80 ms interpolation delay as the goal celebration. Cached frames,
 reconnects and attribution updates do not replay it. Goals and kicks share the
 volume bar, persisted preferences, gain node, and mute/cleanup behavior.
+
+Theater mode fills the browser viewport with the broadcast and collapsible
+Chat/Events sidebar without invoking the Fullscreen API. Fullscreen mode shows
+only the broadcast card, using native fullscreen when available and a viewport
+fallback otherwise. Both fit the pitch to the available height. The sidebar
+stays mounted while hidden, preserving chat drafts and tab/filter state. Leaving
+fullscreen restores the previous normal/theater layout and sidebar preference;
+Escape exits theater mode when native fullscreen is not active.

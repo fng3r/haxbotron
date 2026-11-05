@@ -1,4 +1,4 @@
-.root.fullscreen {
+.root.expanded {
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -10,24 +10,24 @@
   grid-template-rows: minmax(0, 1fr);
 }
 
-.fullscreen .broadcast {
+.expanded .broadcast {
   display: flex;
   min-height: 0;
   flex-direction: column;
   align-self: stretch;
 }
 
-.fullscreen .broadcast > :first-child,
-.fullscreen .broadcast > :last-child {
+.expanded .broadcast > :first-child,
+.expanded .broadcast > :last-child {
   flex-shrink: 0;
 }
 
-.fullscreen .pitch {
+.expanded .pitch {
   flex: 1;
   min-height: 0;
 }
 
-.fullscreen .pitch canvas {
+.expanded .pitch canvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -35,12 +35,12 @@
   aspect-ratio: auto;
 }
 
-.fullscreen .sidebar > aside {
+.expanded .sidebar > aside {
   position: absolute;
   inset: 0;
 }
 
-.fullscreen [data-broadcast-scroll] {
+.expanded [data-broadcast-scroll] {
   flex: 1;
   height: 0;
   min-height: 0;
@@ -48,12 +48,12 @@
 }
 
 @media (max-width: 1023px) {
-  .root.fullscreen {
+  .root.expanded {
     gap: 0.5rem;
     padding: 0.5rem;
   }
 
-  .root.fullscreen[data-sidebar-open='true'] {
+  .root.expanded[data-sidebar-open='true'] {
     grid-template-rows: minmax(0, 1fr) minmax(10rem, 35%);
   }
 }
