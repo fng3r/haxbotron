@@ -21,12 +21,7 @@ export default function LiveLayout({ children }: { children: React.ReactNode }) 
             </span>
             Haxbotron <span className="font-normal text-muted-foreground">Live</span>
           </Link>
-          <nav className="flex items-center gap-5 text-sm" aria-label="Live broadcast navigation">
-            <Link href="/live" className="text-muted-foreground hover:text-foreground">
-              All rooms
-            </Link>
-            <ModeToggle />
-          </nav>
+          <ModeToggle />
         </div>
       </header>
       <main className="mx-auto max-w-screen-2xl px-5 py-8 sm:px-8 sm:py-10">{children}</main>
