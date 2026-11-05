@@ -1,6 +1,7 @@
 import JSON5 from "json5";
 import type { RoomObject } from "haxball.js";
 import { getStadiumData } from "../../lib/stadiumLoader.js";
+import { decodeReplayStadium, type ReplayStadiumDecoder } from "./ReplayStadium.js";
 
 /**
  * Service for managing the Haxball room instance
@@ -10,6 +11,11 @@ export class RoomService {
     private _room: RoomObject;
     private _link: string = '';
     private stadiumSource: string | null = null;
+    private pendingStadiumSource: string | null = null;
+    private stadiumRevision = 0;
+    private matchRecording = false;
+    private readonly decodeStadium: ReplayStadiumDecoder;
+    private readonly onStadiumError: (error: unknown) => void;
     private defaultStadiumName: string = '';
     private teamColours: {
         red: {
@@ -28,8 +34,13 @@ export class RoomService {
         };
     };
 
-    constructor(room: RoomObject) {
+    constructor(room: RoomObject, options: {
+        decodeStadium?: ReplayStadiumDecoder;
+        onStadiumError?: (error: unknown) => void;
+    } = {}) {
         this._room = room;
+        this.decodeStadium = options.decodeStadium ?? decodeReplayStadium;
+        this.onStadiumError = options.onStadiumError ?? (() => {});
         this.teamColours = {
             red: { 
                 angle: 0, 
@@ -80,6 +91,8 @@ export class RoomService {
     // Stadium management
     public setCustomStadium(stadium: string): void {
         this._room.setCustomStadium(stadium);
+        ++this.stadiumRevision;
+        this.pendingStadiumSource = stadium;
         this.stadiumSource = stadium;
     }
 
@@ -93,14 +106,45 @@ export class RoomService {
         return true;
     }
 
-    public observeStadiumChange(name: string): void {
-        if (this.stadiumSource) {
-            try { if (JSON5.parse(this.stadiumSource).name === name) return; } catch { /* replace unknown geometry */ }
-        }
-        // The Headless API exposes the stadium name, but has no geometry getter.
-        // Resolve known maps; explicitly mark the fallback for external maps.
+    public observeStadiumChange(name: string): Promise<void> {
+        const revision = ++this.stadiumRevision;
+        const pending = this.pendingStadiumSource;
+        this.pendingStadiumSource = null;
+        // Provide geometry immediately where possible, then replace it with the
+        // actual engine stadium (also handles external maps sharing a known name).
         this.stadiumSource = getStadiumData(name.toLowerCase().replace(/[^a-z0-9]/g, ""))
             ?? JSON.stringify({ name, width: 420, height: 200, approximate: true, bg: { type: "none" } });
+        if (pending) {
+            try { if (JSON5.parse(pending).name === name) this.stadiumSource = pending; } catch { /* use fallback */ }
+        }
+        return this.captureReplayStadium(name, revision);
+    }
+
+    private async captureReplayStadium(name: string, revision: number): Promise<void> {
+        // Never replace an active match recording. Both recording API calls are
+        // synchronous; no game tick or match start can occur between them.
+        if (this.matchRecording || this._room.getScores() !== null) return;
+        try {
+            this._room.startRecording();
+            const replay = this._room.stopRecording();
+            if (!replay || replay.byteLength > 1024 * 1024) throw new Error("Invalid stadium probe replay");
+            const stadium = await this.decodeStadium(replay);
+            if (revision !== this.stadiumRevision || !stadium) return;
+            if (stadium.name !== name) throw new Error("Replay stadium does not match the active map");
+            this.stadiumSource = JSON.stringify(stadium);
+        } catch (error) {
+            if (revision === this.stadiumRevision) this.onStadiumError(error);
+        }
+    }
+
+    public startMatchRecording(): void {
+        this._room.startRecording();
+        this.matchRecording = true;
+    }
+
+    public stopMatchRecording(): Uint8Array | null {
+        try { return this._room.stopRecording(); }
+        finally { this.matchRecording = false; }
     }
 
     public getStadiumSource(): string | null {

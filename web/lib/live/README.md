@@ -98,10 +98,24 @@ delay, including in background tabs. Duplicate, stale and previous-match sounds 
 muting, disconnects and match resets cancel pending audio. Asset provenance and
 checksum are in `public/audio/README.md`.
 
-Headless Host has no stadium geometry getter. RoomService retains HBS data for
-maps loaded by this application, resolves bundled maps selected in-game, and
-labels other external stadiums as having unavailable geometry. Such maps use
-a generic camera frame with real player/disc positions. The renderer resolves
+Headless Host has no stadium geometry getter. On stadium changes while stopped,
+RoomService synchronously starts/stops a separate zero-frame recording and
+decodes its initial custom stadium asynchronously using
+[`@hax-brasil/replay-decoder`](https://github.com/haxbrasil/node-haxball-replay-decoder).
+Only public geometry is retained for the active map; replay/player data is never
+sent to viewers. Revision checks discard results from maps replaced during decoding,
+including maps with identical names. Match recording ownership is tracked separately:
+probes never run during an active match or replace its complete recording.
+No bundled HaxBall engine modifications are needed.
+
+Retained bot-loaded HBS and bundled map lookups provide immediate geometry before
+decoding finishes. Native built-in stadiums encode only an ID in replays, so they
+still use the bundled lookup. Unknown maps use an approximate camera frame until
+extraction succeeds. Unsupported replay formats or unavailable native decoder
+binaries log a warning and retain this fallback without stopping the room.
+Install core dependencies normally (`npm ci`); the decoder includes prebuilt
+binaries for Linux glibc x64/arm64, macOS x64/arm64 and Windows x64.
+The renderer resolves
 HBS segment traits and draws straight/curved segments, markings, discs, and
 player labels. It currently uses default red/blue team discs; custom jersey
 stripes and avatars are not reproduced.

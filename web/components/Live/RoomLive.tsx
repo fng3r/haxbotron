@@ -35,7 +35,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   const [chatConnected, setChatConnected] = useState(false);
   const [frame, setFrame] = useState<LiveFrame | null>(null);
   const [connection, setConnection] = useState('Connecting…');
-  const [stadium, setStadium] = useState('Waiting for stadium');
+  const [stadium, setStadium] = useState({ name: 'Waiting for stadium', approximate: false });
   const [goal, setGoal] = useState<(GoalCelebrationData & { id: number }) | null>(null);
   const [timeline, setTimeline] = useState<LiveMatchTimeline | null>(null);
   const [timelineOpen, setTimelineOpen] = useState(true);
@@ -187,7 +187,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
           }
           lastFrame = Date.now();
           setConnection('Connected');
-          if (next.stadium) setStadium(next.stadium.name + (next.stadium.approximate ? ' (geometry unavailable)' : ''));
+          if (next.stadium) setStadium({ name: next.stadium.name, approximate: !!next.stadium.approximate });
           if (lastFrame - lastUIUpdate > 200 || next.status !== 'playing') {
             setFrame(next);
             lastUIUpdate = lastFrame;
@@ -245,7 +245,9 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
           <div className={fullscreen ? 'min-w-0 [&_h1]:truncate [&_p]:truncate' : undefined}>
             <h1 className="text-lg font-semibold tracking-tight">{roomName ?? 'Live broadcast'}</h1>
             <p className="text-xs text-muted-foreground">
-              {stadium} · {ruid}
+              {stadium.name}
+              {stadium.approximate && <span className="text-amber-700 dark:text-amber-400"> (stadium unavailable)</span>}
+              {' · '}{ruid}
             </p>
           </div>
           <div

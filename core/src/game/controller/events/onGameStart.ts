@@ -15,7 +15,7 @@ export function onGameStartListener(runtime: RoomRuntime, byPlayer: PlayerObject
         byPlayer is the player which caused the event (can be null if the event wasn't caused by a player). */
     const room = runtime.room.getRoom();
 
-    room.startRecording();
+    runtime.room.startMatchRecording();
     room.setKickRateLimit(DEFAULT_KICKRATE.min, DEFAULT_KICKRATE.rate, DEFAULT_KICKRATE.burst);
 
     const startingLineup = {

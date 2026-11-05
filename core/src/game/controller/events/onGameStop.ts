@@ -9,8 +9,6 @@ export function onGameStopListener(runtime: RoomRuntime, byPlayer: PlayerObject 
     byPlayer is the player which caused the event (can be null if the event wasn't caused by a player).
     Haxball developer Basro said, The game will be stopped automatically after a team victory. (victory -> stop)
     */
-    const room = runtime.room.getRoom();
-
     const stats = runtime.match.getMatchStats();
     recordLiveMatchEvent(runtime, { type: "stop", scores: stats.scores,
         ...(byPlayer ? { actor: byPlayer } : {}) });
@@ -24,6 +22,6 @@ export function onGameStopListener(runtime: RoomRuntime, byPlayer: PlayerObject 
     }
     runtime.logger.i('onGameStop', msg);
 
-    const replay = room.stopRecording();
+    const replay = runtime.room.stopMatchRecording();
     runtime.social.sendReplayWebhook(runtime.config.getRUID(), stats, replay);
 }

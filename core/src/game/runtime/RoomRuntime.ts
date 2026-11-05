@@ -41,7 +41,9 @@ export function createRoomRuntime(
 
     return {
         config: new ConfigService(config, adminPassword),
-        room: new RoomService(room),
+        room: new RoomService(room, {
+            onStadiumError: error => logger.w("stadiumGeometry", `Replay extraction failed: ${error instanceof Error ? error.message : String(error)}`),
+        }),
         players: new PlayerService(),
         playerRoles: new PlayerRoleService(),
         playerOnboarding: new PlayerOnboardingService(roomRepository),
