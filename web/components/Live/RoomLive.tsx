@@ -5,6 +5,7 @@ import styles from './RoomLive.module.css';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import BroadcastChat from './BroadcastChat';
+import BroadcastShortcuts from './BroadcastShortcuts';
 import BroadcastSound from './BroadcastSound';
 import GoalCelebration, { type GoalCelebrationData } from './GoalCelebration';
 import MatchTimeline from './MatchTimeline';
@@ -97,8 +98,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
       else if (key === 't') {
         if (fullscreen) void toggleFullscreen().then(() => setTheater(true));
         else setTheater((active) => !active);
-      }
-      else if (key === 'f') void toggleFullscreen();
+      } else if (key === 'f') void toggleFullscreen();
     };
     document.addEventListener('keydown', shortcut);
     return () => document.removeEventListener('keydown', shortcut);
@@ -367,6 +367,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
             aria-label="Broadcast view controls"
             className="absolute bottom-3 right-3 z-20 flex h-9 items-center gap-1 rounded-md border border-white/15 bg-black/65 p-0.5 text-white"
           >
+            <BroadcastShortcuts />
             <Button
               type="button"
               variant="ghost"
