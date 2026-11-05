@@ -113,6 +113,49 @@ describe('live broadcast snapshots', () => {
         expect(send.mock.calls[1][0]).toMatchObject({ payload: { players: [{ id: player.id, kicking: false }, { kicking: false }] } });
     });
 
+    it('does not publish an input applied after the last physics step until its own tick completes', async () => {
+        const send = jest.fn();
+        process.send = send as typeof process.send;
+        Object.defineProperty(process, 'connected', { configurable: true, value: true });
+        const { runtime, player } = fixture();
+        const indicator = getKickIndicator(runtime);
+        // Host scheduler: completed tick -> trailing input action -> deferred frame.
+        onGameTickListener(runtime);
+        player.input = 16;
+        indicator.input(player.id, true);
+        expect(indicator.ready(player.id)).toBe(true);
+        await Promise.resolve();
+        expect(send.mock.calls[0][0]).toMatchObject({ payload: { players: [{ kicking: false }, { kicking: false }] } });
+        (send.mock.calls[0][1] as () => void)();
+        // The pending press is consumed by a kick in the next simulation step.
+        onGameTickListener(runtime);
+        onPlayerBallKickListener(runtime, player);
+        await Promise.resolve();
+        expect(send.mock.calls[2][0]).toMatchObject({ payload: { players: [{ kicking: false }, { kicking: false }] } });
+    });
+
+    it('does not rearm a consumed kick when another press arrives after physics in the same batch', async () => {
+        const send = jest.fn();
+        process.send = send as typeof process.send;
+        Object.defineProperty(process, 'connected', { configurable: true, value: true });
+        const { runtime, player } = fixture();
+        const indicator = getKickIndicator(runtime);
+        indicator.setLimits(0, 0, 0);
+        player.input = 16;
+        onGameTickListener(runtime);
+        onPlayerBallKickListener(runtime, player);
+        indicator.input(player.id, false);
+        indicator.input(player.id, true);
+        await Promise.resolve();
+        expect(send.mock.calls[1][0]).toMatchObject({ payload: { players: [{ kicking: false }, { kicking: false }] } });
+        (send.mock.calls[1][1] as () => void)();
+        // If the ball has moved away, the new press becomes a genuine white
+        // outline after the next tick, instead of being suppressed indefinitely.
+        onGameTickListener(runtime);
+        await Promise.resolve();
+        expect(send.mock.calls[2][0]).toMatchObject({ payload: { players: [{ kicking: true }, { kicking: false }] } });
+    });
+
     it('does not flash when a cooldown expires and a new press is consumed in that same step', async () => {
         const send = jest.fn();
         process.send = send as typeof process.send;
@@ -157,6 +200,9 @@ describe('live broadcast snapshots', () => {
         Object.defineProperty(process, 'connected', { configurable: true, value: true });
         const { runtime, player } = fixture();
         const capture = () => {
+            const indicator = getKickIndicator(runtime);
+            indicator.input(player.id, (player.input & 16) !== 0);
+            indicator.advance([player.id]);
             publishLiveFrame(runtime);
             const call = send.mock.calls[send.mock.calls.length - 1];
             (call[1] as () => void)();
@@ -211,6 +257,9 @@ describe('live broadcast snapshots', () => {
         Object.defineProperty(process, 'connected', { configurable: true, value: true });
         const { runtime, player, stop } = fixture();
         const capture = () => {
+            const indicator = getKickIndicator(runtime);
+            indicator.input(player.id, (player.input & 16) !== 0);
+            indicator.advance([player.id]);
             publishLiveFrame(runtime);
             const call = send.mock.calls[send.mock.calls.length - 1];
             (call[1] as () => void)();

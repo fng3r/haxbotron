@@ -92,7 +92,6 @@ export function publishLiveFrame(runtime: RoomRuntime): void {
     const timelineChanged = timeline && (timeline.matchId !== state.timelineMatchId || timeline.revision !== state.timelineRevision);
     const indicator = getKickIndicator(runtime);
     const players = room.getPlayerList();
-    for (const player of players) indicator.input(player.id, (player.input & room.InputFlags.kick) !== 0);
     const pick = (d: ReturnType<typeof room.getDiscProperties>): LiveDisc | null => d ? ({
         x: d.x, y: d.y, radius: d.radius, color: d.color,
     }) : null;
@@ -102,7 +101,7 @@ export function publishLiveFrame(runtime: RoomRuntime): void {
         scores,
         discs: scores ? Array.from({ length: room.getDiscCount() }, (_, i) => pick(room.getDiscProperties(i))) : [],
         players: players.map(p => ({ id: p.id, name: p.name, team: p.team,
-            kicking: !!scores && runtime.match.isPlaying() && p.team !== 0 && indicator.ready(p.id),
+            kicking: !!scores && runtime.match.isPlaying() && p.team !== 0 && indicator.settledReady(p.id),
             disc: scores && p.team !== 0 ? pick(room.getPlayerDiscProperties(p.id)) : null })),
         ...(stadium ? { stadium } : {}),
         ...(goal ? { goal } : {}),

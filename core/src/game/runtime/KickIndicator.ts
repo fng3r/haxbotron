@@ -1,6 +1,6 @@
 import type { RoomRuntime } from "./RoomRuntime.js";
 
-type KickState = { held: boolean; armed: boolean; cooldown: number; budget: number };
+type KickState = { held: boolean; armed: boolean; cooldown: number; budget: number; settled: boolean };
 
 /** Mirrors the native kick-ready outline using public input, kick and rate-limit events. */
 export class KickIndicator {
@@ -12,7 +12,7 @@ export class KickIndicator {
     private player(id: number): KickState {
         let state = this.players.get(id);
         if (!state) {
-            state = { held: false, armed: false, cooldown: 0, budget: 0 };
+            state = { held: false, armed: false, cooldown: 0, budget: 0, settled: false };
             this.players.set(id, state);
         }
         return state;
@@ -28,6 +28,7 @@ export class KickIndicator {
     kicked(id: number): void {
         const state = this.player(id);
         state.armed = false;
+        state.settled = false;
         state.cooldown = this.min;
         state.budget -= this.rate;
     }
@@ -35,6 +36,11 @@ export class KickIndicator {
     ready(id: number): boolean {
         const state = this.player(id);
         return state.armed && state.cooldown <= 0 && state.budget >= 0;
+    }
+
+    /** Readiness belonging to the latest physics step, excluding later inputs. */
+    settledReady(id: number): boolean {
+        return this.players.get(id)?.settled ?? false;
     }
 
     setLimits(min: number, rate: number, burst: number): void {
@@ -49,6 +55,10 @@ export class KickIndicator {
             const state = this.player(id);
             if (state.cooldown > 0) state.cooldown--;
             if (state.budget < this.capacity) state.budget++;
+            // Physics may consume this press via kicked() before the deferred
+            // frame is sent. Inputs applied after this step belong to the next
+            // tick and must not change the outline of this step's positions.
+            state.settled = this.ready(id);
         }
     }
 

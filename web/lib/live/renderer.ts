@@ -25,6 +25,8 @@ export class BroadcastRenderer {
   private grass: CanvasPattern | null;
   private dirty = true;
   private canvas: HTMLCanvasElement;
+  private logo = new Image();
+  private logoLoaded = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -34,6 +36,12 @@ export class BroadcastRenderer {
     this.concrete = this.concreteTexture(109, 40, 8);
     this.concreteBorder = this.concreteTexture(87, 32, 5);
     this.grass = this.grassTexture();
+    this.logo.onload = () => {
+      this.logoLoaded = true;
+      this.dirty = true;
+    };
+    this.logo.decoding = 'async';
+    this.logo.src = '/images/cis-logo.png';
     this.animation = requestAnimationFrame(this.draw);
   }
 
@@ -113,6 +121,7 @@ export class BroadcastRenderer {
 
   destroy() {
     cancelAnimationFrame(this.animation);
+    this.logo.onload = null;
   }
 
   private field(ctx: CanvasRenderingContext2D, stadium: LiveStadium, visibleWidth: number, visibleHeight: number) {
@@ -172,6 +181,15 @@ export class BroadcastRenderer {
         ctx.lineTo(b.x, b.y);
       }
       ctx.stroke();
+    }
+    // Overlay all stadium markings; moving discs and player labels are drawn later.
+    if (this.logoLoaded) {
+      const radius = bg?.kickOffRadius;
+      const size = radius && radius > 0 ? radius * 2 : Math.min(stadium.width, stadium.height) * 0.5;
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      ctx.drawImage(this.logo, -size / 2, -size / 2, size, size);
+      ctx.restore();
     }
   }
 

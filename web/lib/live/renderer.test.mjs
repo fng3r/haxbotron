@@ -9,17 +9,28 @@ import { BroadcastRenderer } from './renderer.ts';
 
 function setup(t, width, height) {
   const original = new Map(
-    ['document', 'window', 'requestAnimationFrame', 'cancelAnimationFrame'].map((key) => [
+    ['document', 'window', 'Image', 'requestAnimationFrame', 'cancelAnimationFrame'].map((key) => [
       key,
       Object.getOwnPropertyDescriptor(globalThis, key),
     ]),
   );
   const queued = [];
   const created = [];
+  let logo;
+  Object.defineProperty(globalThis, 'Image', {
+    configurable: true,
+    value: class {
+      constructor() { logo = this; }
+    },
+  });
   function canvas() {
     const context = {
       fills: [],
       clips: [],
+      images: [],
+      drawImage(image, ...bounds) {
+        this.images.push({ image, bounds, alpha: this.globalAlpha });
+      },
       roundRect(...rect) {
         this.rect = rect;
       },
@@ -35,7 +46,6 @@ function setup(t, width, height) {
     for (const method of [
       'putImageData',
       'setTransform',
-      'drawImage',
       'translate',
       'scale',
       'save',
@@ -77,8 +87,27 @@ function setup(t, width, height) {
       else delete globalThis[key];
     }
   });
-  return { renderer, target, background: created[0].context, draw: () => queued.shift()() };
+  return { renderer, target, logo, background: created[0].context, draw: () => queued.shift()() };
 }
+
+test('center watermark loads asynchronously, stays cached and scales with the stadium', (t) => {
+  const { renderer, background, logo, draw } = setup(t, 1000, 600);
+  const stadium = { name: 'Circle', width: 420, height: 200, bg: { type: 'grass', kickOffRadius: 75 } };
+  renderer.push(frame(stadium));
+  draw();
+  assert.equal(background.images.length, 0);
+  assert.equal(logo.src, '/images/cis-logo.png');
+  logo.onload();
+  draw();
+  assert.deepEqual(background.images[0], { image: logo, bounds: [-75, -75, 150, 150], alpha: 0.35 });
+  draw();
+  assert.equal(background.images.length, 1, 'watermark is cached between frames');
+  renderer.push(frame({ name: 'No circle', width: 600, height: 300 }, 2));
+  draw();
+  assert.deepEqual(background.images[1].bounds, [-75, -75, 150, 150]);
+  renderer.destroy();
+  assert.equal(logo.onload, null);
+});
 
 function frame(stadium, sequence = 1) {
   return {

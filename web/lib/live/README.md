@@ -79,7 +79,11 @@ player is ready again. Counters advance on simulation ticks only; paused games
 show no kick outline. The indicator uses actual kick events, including custom
 kickable discs, rather than estimating contact from interpolated positions.
 Only the derived `kicking` readiness boolean is transmitted, not raw input flags.
-The tick hook runs before physics; a microtask takes the snapshot after the
+The tick hook runs before physics. Outline readiness is committed for that step
+and cleared by successful kicks. The host can apply further inputs after its last
+physics step in a simulation batch; these wait for the next tick rather than
+rearming the outline against positions from the previous step.
+A microtask takes the snapshot after the
 synchronous step/batch has finished, so a press consumed immediately by a kick
 never becomes a visible white-outline frame. Catch-up steps are coalesced.
 
