@@ -2,7 +2,7 @@
 
 import styles from './RoomLive.module.css';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import BroadcastChat from './BroadcastChat';
 import BroadcastSound from './BroadcastSound';
@@ -33,6 +33,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   const [theater, setTheater] = useState(false);
   const expanded = theater || fullscreen;
   const audio = useRef<BroadcastAudio | null>(null);
+  const muteButton = useRef<HTMLButtonElement>(null);
   const liveSocket = useRef<ReturnType<typeof io> | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatConnected, setChatConnected] = useState(false);
@@ -51,10 +52,28 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
     rendererRef.current?.setZoom(zoom);
   }, [zoom]);
 
+  const toggleFullscreen = useCallback(async () => {
+    if (fullscreen) {
+      if (document.fullscreenElement === broadcast.current) await document.exitFullscreen();
+      else setFullscreen(false);
+      return;
+    }
+    if (document.fullscreenEnabled && broadcast.current?.requestFullscreen) {
+      try {
+        await broadcast.current.requestFullscreen();
+        return;
+      } catch {
+        /* Use a viewport-filling mode when native fullscreen is unavailable. */
+      }
+    }
+    setFullscreen(true);
+  }, [fullscreen]);
+
   useEffect(() => {
-    const changeZoom = (event: KeyboardEvent) => {
+    const shortcut = (event: KeyboardEvent) => {
       if (
         event.defaultPrevented ||
+        event.repeat ||
         event.isComposing ||
         event.altKey ||
         event.ctrlKey ||
@@ -70,13 +89,20 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
       )
         return;
       const level = /^[1-5]$/.test(event.key) ? ZOOM_LEVELS[Number(event.key) - 1] : undefined;
-      if (level === undefined) return;
+      const key = event.key.toLowerCase();
+      if (level === undefined && key !== 'm' && key !== 't' && key !== 'f') return;
       event.preventDefault();
-      setZoom(level);
+      if (level !== undefined) setZoom(level);
+      else if (key === 'm') muteButton.current?.click();
+      else if (key === 't') {
+        if (fullscreen) void toggleFullscreen().then(() => setTheater(true));
+        else setTheater((active) => !active);
+      }
+      else if (key === 'f') void toggleFullscreen();
     };
-    document.addEventListener('keydown', changeZoom);
-    return () => document.removeEventListener('keydown', changeZoom);
-  }, []);
+    document.addEventListener('keydown', shortcut);
+    return () => document.removeEventListener('keydown', shortcut);
+  }, [fullscreen, toggleFullscreen]);
 
   useEffect(() => {
     const syncFullscreen = () => setFullscreen(document.fullscreenElement === broadcast.current);
@@ -101,23 +127,6 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
       document.body.style.overflow = overflow;
     };
   }, [expanded]);
-
-  async function toggleFullscreen() {
-    if (fullscreen) {
-      if (document.fullscreenElement === broadcast.current) await document.exitFullscreen();
-      else setFullscreen(false);
-      return;
-    }
-    if (document.fullscreenEnabled && broadcast.current?.requestFullscreen) {
-      try {
-        await broadcast.current.requestFullscreen();
-        return;
-      } catch {
-        /* Use a viewport-filling mode when native fullscreen is unavailable. */
-      }
-    }
-    setFullscreen(true);
-  }
 
   useEffect(() => {
     let disposed = false;
@@ -379,7 +388,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
                   size="icon"
                   className="size-8 hover:bg-white/15 hover:text-white focus-visible:ring-white/70 aria-pressed:bg-white/15"
                   aria-label={theater ? 'Exit theater mode' : 'Enter theater mode'}
-                  title={theater ? 'Exit theater mode (Esc)' : 'Theater mode'}
+                  title={theater ? 'Exit theater mode (T / Esc)' : 'Theater mode (T)'}
                   aria-pressed={theater}
                   onClick={() => setTheater((active) => !active)}
                 >
@@ -393,7 +402,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
               size="icon"
               className="size-8 hover:bg-white/15 hover:text-white focus-visible:ring-white/70 aria-pressed:bg-white/15"
               aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-              title={fullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen'}
+              title={fullscreen ? 'Exit fullscreen (F / Esc)' : 'Fullscreen (F)'}
               aria-pressed={fullscreen}
               onClick={() => void toggleFullscreen()}
             >
@@ -401,7 +410,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
             </Button>
           </div>
           <div className="absolute bottom-3 left-3 z-20">
-            <BroadcastSound audioRef={audio} />
+            <BroadcastSound audioRef={audio} buttonRef={muteButton} />
           </div>
         </CardContent>
         <CardFooter className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-xs text-muted-foreground">

@@ -17,7 +17,13 @@ import {
   subscribeSoundSettings,
 } from '@/lib/live/audio-settings';
 
-export default function BroadcastSound({ audioRef }: { audioRef: RefObject<BroadcastAudio | null> }) {
+export default function BroadcastSound({
+  audioRef,
+  buttonRef,
+}: {
+  audioRef: RefObject<BroadcastAudio | null>;
+  buttonRef?: RefObject<HTMLButtonElement | null>;
+}) {
   const stored = useSyncExternalStore(subscribeSoundSettings, readSoundSettings, () => null);
   const settings = useMemo(() => parseSoundSettings(stored), [stored]);
   const preference = useRef<SoundSettings>(DEFAULT_SOUND_SETTINGS);
@@ -88,12 +94,13 @@ export default function BroadcastSound({ audioRef }: { audioRef: RefObject<Broad
         className="flex size-9 items-center justify-center rounded-md border border-white/15 bg-black/65 text-white"
       >
         <Button
+          ref={buttonRef}
           type="button"
           variant="ghost"
           size="icon"
           className="size-8 shrink-0 hover:bg-white/15 hover:text-white focus-visible:ring-white/70"
           aria-label={label}
-          title={label}
+          title={`${label} (M)`}
           aria-pressed={!muted}
           onPointerDown={(event) => {
             if (event.pointerType === 'touch') event.currentTarget.focus();
