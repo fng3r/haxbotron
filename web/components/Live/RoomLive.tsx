@@ -298,7 +298,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
           <div className="flex flex-wrap items-center gap-3">
             <span className="flex items-center gap-2" role="status">
               <span
-                className={`size-2 rounded-full ${connection === 'Connected' ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                className={`size-2 rounded-full ${connection === 'Connected' && frame?.status !== 'stopped' ? 'bg-emerald-500' : 'bg-amber-500'}`}
               />
               {connection === 'Connected'
                 ? frame?.status === 'playing'
