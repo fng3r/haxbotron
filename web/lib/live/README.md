@@ -109,7 +109,7 @@ stripes and avatars are not reproduced.
 `types.ts` mirrors core's public `LiveProtocol.ts`; update both for protocol
 changes. Frames exclude auth, IP/connection data, passwords and room configs.
 
-Fresh score increases trigger a 2.4-second team-colored goal celebration,
+Fresh score increases trigger a 3-second team-colored goal celebration,
 synchronized with the renderer's interpolation delay. Initial subscriptions,
 reconnections, stale frames and match resets do not replay old goals. The
 celebration respects reduced-motion preferences. Run `npm run test:live` for

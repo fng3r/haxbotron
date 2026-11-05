@@ -6,43 +6,29 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 10;
-  animation: finish 2.4s ease both;
-}
-
-.wash {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, var(--goal-color) 24%, transparent),
-    transparent 70%
-  );
-  box-shadow: inset 0 0 70px color-mix(in srgb, var(--goal-color) 35%, transparent);
-  animation: flash 800ms 650ms ease-out both;
-}
-
-.ring {
-  position: absolute;
-  width: 110px;
-  height: 110px;
-  border: 3px solid var(--goal-color);
-  border-radius: 50%;
-  animation: expand 950ms 650ms ease-out both;
+  animation: finish 3s ease both;
 }
 
 .banner {
-  position: relative;
+  position: absolute;
+  top: 30%;
+  left: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 18px 48px;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  padding: 10px 32px;
+  border-radius: 10px;
+  translate: -50% -50%;
   color: white;
-  background: linear-gradient(110deg, transparent, #101719ed 20%, #101719ed 80%, transparent);
+  background: #101719bf;
   text-align: center;
   animation: arrive 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .team {
+  color: var(--goal-color);
   font-size: clamp(10px, 1.2vw, 13px);
   font-weight: 700;
   letter-spacing: 0.24em;
@@ -53,12 +39,12 @@
   display: flex;
   align-items: center;
   gap: 0.25em;
-  margin-top: 8px;
+  margin-top: 4px;
   font-family: ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
-  font-size: clamp(46px, 8vw, 100px);
+  font-size: clamp(40px, 6vw, 80px);
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1;
 }
 
 .red {
@@ -87,22 +73,21 @@
 
 .current {
   animation: score-in 480ms 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  text-shadow: 0 0 20px color-mix(in srgb, var(--goal-color) 45%, transparent);
 }
 
 .rule {
-  width: 52px;
-  height: 3px;
-  margin-top: 12px;
+  width: 44px;
+  height: 2px;
+  margin-top: 6px;
   background: var(--goal-color);
 }
 
 .credits {
   display: grid;
-  gap: 4px;
+  gap: 2px;
   max-width: min(65vw, 360px);
-  margin-top: 8px;
-  font-size: clamp(11px, 1.3vw, 15px);
+  margin-top: 4px;
+  font-size: clamp(10px, 1.2vw, 14px);
 }
 
 .credit {
@@ -126,24 +111,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 600;
-}
-
-.particles {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-}
-
-.particles i {
-  position: absolute;
-  width: 5px;
-  height: 11px;
-  background: var(--goal-color);
-  animation: burst 1100ms calc(650ms + var(--delay)) ease-out both;
-}
-
-.particles i:nth-child(3n) {
-  background: white;
 }
 
 @keyframes arrive {
@@ -179,37 +146,6 @@
   }
 }
 
-@keyframes expand {
-  from {
-    opacity: 0.9;
-    transform: scale(0.5);
-  }
-  to {
-    opacity: 0;
-    transform: scale(4.5);
-  }
-}
-
-@keyframes burst {
-  from {
-    opacity: 1;
-    transform: translate(0, 0) rotate(0);
-  }
-  to {
-    opacity: 0;
-    transform: translate(var(--dx), var(--dy)) rotate(var(--rotation));
-  }
-}
-
-@keyframes flash {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0.25;
-  }
-}
-
 @keyframes finish {
   0%,
   80% {
@@ -222,12 +158,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .celebration,
-  .banner,
-  .wash {
+  .banner {
     animation: none;
   }
-  .ring,
-  .particles,
   .previous {
     display: none;
   }

@@ -165,7 +165,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
               goalEnd = setTimeout(() => {
                 activeGoal = null;
                 setGoal(null);
-              }, 2400);
+              }, 3000);
             }, INTERPOLATION_DELAY_MS);
           } else if (!next.scores) {
             resetGoals();

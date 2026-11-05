@@ -35,27 +35,6 @@ export default function GoalCelebration({ team, before, after, attribution }: Go
     : '';
   return (
     <div className={styles.celebration} style={{ '--goal-color': team === 1 ? '#e66e55' : '#5a89e5' } as CSSProperties}>
-      <div className={styles.wash} aria-hidden="true" />
-      <div className={styles.ring} aria-hidden="true" />
-      <div className={styles.particles} aria-hidden="true">
-        {Array.from({ length: 24 }, (_, i) => {
-          const angle = (i / 24) * Math.PI * 2;
-          const distance = 110 + (i % 4) * 32;
-          return (
-            <i
-              key={i}
-              style={
-                {
-                  '--dx': `${Math.cos(angle) * distance}px`,
-                  '--dy': `${Math.sin(angle) * distance}px`,
-                  '--rotation': `${i * 47}deg`,
-                  '--delay': `${(i % 3) * 35}ms`,
-                } as CSSProperties
-              }
-            />
-          );
-        })}
-      </div>
       <div
         className={styles.banner}
         role="status"
