@@ -87,36 +87,38 @@ export default function BroadcastChat({
         }}
         className="h-72 min-h-0 overflow-y-auto overscroll-contain px-3 py-3 lg:h-0 lg:flex-1"
       >
-        {!messages.length && (
-          <div className="px-3 py-8 text-center text-muted-foreground">
-            <MessageCircle className="mx-auto mb-3 size-5" aria-hidden="true" />
-            <p className="text-sm font-medium text-foreground">Be the first to say hello</p>
-            <p className="mt-2 text-xs">Chat with viewers of this broadcast.</p>
-          </div>
-        )}
-        {messages.map((message) => (
-          <div key={message.id} className="mb-3 text-xs leading-5">
-            <div className="flex items-baseline justify-between gap-2">
-              <span
-                className={`min-w-0 truncate font-semibold ${nicknameColor(message.nickname)}`}
-                title={message.nickname}
-              >
-                {message.nickname}
-              </span>
-              <time
-                className="shrink-0 font-mono text-[10px] text-muted-foreground"
-                dateTime={new Date(message.sentAt).toISOString()}
-              >
-                {new Date(message.sentAt).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hourCycle: 'h23',
-                })}
-              </time>
+        <div className="flex min-h-full flex-col justify-end">
+          {!messages.length && (
+            <div className="px-3 py-8 text-center text-muted-foreground">
+              <MessageCircle className="mx-auto mb-3 size-5" aria-hidden="true" />
+              <p className="text-sm font-medium text-foreground">Be the first to say hello</p>
+              <p className="mt-2 text-xs">Chat with viewers of this broadcast.</p>
             </div>
-            <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{message.text}</p>
-          </div>
-        ))}
+          )}
+          {messages.map((message) => (
+            <div key={message.id} className="mb-3 shrink-0 text-xs leading-5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span
+                  className={`min-w-0 truncate font-semibold ${nicknameColor(message.nickname)}`}
+                  title={message.nickname}
+                >
+                  {message.nickname}
+                </span>
+                <time
+                  className="shrink-0 font-mono text-[10px] text-muted-foreground"
+                  dateTime={new Date(message.sentAt).toISOString()}
+                >
+                  {new Date(message.sentAt).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hourCycle: 'h23',
+                  })}
+                </time>
+              </div>
+              <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{message.text}</p>
+            </div>
+          ))}
+        </div>
       </div>
       <div className="shrink-0 border-t p-3">
         {nickname ? (
