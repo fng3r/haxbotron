@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const shortcuts = [
+  ['0', 'Fit full field'],
   ['1–5', 'Zoom: 1× to 2×'],
   ['M', 'Mute / unmute'],
   ['T', 'Theater mode'],

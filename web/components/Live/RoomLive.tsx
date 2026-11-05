@@ -27,8 +27,8 @@ import type { LiveFrame, LiveKick, LiveMatchTimeline } from '@/lib/live/types';
 export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<BroadcastRenderer | null>(null);
-  const [zoom, setZoom] = useState<number>(1);
-  const zoomRef = useRef(1);
+  const [zoom, setZoom] = useState<number>(0);
+  const zoomRef = useRef(0);
   const broadcast = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [theater, setTheater] = useState(false);
@@ -89,7 +89,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
         )
       )
         return;
-      const level = /^[1-5]$/.test(event.key) ? ZOOM_LEVELS[Number(event.key) - 1] : undefined;
+      const level = /^[0-5]$/.test(event.key) ? ZOOM_LEVELS[Number(event.key)] : undefined;
       const key = event.key.toLowerCase();
       if (level === undefined && key !== 'm' && key !== 't' && key !== 'f') return;
       event.preventDefault();
@@ -373,13 +373,13 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
               variant="ghost"
               size="sm"
               className="h-8 min-w-14 px-2 font-mono text-xs hover:bg-white/15 hover:text-white focus-visible:ring-white/70"
-              aria-label={`Zoom ${zoom} times. Click for next zoom level`}
-              title="Zoom (keys 1–5; click to cycle)"
+              aria-label={`${zoom === 0 ? 'Full field' : `Zoom ${zoom} times`}. Click for next zoom level`}
+              title="Zoom (0: full field; 1–5: native zoom; click to cycle)"
               onClick={() =>
                 setZoom(ZOOM_LEVELS[((ZOOM_LEVELS as readonly number[]).indexOf(zoom) + 1) % ZOOM_LEVELS.length])
               }
             >
-              {zoom}×
+              {zoom === 0 ? 'Fit' : `${zoom}×`}
             </Button>
             {!fullscreen && (
               <>

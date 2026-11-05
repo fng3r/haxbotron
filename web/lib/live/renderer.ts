@@ -1,7 +1,7 @@
 import type { LiveDisc, LiveFrame, LiveStadium } from './types';
 
 export const INTERPOLATION_DELAY_MS = 80;
-export const ZOOM_LEVELS = [1, 1.25, 1.5, 1.75, 2] as const;
+export const ZOOM_LEVELS = [0, 1, 1.25, 1.5, 1.75, 2] as const;
 
 export function color(value: string | number | undefined, fallback = '#c5cbb7') {
   if (typeof value === 'number') return value < 0 ? 'transparent' : `#${value.toString(16).padStart(6, '0')}`;
@@ -29,7 +29,7 @@ export class BroadcastRenderer {
   private canvas: HTMLCanvasElement;
   private logo = new Image();
   private logoLoaded = false;
-  private zoom = 1;
+  private zoom = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -247,10 +247,13 @@ export class BroadcastRenderer {
     const t =
       a.timestamp === b.timestamp ? 1 : Math.max(0, Math.min(1, (target - a.timestamp) / (b.timestamp - a.timestamp)));
     const ball = blendDisc(a.discs[0], b.discs[0] ?? null, t);
-    // Native zoom: one world unit per CSS pixel at 1x, independent of viewport size.
-    const scale = ratio * this.zoom;
-    const cameraX = this.cameraAxis(ball?.x ?? 0, stadium.width, width / scale);
-    const cameraY = this.cameraAxis(ball?.y ?? 0, stadium.height, height / scale);
+    // 0 fits the entire stadium; numbered zooms use native world scale.
+    const scale =
+      this.zoom === 0
+        ? Math.min(width / (stadium.width * 2 + 40), height / (stadium.height * 2 + 40))
+        : ratio * this.zoom;
+    const cameraX = this.zoom === 0 ? 0 : this.cameraAxis(ball?.x ?? 0, stadium.width, width / scale);
+    const cameraY = this.zoom === 0 ? 0 : this.cameraAxis(ball?.y ?? 0, stadium.height, height / scale);
     const worldWidth = Math.max(width / scale, stadium.width * 2 + 40);
     const worldHeight = Math.max(height / scale, stadium.height * 2 + 40);
     // Cache the stadium once, including space needed when following the ball.

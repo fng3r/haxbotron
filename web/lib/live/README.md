@@ -131,7 +131,9 @@ uses lighter concrete inside and darker concrete outside. Plain backgrounds
 use their color across the viewport. Textures are generated once per renderer
 and the stadium layer is cached until the map or canvas dimensions change.
 
-Broadcast zoom uses native world scale: 1 game unit per CSS pixel at 1×, with
+Broadcast defaults to full-field fit mode (key 0), keeping the entire stadium
+visible and centered at any viewport size. Other zooms use native world scale:
+1 game unit per CSS pixel at 1×, with
 1×/1.25×/1.5×/1.75×/2× levels selected by keys 1–5 or the canvas zoom button.
 Shortcuts ignore editable controls and modifier combinations. The camera follows
 the interpolated ball and clamps to stadium bounds; maps that fit remain centered.

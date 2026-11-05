@@ -91,6 +91,7 @@ function setup(t, width, height) {
   Object.defineProperty(globalThis, 'cancelAnimationFrame', { configurable: true, value: () => {} });
   const target = canvas();
   const renderer = new BroadcastRenderer(target);
+  renderer.setZoom(1);
   t.after(() => {
     renderer.destroy();
     for (const [key, descriptor] of original) {
@@ -195,7 +196,10 @@ test('native zoom levels follow the ball, keep the viewport covered and reuse th
   const previousFills = background.fills.length;
   draw();
   assert.deepEqual(target.context.scales.at(-1), [2, 2], 'native scale accounts for display density');
-  assert.ok(background.fills.length > previousFills, 'density changes invalidate the cache even at the same pixel size');
+  assert.ok(
+    background.fills.length > previousFills,
+    'density changes invalidate the cache even at the same pixel size',
+  );
   renderer.setZoom(9);
   draw();
   assert.deepEqual(target.context.scales.at(-1), [2, 2], 'invalid zoom levels are ignored');
@@ -213,6 +217,34 @@ test('small stadiums stay centered and oversized background caches are bounded',
   draw();
   const cache = target.context.images.at(-1).image;
   assert.ok(cache.width <= 4096 && cache.height <= 4096);
+});
+
+test('fit mode shows the whole stadium on small screens and remains centered on resize', (t) => {
+  const { renderer, target, draw } = setup(t, 320, 180);
+  const stadium = { name: 'Large stadium', width: 800, height: 400 };
+  const next = frame(stadium);
+  next.discs = [{ x: 700, y: 350, radius: 10, color: 0xffffff }];
+  renderer.push(next);
+  renderer.setZoom(0);
+  for (const [width, height] of [
+    [320, 180],
+    [180, 320],
+    [1920, 1080],
+  ]) {
+    target.clientWidth = width;
+    target.clientHeight = height;
+    draw();
+    const scale = target.context.scales.at(-1)[0];
+    assert.ok((stadium.width * 2 + 40) * scale <= width + 0.000001);
+    assert.ok((stadium.height * 2 + 40) * scale <= height + 0.000001);
+    assert.deepEqual(target.context.translations.at(-1), [-0, -0]);
+  }
+  renderer.setZoom(2);
+  draw();
+  assert.deepEqual(target.context.scales.at(-1), [2, 2]);
+  renderer.setZoom(0);
+  draw();
+  assert.deepEqual(target.context.translations.at(-1), [-0, -0]);
 });
 
 test('grass uses a textured pitch inside its rounded bounds and preserves the surrounding map color', (t) => {
