@@ -182,6 +182,19 @@ try {
     assert.equal((await fetch(base + path, { method: 'POST', redirect: 'manual' })).status, 405, path);
   }
   assert.equal((await fetch(base + '/api/public/live')).status, 200);
+  for (const [name, checksum] of [
+    ['kick', 'f3146b611026aa5e1ee293a14f950cb9bec474e8dd397e75a6e25a6d6166d186'],
+    ['goal', '92122426336d9fd15c54663e9798a195320bef79b09a21ff9d0c588c21258294'],
+  ]) {
+    const sound = await fetch(base + `/audio/haxball-${name}.wav`);
+    assert.equal(sound.status, 200);
+    assert.equal(
+      createHash('sha256')
+        .update(Buffer.from(await sound.arrayBuffer()))
+        .digest('hex'),
+      checksum,
+    );
+  }
   const viewer = await connect(base, '/public-live-ws');
   const viewerCount = once(viewer, 'live:viewers');
   const received = once(viewer, 'live');
@@ -206,6 +219,11 @@ try {
   assert.equal(message.nickname, 'Viewer');
   assert.equal(message.text, '<b>Hello</b>');
   assert.equal((await sendChat(viewer, { nickname: 'Viewer', text: 'Too fast' })).ok, false);
+  const kicked = once(viewer, 'live:kick');
+  const kick = { ruid: 'arena', id: 'kick-1', timestamp: Date.now(), playerId: 7, matchId: 'test-match' };
+  viewer.emit('live:kick', { ...kick, id: 'untrusted' });
+  hosts[0].emit('live:kick', kick);
+  assert.deepEqual((await kicked)[0], kick);
   // Public sockets accept no administrative commands and cannot subscribe to old hosts.
   viewer.emit('setPassword', { password: 'do-not-forward' });
   const rejected = once(viewer, 'live:error');
@@ -226,9 +244,12 @@ try {
   const secondViewer = await connect(base, '/public-live-ws');
   const secondHistory = once(secondViewer, 'chat:history');
   const cachedFrame = once(secondViewer, 'live');
+  const lateKicks = [];
+  secondViewer.on('live:kick', (payload) => lateKicks.push(payload));
   secondViewer.emit('live:subscribe', 'arena');
   assert.deepEqual((await secondHistory)[0].messages, [message]);
   assert.deepEqual((await cachedFrame)[0].stadium, frame.stadium);
+  assert.deepEqual(lateKicks, [], 'late viewers must not replay kick sounds');
   const viewerHistory = once(viewer, 'chat:history');
   viewer.emit('live:subscribe', 'arena');
   assert.deepEqual((await viewerHistory)[0].messages, [message]);
@@ -239,6 +260,10 @@ try {
     'joining and reloading viewers do not resubscribe core',
   );
   assert.equal(await directoryCount(), 2);
+  const firstKick = once(viewer, 'live:kick');
+  const secondKick = once(secondViewer, 'live:kick');
+  hosts[0].emit('live:kick', { ...kick, id: 'kick-2' });
+  assert.deepEqual((await firstKick)[0], (await secondKick)[0]);
   const repeatedCount = once(viewer, 'live:viewers');
   viewer.emit('live:subscribe', 'arena');
   assert.deepEqual((await repeatedCount)[0], { ruid: 'arena', viewers: 2 });

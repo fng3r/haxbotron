@@ -73,6 +73,33 @@ const frame = (overrides = {}) => ({
   ...overrides,
 });
 
+test('kick sounds are room-scoped reliable events and never replay to late viewers', async (t) => {
+  const { pool, sources } = setup(t);
+  const one = viewer('one'),
+    two = viewer('two');
+  pool.join('a', one);
+  pool.join('b', two);
+  await Promise.resolve();
+  one.events.length = 0;
+  two.events.length = 0;
+  const kick = { id: 'kick', ruid: 'a', timestamp: 1000, playerId: 1, matchId: 'match' };
+  sources[0].source.receive('live:kick', kick);
+  assert.deepEqual(one.events, [{ event: 'live:kick', payload: kick, volatile: false }]);
+  assert.equal(two.events.length, 0);
+  const late = viewer('late');
+  pool.join('a', late);
+  assert.equal(
+    late.events.some((event) => event.event === 'live:kick'),
+    false,
+  );
+  sources[0].source.receive('live:kick', { ...kick, ruid: 'b' });
+  assert.equal(two.events.length, 0);
+  assert.equal(
+    late.events.some((event) => event.event === 'live:kick'),
+    false,
+  );
+});
+
 test('concurrent viewers share one upstream; repeats and room switches preserve accurate counts', async (t) => {
   const { pool, sources, counts } = setup(t);
   const one = viewer('one'),

@@ -5,6 +5,7 @@ import styles from './RoomLive.module.css';
 import { useEffect, useId, useRef, useState } from 'react';
 
 import BroadcastChat from './BroadcastChat';
+import BroadcastSound from './BroadcastSound';
 import GoalCelebration, { type GoalCelebrationData } from './GoalCelebration';
 import MatchTimeline from './MatchTimeline';
 import { Eye, Maximize, Minimize, PanelRightClose, PanelRightOpen } from 'lucide-react';
@@ -12,16 +13,18 @@ import { io } from 'socket.io-client';
 
 import { Button } from '@/components/ui/button';
 
+import type { BroadcastAudio } from '@/lib/live/audio';
 import type { ChatMessage } from '@/lib/live/chat';
 import { detectGoal, goalForScore } from '@/lib/live/goals';
 import { BroadcastRenderer, INTERPOLATION_DELAY_MS } from '@/lib/live/renderer';
 import { mergeTimeline } from '@/lib/live/timeline';
-import type { LiveFrame, LiveMatchTimeline } from '@/lib/live/types';
+import type { LiveFrame, LiveKick, LiveMatchTimeline } from '@/lib/live/types';
 
 export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const broadcast = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const audio = useRef<BroadcastAudio | null>(null);
   const liveSocket = useRef<ReturnType<typeof io> | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatConnected, setChatConnected] = useState(false);
@@ -75,6 +78,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
 
   useEffect(() => {
     let disposed = false;
+    const kickAudio = audio.current;
     let socket: ReturnType<typeof io> | undefined;
     let lastFrame = 0;
     let lastUIUpdate = 0;
@@ -83,6 +87,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
     let goalStart: ReturnType<typeof setTimeout> | undefined;
     let goalEnd: ReturnType<typeof setTimeout> | undefined;
     const resetGoals = () => {
+      audio.current?.clear();
       previous = null;
       activeGoal = null;
       clearTimeout(goalStart);
@@ -120,6 +125,16 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
           if (payload.ruid === ruid && Number.isInteger(payload.viewers) && payload.viewers >= 0)
             setViewers(payload.viewers);
         });
+        socket.on('live:kick', (kick: LiveKick & { ruid: string }) => {
+          if (kick.ruid !== ruid) return;
+          if (
+            previous &&
+            (kick.matchId !== previous.matchId ||
+              kick.timestamp < previous.timestamp + Math.max(0, Date.now() - lastFrame) - 500)
+          )
+            return;
+          audio.current?.kick(kick, INTERPOLATION_DELAY_MS);
+        });
         socket.on('live', (next: LiveFrame & { ruid: string }) => {
           if (next.ruid !== ruid) return;
           if (previous && next.matchId !== previous.matchId) resetGoals();
@@ -131,6 +146,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
           const before = previous?.scores;
           previous = next;
           if (scoringTeam && before && next.scores) {
+            audio.current?.goal(`${next.matchId}:${next.scores.red}:${next.scores.blue}`, INTERPOLATION_DELAY_MS);
             // Copy both scores now; later snapshots must not replace this goal's transition.
             const celebration = {
               team: scoringTeam,
@@ -193,6 +209,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
       clearTimeout(goalEnd);
       socket?.disconnect();
       liveSocket.current = null;
+      kickAudio?.clear();
       renderer.destroy();
     };
   }, [ruid]);
@@ -273,19 +290,23 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
               </span>
             </div>
           )}
+          <div className="absolute bottom-3 left-3 z-20">
+            <BroadcastSound audioRef={audio} />
+          </div>
         </div>
-        <div
-          className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-xs text-muted-foreground"
-          role="status"
-        >
-          <span className="flex items-center gap-2">
-            <span className={`size-2 rounded-full ${connection === 'Connected' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-            {connection === 'Connected'
-              ? frame?.status === 'playing'
-                ? 'LIVE'
-                : frame?.status?.toUpperCase()
-              : connection}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex items-center gap-2" role="status">
+              <span
+                className={`size-2 rounded-full ${connection === 'Connected' ? 'bg-emerald-500' : 'bg-amber-500'}`}
+              />
+              {connection === 'Connected'
+                ? frame?.status === 'playing'
+                  ? 'LIVE'
+                  : frame?.status?.toUpperCase()
+                : connection}
+            </span>
+          </div>
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex items-center gap-1.5">
               <Eye className="size-3.5" aria-hidden="true" />

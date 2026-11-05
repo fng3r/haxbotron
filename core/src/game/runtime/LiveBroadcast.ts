@@ -1,5 +1,6 @@
 import JSON5 from "json5";
 import { randomUUID } from "node:crypto";
+import { sendWorkerMessage } from "./WorkerEventBridge.js";
 import { getKickIndicator } from "./KickIndicator.js";
 import { getMatchTimeline, type MatchEventInput } from "./MatchTimeline.js";
 import type { RoomRuntime } from "./RoomRuntime.js";
@@ -8,6 +9,15 @@ import type { LiveDisc, LiveFrame, LiveGoal, LiveStadium } from "../../lib/room/
 const states = new WeakMap<RoomRuntime, { sequence: number; source: string | null; stadium?: LiveStadium; busy: boolean; timelineRevision?: number; timelineMatchId?: string }>();
 const latestGoals = new WeakMap<RoomRuntime, LiveGoal>();
 const pendingFrames = new WeakSet<RoomRuntime>();
+
+/** Transient audio event: reliable transport, never stored in frame/history caches. */
+export function publishLiveKick(runtime: RoomRuntime, playerId: number): void {
+    if (!process.send || !process.connected) return;
+    sendWorkerMessage({ type: "event", event: "liveKick", payload: {
+        id: randomUUID(), timestamp: Date.now(), playerId,
+        matchId: getMatchTimeline(runtime).getSnapshot()?.matchId ?? null,
+    } });
+}
 
 /** onGameTick runs before physics. Snapshot after the synchronous simulation batch settles. */
 export function scheduleLiveFrame(runtime: RoomRuntime): void {

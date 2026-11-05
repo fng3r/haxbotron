@@ -5,6 +5,12 @@ export interface LiveDisc {
   radius: number;
   color: number;
 }
+export interface LiveKick {
+  id: string;
+  timestamp: number;
+  playerId: number;
+  matchId: string | null;
+}
 export interface LiveStadium {
   approximate?: boolean;
   name: string;

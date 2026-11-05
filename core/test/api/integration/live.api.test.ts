@@ -42,6 +42,36 @@ describe('live WebSocket subscriptions', () => {
         expect([...rooms].filter(name => name.startsWith('live:'))).toEqual([]);
     });
 
+    it('routes kick sounds only to current room subscribers without caching them for replay', async () => {
+        const http = createServer();
+        server = new Server(http, { path: '/ws', transports: ['websocket'] });
+        const manager = new RoomProcessManager();
+        const handle = { ruid: 'a' };
+        Reflect.get(manager, 'rooms').set('a', handle);
+        Reflect.get(manager, 'rooms').set('b', { ruid: 'b' });
+        manager.attachSocketIOServer(server);
+        await new Promise<void>(resolve => http.listen(0, '127.0.0.1', resolve));
+        const client = io(`http://127.0.0.1:${(http.address() as AddressInfo).port}`, { path: '/ws', transports: ['websocket'], reconnection: false });
+        clients.push(client);
+        await new Promise<void>(resolve => client.once('connect', resolve));
+        const subscribe = (ruid: string) => new Promise(resolve => client.emit('live:subscribe', ruid, resolve));
+        const kicks: unknown[] = [];
+        client.on('live:kick', kick => kicks.push(kick));
+        const payload = { id: 'kick', timestamp: Date.now(), playerId: 7, matchId: 'match' };
+        const publish = () => Reflect.get(manager, 'handleWorkerEvent').call(manager, handle, { type: 'event', event: 'liveKick', payload });
+        await subscribe('a');
+        const received = new Promise(resolve => client.once('live:kick', resolve));
+        publish();
+        expect(await received).toEqual({ ruid: 'a', ...payload });
+        await subscribe('a'); // ACK is a delivery barrier; subscription must not replay audio.
+        expect(kicks).toHaveLength(1);
+        await subscribe('b');
+        publish();
+        await subscribe('b');
+        expect(kicks).toHaveLength(1);
+        expect(handle).not.toHaveProperty('kick');
+    });
+
     it('restores events recorded without viewers on a fresh connection and isolates subsequent matches', async () => {
         const http = createServer();
         server = new Server(http, { path: '/ws', transports: ['websocket'] });

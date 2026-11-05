@@ -1,4 +1,4 @@
-import type { LiveFrame, LiveMatchTimeline, LiveStadium } from './types';
+import type { LiveFrame, LiveKick, LiveMatchTimeline, LiveStadium } from './types';
 import type { Socket as Viewer } from 'socket.io';
 import type { Socket as Source } from 'socket.io-client';
 
@@ -127,6 +127,10 @@ export class LiveRelayPool {
           if (frame.stadium || newGoal || frame.timeline) viewer.emit('live', frame);
           else viewer.volatile.emit('live', frame);
         }
+      });
+      source.on('live:kick', (kick: LiveKick & { ruid: string }) => {
+        if (kick.ruid !== ruid || !room.ready || this.rooms.get(ruid) !== room) return;
+        this.broadcast(ruid, 'live:kick', kick);
       });
       source.on('live:offline', () => {
         ++subscription;

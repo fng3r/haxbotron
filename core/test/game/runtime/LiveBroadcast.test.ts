@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import type { PlayerObject } from 'haxball.js';
 import type { RoomRuntime } from '../../../src/game/runtime/RoomRuntime.js';
-import { clearLiveGoal, parseLiveStadium, publishLiveFrame, recordLiveGoal } from '../../../src/game/runtime/LiveBroadcast.js';
+import { clearLiveGoal, parseLiveStadium, publishLiveFrame, publishLiveKick, recordLiveGoal } from '../../../src/game/runtime/LiveBroadcast.js';
 import { parseRoomWorkerMessage } from '../../../src/lib/room/RoomProtocol.js';
 import { getStadiumData } from '../../../src/lib/stadiumLoader.js';
 import { getKickIndicator } from '../../../src/game/runtime/KickIndicator.js';
@@ -41,6 +41,26 @@ function fixture() {
 }
 
 describe('live broadcast snapshots', () => {
+    it('sends distinct kick events while snapshot IPC is busy, without retaining sounds in frames', () => {
+        const send = jest.fn();
+        process.send = send as typeof process.send;
+        Object.defineProperty(process, 'connected', { configurable: true, value: true });
+        const { runtime } = fixture();
+        getMatchTimeline(runtime).start();
+        publishLiveFrame(runtime);
+        publishLiveKick(runtime, 7);
+        publishLiveKick(runtime, 8);
+        expect(send).toHaveBeenCalledTimes(3);
+        const first = send.mock.calls[1][0];
+        const second = send.mock.calls[2][0];
+        expect(parseRoomWorkerMessage(first).success).toBe(true);
+        expect(first).toMatchObject({ event: 'liveKick', payload: { playerId: 7, matchId: getMatchTimeline(runtime).getSnapshot()!.matchId } });
+        expect((first as { payload: { id: string } }).payload.id).not.toBe((second as { payload: { id: string } }).payload.id);
+        (send.mock.calls[0][1] as () => void)();
+        publishLiveFrame(runtime);
+        expect(send.mock.calls[3][0]).toMatchObject({ event: 'live' });
+        expect(send.mock.calls[3][0]).not.toHaveProperty('payload.kick');
+    });
     it('sends retained timeline revisions on changes and preserves the completed match through idle frames', () => {
         const send = jest.fn();
         process.send = send as typeof process.send;
@@ -88,8 +108,9 @@ describe('live broadcast snapshots', () => {
         expect(send).not.toHaveBeenCalled();
         onPlayerBallKickListener(runtime, player);
         await Promise.resolve();
-        expect(send).toHaveBeenCalledTimes(1);
-        expect(send.mock.calls[0][0]).toMatchObject({ payload: { players: [{ id: player.id, kicking: false }, { kicking: false }] } });
+        expect(send).toHaveBeenCalledTimes(2);
+        expect(send.mock.calls[0][0]).toMatchObject({ event: 'liveKick', payload: { playerId: player.id } });
+        expect(send.mock.calls[1][0]).toMatchObject({ payload: { players: [{ id: player.id, kicking: false }, { kicking: false }] } });
     });
 
     it('does not flash when a cooldown expires and a new press is consumed in that same step', async () => {
@@ -108,7 +129,7 @@ describe('live broadcast snapshots', () => {
         expect(indicator.ready(player.id)).toBe(true);
         onPlayerBallKickListener(runtime, player);
         await Promise.resolve();
-        expect(send.mock.calls[0][0]).toMatchObject({ payload: { players: [{ kicking: false }, { kicking: false }] } });
+        expect(send.mock.calls[1][0]).toMatchObject({ payload: { players: [{ kicking: false }, { kicking: false }] } });
     });
 
     it('coalesces catch-up steps and preserves a genuine ready press away from the ball', async () => {

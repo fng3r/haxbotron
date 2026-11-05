@@ -83,6 +83,21 @@ The tick hook runs before physics; a microtask takes the snapshot after the
 synchronous step/batch has finished, so a press consumed immediately by a kick
 never becomes a visible white-outline frame. Catch-up steps are coalesced.
 
+Successful `onPlayerBallKick` events also send a separate `liveKick` worker IPC
+event, forwarded as reliable `live:kick` over the shared upstream and to current
+viewers only. Each carries a UUID, timestamp, player ID and match ID. Kicks are
+not added to frame caches or timeline history and are not replayed on subscribe.
+The volume bar provides a 0–100% slider and mute button. Volume and mute state
+are stored in local storage (`live-sound-settings`), shared between rooms and
+synchronized across tabs. First-time viewers start muted. Saved audio is restored
+on reload; if the browser blocks autoplay, the first pointer/keyboard interaction
+activates it without overwriting the preference. Web Audio loads and decodes the
+original locally served HaxBall kick and goal WAVs once and routes overlapping one-shot
+playback through a shared gain node, so volume changes affect active sounds. Playback follows the 80 ms visual
+delay. Duplicate, stale, hidden-tab and previous-match sounds are suppressed;
+muting, disconnects and match resets cancel pending audio. Asset provenance and
+checksum are in `public/audio/README.md`.
+
 Headless Host has no stadium geometry getter. RoomService retains HBS data for
 maps loaded by this application, resolves bundled maps selected in-game, and
 labels other external stadiums as having unavailable geometry. Such maps use
@@ -125,3 +140,8 @@ browser storage or additional database service are involved.
 
 The former admin LIVE page, its navigation entry, `/api/live`, and `/live-ws`
 relay have been removed. Broadcasts are accessed exclusively at `/live/<ruid>`.
+
+Goal audio uses the existing guarded score-increase detection, scheduled with
+the same 80 ms interpolation delay as the goal celebration. Cached frames,
+reconnects and attribution updates do not replay it. Goals and kicks share the
+volume bar, persisted preferences, gain node, and mute/cleanup behavior.

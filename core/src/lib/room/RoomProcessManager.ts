@@ -279,6 +279,9 @@ export class RoomProcessManager {
 
     private handleWorkerEvent(handle: RoomHandle, event: RoomWorkerEvent): void {
         switch (event.event) {
+            case "liveKick":
+                this.sioServer?.to(`live:${handle.ruid}`).emit("live:kick", { ruid: handle.ruid, ...event.payload });
+                return;
             case "live":
                 const newGoal = event.payload.goal && event.payload.goal.id !== handle.liveFrame?.goal?.id;
                 if (handle.liveTimeline?.matchId !== event.payload.matchId) handle.liveTimeline = undefined;

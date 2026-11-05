@@ -1,4 +1,4 @@
-import type { LiveFrame } from "./LiveProtocol.js";
+import type { LiveFrame, LiveKick } from "./LiveProtocol.js";
 import Joi from "joi";
 import { Player } from "../../game/model/GameObject/Player.js";
 import { TeamID } from "../../game/model/GameObject/TeamID.js";
@@ -28,6 +28,7 @@ export interface TeamColourInfo {
 
 export type RoomWorkerEvent =
     | { type: "event"; event: "live"; payload: LiveFrame }
+    | { type: "event"; event: "liveKick"; payload: LiveKick }
     | {
           type: "event";
           event: "roomReady";
@@ -105,7 +106,7 @@ type ValidationResult<T> =
           error: string;
       };
 
-const roomWorkerEvents: RoomWorkerEvent["event"][] = ["roomReady", "log", "joinleft", "statuschange", "live"];
+const roomWorkerEvents: RoomWorkerEvent["event"][] = ["roomReady", "log", "joinleft", "statuschange", "live", "liveKick"];
 
 const undefinedSchema = Joi.any().custom((value, helpers) => {
     if (value !== undefined) {
@@ -319,6 +320,10 @@ const liveTimelineSchema = Joi.object({
 });
 
 const eventPayloadSchemas: Record<RoomWorkerEvent["event"], Joi.Schema> = {
+    liveKick: Joi.object({
+        id: Joi.string().required(), timestamp: Joi.number().required(),
+        playerId: Joi.number().integer().required(), matchId: Joi.string().allow(null).required(),
+    }).required(),
     live: Joi.object({
         sequence: Joi.number().integer().required(), timestamp: Joi.number().required(),
         status: Joi.string().valid("playing", "paused", "stopped").required(),
