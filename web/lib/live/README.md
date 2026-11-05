@@ -1,7 +1,7 @@
 The public broadcast page initializes `/api/public/live`, then opens a
 same-origin Socket.IO connection at `/public-live-ws` using WebSocket transport only.
-The Node HTTP server relays a dedicated authenticated WebSocket to the room's
-mapped core host. Core frames are scoped to `live:<ruid>`. Host URLs and JWTs
+The Node HTTP server shares one authenticated upstream WebSocket per room
+to its mapped core host. Core frames are scoped to `live:<ruid>`. Host URLs and JWTs
 stay on the server. Existing admin SSE events are unchanged.
 
 Run with `next start` or `next dev` on a persistent Node process. Forward
@@ -28,13 +28,30 @@ Run `npm run build && npm run test:public-live` in web for a production
 HTTP/WebSocket check. It uses temporary storage, synthetic hosts and test-only
 credentials, without modifying the configured room/host state.
 
-Viewer counts are active core `live:<ruid>` subscriptions, shared across broadcasts
-and across web processes. Each open broadcast tab counts
-once; players and administrative control connections do not count. Core emits
-`live:viewers` when subscriptions join/leave, including disconnect cleanup;
-the relay forwards it to the broadcast page. Public discovery includes the
-count from core room info and refreshes every five seconds (subject to core
-health snapshot caching). Repeated subscriptions do not increment the count.
+The first browser subscription creates a room relay. Other viewers share that
+upstream, including while its initial connection is pending. The relay caches
+the latest positions, stadium geometry and current match timeline and replays
+these reliably to new viewers. Ordinary movement frames remain volatile.
+Reconnection is shared and restores all viewers; stale cached state is cleared
+on outages. Source initialization/authentication failures retry with fresh host
+mapping and credentials. Browser commands are never forwarded to core.
+
+The last viewer leaving starts a 30-second grace period (`LIVE_RELAY_GRACE_MS`
+in `relay-pool.ts`). A returning viewer cancels closure and reuses the warm
+stream. Otherwise the upstream is disconnected and its cached state is removed.
+Unwatched rooms have no broadcast upstream once grace expires. This stops
+unnecessary core-to-web traffic but does not disable worker snapshot capture or
+match-event recording. Chat history is independent of relay connection lifetime.
+
+Viewer counts now belong entirely to the single web process. Each subscribed
+browser tab counts once, even during an upstream outage; raw connections without
+a room subscription do not count. Leaving, disconnecting or switching rooms
+updates counts immediately, and repeated subscriptions do not increment them.
+Web emits `live:viewers` to room viewers. The public directory reads these same
+in-memory counts without waiting for core health snapshots and polls every five
+seconds. A retained upstream with no browsers counts as zero viewers. Core no
+longer emits viewer counts or exposes them in room info. Old-core count events
+are ignored. Counts, like chat, are local to one web process and reset on restart.
 
 The collapsible broadcast side panel has Events and Chat tabs. Viewer chat is
 separate from the in-game chat and shared by viewers of the same

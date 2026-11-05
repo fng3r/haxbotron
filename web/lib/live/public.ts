@@ -17,7 +17,7 @@ export function selectPublicLiveRooms(
       ruid: room.ruid,
       roomName: room.roomName || room.ruid,
       onlinePlayers: room.onlinePlayers ?? 0,
-      viewers: room.viewers ?? 0,
+      viewers: 0,
     }))
     .sort((a, b) => a.roomName.localeCompare(b.roomName));
 }

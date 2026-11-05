@@ -45,13 +45,6 @@ export class RoomProcessManager {
 
     public attachSocketIOServer(server: SIOserver): void {
         this.sioServer = server;
-        const updateViewers = (room: string) => {
-            if (!room.startsWith("live:")) return;
-            const ruid = room.slice(5);
-            server.to(room).emit("live:viewers", { ruid, viewers: this.getLiveViewerCount(ruid) });
-        };
-        server.sockets.adapter.on("join-room", updateViewers);
-        server.sockets.adapter.on("leave-room", updateViewers);
         server.on("connection", socket => {
             socket.on("live:subscribe", (ruid: unknown, ack?: (result: { ok: boolean; error?: string }) => void) => {
                 if (typeof ruid !== "string" || !this.rooms.has(ruid)) {
@@ -61,7 +54,6 @@ export class RoomProcessManager {
                 // A socket watches one room at a time.
                 for (const joined of socket.rooms) if (joined.startsWith("live:") && joined !== `live:${ruid}`) void socket.leave(joined);
                 void socket.join(`live:${ruid}`);
-                socket.emit("live:viewers", { ruid, viewers: this.getLiveViewerCount(ruid) });
                 const handle = this.rooms.get(ruid)!;
                 if (handle.liveFrame) socket.emit("live", { ruid, ...handle.liveFrame, stadium: handle.liveStadium,
                     timeline: handle.liveTimeline?.matchId === handle.liveFrame.matchId ? handle.liveTimeline : undefined });
@@ -75,10 +67,6 @@ export class RoomProcessManager {
 
     public hasRoom(ruid: string): boolean {
         return this.rooms.has(ruid);
-    }
-
-    public getLiveViewerCount(ruid: string): number {
-        return this.sioServer?.sockets.adapter.rooms.get(`live:${ruid}`)?.size ?? 0;
     }
 
     public getAllRoomIds(): string[] {

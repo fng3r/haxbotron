@@ -68,7 +68,8 @@ async function mockHost(room, capable) {
         ack?.({ ok: false });
         return;
       }
-      client.emit('live:viewers', { ruid: room, viewers: 1 });
+      // Old cores may still send a count of upstream sockets; web must ignore it.
+      client.emit('live:viewers', { ruid: room, viewers: 999 });
       client.emit('live', {
         ruid: room,
         sequence: 1,
@@ -190,6 +191,9 @@ try {
   assert.deepEqual((await viewerCount)[0], { ruid: 'arena', viewers: 1 });
   assert.equal(frame.ruid, 'arena');
   assert.equal(frame.timeline.events[0].type, 'start');
+  assert.equal(hosts[0].sockets.sockets.size, 1);
+  const directoryCount = async () => (await (await fetch(base + '/api/public/rooms')).json()).rooms[0].viewers;
+  assert.equal(await directoryCount(), 1, 'directory uses web-owned counts across Next route bundles');
   assert.deepEqual((await initialChat)[0], { ruid: 'arena', messages: [] });
   const sendChat = (client, payload) =>
     new Promise((resolve, reject) => {
@@ -208,6 +212,8 @@ try {
   viewer.emit('live:subscribe', 'legacy');
   assert.equal(typeof (await rejected)[0], 'string');
   assert.equal((await sendChat(viewer, { nickname: 'Viewer', text: 'No room' })).ok, false);
+  assert.equal(await directoryCount(), 0);
+  assert.equal(hosts[0].sockets.sockets.size, 1, 'empty broadcast retains upstream during grace');
   assert.ok(coreEvents.every((event) => event === 'live:subscribe'));
   const token = await new SignJWT({ username: 'synthetic-admin' })
     .setProtectedHeader({ alg: 'HS256' })
@@ -219,21 +225,42 @@ try {
   }
   const secondViewer = await connect(base, '/public-live-ws');
   const secondHistory = once(secondViewer, 'chat:history');
+  const cachedFrame = once(secondViewer, 'live');
   secondViewer.emit('live:subscribe', 'arena');
   assert.deepEqual((await secondHistory)[0].messages, [message]);
+  assert.deepEqual((await cachedFrame)[0].stadium, frame.stadium);
   const viewerHistory = once(viewer, 'chat:history');
   viewer.emit('live:subscribe', 'arena');
   assert.deepEqual((await viewerHistory)[0].messages, [message]);
+  assert.equal(hosts[0].sockets.sockets.size, 1, 'two browsers share one upstream');
+  assert.equal(
+    coreEvents.filter((event) => event === 'live:subscribe').length,
+    1,
+    'joining and reloading viewers do not resubscribe core',
+  );
+  assert.equal(await directoryCount(), 2);
+  const repeatedCount = once(viewer, 'live:viewers');
+  viewer.emit('live:subscribe', 'arena');
+  assert.deepEqual((await repeatedCount)[0], { ruid: 'arena', viewers: 2 });
   const publicChat = once(viewer, 'chat:message');
   const secondChat = once(secondViewer, 'chat:message');
   assert.equal((await sendChat(secondViewer, { nickname: 'Another viewer', text: 'Shared chat' })).ok, true);
   assert.deepEqual((await publicChat)[0], (await secondChat)[0]);
+  const departed = once(viewer, 'live:viewers');
+  secondViewer.disconnect();
+  assert.deepEqual((await departed)[0], { ruid: 'arena', viewers: 1 });
+  assert.equal(await directoryCount(), 1);
+  // A chat ACK acts as a barrier after explicit unsubscribe.
+  viewer.emit('live:unsubscribe');
+  assert.equal((await sendChat(viewer, { nickname: 'Viewer', text: 'Unsubscribed' })).ok, false);
+  assert.equal(await directoryCount(), 0);
+  assert.equal(hosts[0].sockets.sockets.size, 1);
   assert.ok(
     coreEvents.every((event) => event === 'live:subscribe'),
     'chat never reaches core',
   );
   console.log(
-    'Public production checks passed: directory/page access, sanitized discovery, live/timeline delivery, chat validation, history replay, shared delivery, removed admin live routes, and protected admin APIs.',
+    'Public production checks passed: shared upstream, cached replay, web-owned counts, grace-period reuse, chat delivery, removed admin live routes, and protected admin APIs.',
   );
 } catch (error) {
   console.error(error);

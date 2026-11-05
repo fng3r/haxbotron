@@ -11,7 +11,7 @@ test('public discovery includes only online rooms on capable, available hosts', 
     { ruid: 'd', hostId: 'capable', online: true, blockingReason: 'Disabled host' },
   ];
   assert.deepEqual(selectPublicLiveRooms(rooms, new Set(['capable'])), [
-    { ruid: 'a', roomName: 'Arena', onlinePlayers: 4, viewers: 3 },
+    { ruid: 'a', roomName: 'Arena', onlinePlayers: 4, viewers: 0 },
   ]);
 });
 

@@ -16,7 +16,7 @@ describe('live WebSocket subscriptions', () => {
         await new Promise<void>(resolve => server ? server.close(() => resolve()) : resolve());
     });
 
-    it('counts active viewers across subscriptions, room switches, repeats and disconnects', async () => {
+    it('switches upstream subscriptions without duplicates and rejects offline rooms', async () => {
         const http = createServer();
         server = new Server(http, { path: '/ws', transports: ['websocket'] });
         const manager = new RoomProcessManager();
@@ -24,47 +24,22 @@ describe('live WebSocket subscriptions', () => {
         Reflect.get(manager, 'rooms').set('b', { ruid: 'b' });
         manager.attachSocketIOServer(server);
         await new Promise<void>(resolve => http.listen(0, '127.0.0.1', resolve));
-        const connect = async () => {
-            const socket = io(`http://127.0.0.1:${(http.address() as AddressInfo).port}`, { path: '/ws', transports: ['websocket'], reconnection: false });
-            clients.push(socket);
-            await new Promise<void>((resolve, reject) => { socket.once('connect', resolve); socket.once('connect_error', reject); });
-            return socket;
-        };
-        const first = await connect();
-        const second = await connect();
-        await connect(); // A control socket that is not watching a broadcast must not count.
-        const counts: { ruid: string; viewers: number }[] = [];
-        first.on('live:viewers', payload => counts.push(payload));
-        const subscribe = (socket: Socket, ruid: string) => new Promise<{ ok: boolean }>(resolve => socket.emit('live:subscribe', ruid, resolve));
-        expect(manager.getLiveViewerCount('a')).toBe(0);
-        await subscribe(first, 'a');
-        expect(counts[counts.length - 1]).toEqual({ ruid: 'a', viewers: 1 });
-        await subscribe(second, 'a');
-        await subscribe(first, 'a'); // ACK provides a delivery barrier for the first client.
-        expect(counts[counts.length - 1]).toEqual({ ruid: 'a', viewers: 2 });
-        expect(manager.getLiveViewerCount('a')).toBe(2);
-        counts.length = 0;
-        await subscribe(first, 'a');
-        expect(counts).toEqual([{ ruid: 'a', viewers: 2 }]);
-        await subscribe(second, 'b');
-        await subscribe(first, 'a');
-        expect(manager.getLiveViewerCount('a')).toBe(1);
-        expect(manager.getLiveViewerCount('b')).toBe(1);
-        expect(counts[counts.length - 1]).toEqual({ ruid: 'a', viewers: 1 });
-        expect(await subscribe(first, 'missing')).toMatchObject({ ok: false });
-        expect(manager.getLiveViewerCount('a')).toBe(1);
-        const serverSocket = server.sockets.sockets.get(first.id!)!;
-        const disconnected = new Promise<void>(resolve => serverSocket.once('disconnect', () => resolve()));
-        first.disconnect();
-        await disconnected;
-        expect(manager.getLiveViewerCount('a')).toBe(0);
-        const reloaded = await connect();
-        await subscribe(reloaded, 'b');
-        expect(manager.getLiveViewerCount('b')).toBe(2);
+        const client = io(`http://127.0.0.1:${(http.address() as AddressInfo).port}`, { path: '/ws', transports: ['websocket'], reconnection: false });
+        clients.push(client);
+        await new Promise<void>(resolve => client.once('connect', resolve));
+        const subscribe = (ruid: string) => new Promise<{ ok: boolean }>(resolve => client.emit('live:subscribe', ruid, resolve));
+        const rooms = server.sockets.sockets.get(client.id!)!.rooms;
+        expect(await subscribe('a')).toMatchObject({ ok: true });
+        await subscribe('a');
+        expect([...rooms].filter(name => name.startsWith('live:'))).toEqual(['live:a']);
+        await subscribe('b');
+        expect([...rooms].filter(name => name.startsWith('live:'))).toEqual(['live:b']);
+        expect(await subscribe('missing')).toMatchObject({ ok: false });
+        expect(rooms.has('live:b')).toBe(true);
         const left = new Promise<void>(resolve => server!.sockets.adapter.once('leave-room', () => resolve()));
-        reloaded.emit('live:unsubscribe');
+        client.emit('live:unsubscribe');
         await left;
-        expect(manager.getLiveViewerCount('b')).toBe(1);
+        expect([...rooms].filter(name => name.startsWith('live:'))).toEqual([]);
     });
 
     it('restores events recorded without viewers on a fresh connection and isolates subsequent matches', async () => {

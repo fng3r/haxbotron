@@ -171,7 +171,6 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
         });
         socket.on('live:error', (error: string) => {
           setChatConnected(false);
-          setViewers(null);
           resetGoals();
           setConnection(error);
         });
