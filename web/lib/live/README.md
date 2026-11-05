@@ -106,6 +106,13 @@ HBS segment traits and draws straight/curved segments, markings, discs, and
 player labels. It currently uses default red/blue team discs; custom jersey
 stripes and avatars are not reproduced.
 
+Grass and hockey backgrounds have dedicated procedural textures. Grass uses
+green diagonal mowing bands and grain inside the rounded `bg.width`/`bg.height`
+pitch, with `bg.color` (default `718C5A`) across the surrounding viewport. Hockey
+uses lighter concrete inside and darker concrete outside. Plain backgrounds
+use their color across the viewport. Textures are generated once per renderer
+and the stadium layer is cached until the map or canvas dimensions change.
+
 `types.ts` mirrors core's public `LiveProtocol.ts`; update both for protocol
 changes. Frames exclude auth, IP/connection data, passwords and room configs.
 

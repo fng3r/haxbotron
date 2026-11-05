@@ -22,14 +22,18 @@ export class BroadcastRenderer {
   private background = document.createElement('canvas');
   private concrete: CanvasPattern | null;
   private concreteBorder: CanvasPattern | null;
+  private grass: CanvasPattern | null;
   private dirty = true;
+  private canvas: HTMLCanvasElement;
 
-  constructor(private canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Canvas is unavailable');
     this.context = context;
     this.concrete = this.concreteTexture(109, 40, 8);
     this.concreteBorder = this.concreteTexture(87, 32, 5);
+    this.grass = this.grassTexture();
     this.animation = requestAnimationFrame(this.draw);
   }
 
@@ -50,6 +54,34 @@ export class BroadcastRenderer {
           for (let dx = 0; dx < 2; dx++) {
             const offset = ((y + dy) * tile.width + x + dx) * 4;
             pixels.data[offset] = pixels.data[offset + 1] = pixels.data[offset + 2] = value;
+            pixels.data[offset + 3] = 255;
+          }
+        }
+      }
+    }
+    ctx.putImageData(pixels, 0, 0);
+    return this.context.createPattern(tile, 'repeat');
+  }
+
+  private grassTexture(): CanvasPattern | null {
+    const tile = document.createElement('canvas');
+    tile.width = tile.height = 256;
+    const ctx = tile.getContext('2d');
+    if (!ctx) return null;
+    const pixels = ctx.createImageData(tile.width, tile.height);
+    let seed = 24680;
+    for (let y = 0; y < tile.height; y += 2) {
+      for (let x = 0; x < tile.width; x += 2) {
+        // Seamless diagonal mowing bands and deterministic grain, like the native grass.
+        const base = (x + y) % 128 < 64 ? [125, 169, 109] : [115, 158, 99];
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        const grain = Math.round((seed / 0xffffffff - 0.5) * 12);
+        for (let dy = 0; dy < 2; dy++) {
+          for (let dx = 0; dx < 2; dx++) {
+            const offset = ((y + dy) * tile.width + x + dx) * 4;
+            pixels.data[offset] = base[0] + grain;
+            pixels.data[offset + 1] = base[1] + grain;
+            pixels.data[offset + 2] = base[2] + grain;
             pixels.data[offset + 3] = 255;
           }
         }
@@ -83,31 +115,26 @@ export class BroadcastRenderer {
     cancelAnimationFrame(this.animation);
   }
 
-  private field(ctx: CanvasRenderingContext2D, stadium: LiveStadium) {
+  private field(ctx: CanvasRenderingContext2D, stadium: LiveStadium, visibleWidth: number, visibleHeight: number) {
     const bg = stadium.bg;
     const w = bg?.width ?? stadium.width;
     const h = bg?.height ?? stadium.height;
-    if (bg?.type === 'hockey') {
-      // Native hockey backgrounds use concrete, independent of the HBS color.
-      ctx.fillStyle = this.concreteBorder ?? '#575757';
-      ctx.fillRect(-10000, -10000, 20000, 20000);
+    // Stadium bounds size the camera, not the background. Cover the whole view,
+    // including aspect-ratio margins and fullscreen space outside those bounds.
+    ctx.fillStyle = bg?.type === 'hockey' ? (this.concreteBorder ?? '#575757') : color(bg?.color, '#718c5a');
+    ctx.fillRect(-visibleWidth / 2, -visibleHeight / 2, visibleWidth, visibleHeight);
+    if (bg?.type === 'hockey' || bg?.type === 'grass') {
+      // Built-in surfaces have their own textures. Grass still uses bg.color outside.
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(-w, -h, w * 2, h * 2, Math.min(bg.cornerRadius ?? 0, w, h));
       ctx.clip();
-      ctx.fillStyle = this.concrete ?? '#6d6d6d';
+      ctx.fillStyle = bg.type === 'hockey' ? (this.concrete ?? '#6d6d6d') : (this.grass ?? '#78a367');
       ctx.fillRect(-w, -h, w * 2, h * 2);
       ctx.restore();
-    } else {
-      ctx.fillStyle = color(bg?.color, '#718c5a');
-      ctx.fillRect(-stadium.width, -stadium.height, stadium.width * 2, stadium.height * 2);
-    }
-    if (bg?.type === 'grass') {
-      ctx.fillStyle = '#ffffff08';
-      for (let x = -w; x < w; x += 100) ctx.fillRect(x, -h, 50, h * 2);
     }
     if (bg?.type === 'grass' || bg?.type === 'hockey') {
-      ctx.strokeStyle = bg.type === 'hockey' ? '#8a9aa4' : '#c7dbb0';
+      ctx.strokeStyle = bg.type === 'hockey' ? '#8a9aa4' : '#c7e6bd';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.roundRect(-w, -h, w * 2, h * 2, Math.min(bg.cornerRadius ?? 0, w, h));
@@ -190,7 +217,7 @@ export class BroadcastRenderer {
       const bg = this.background.getContext('2d')!;
       bg.translate(width / 2, height / 2);
       bg.scale(scale, scale);
-      this.field(bg, stadium);
+      this.field(bg, stadium, width / scale, height / scale);
       this.dirty = false;
     }
     ctx.drawImage(this.background, 0, 0);
