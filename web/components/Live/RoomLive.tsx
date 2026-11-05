@@ -12,6 +12,7 @@ import { Eye, Maximize, Minimize, PanelRightClose, PanelRightOpen } from 'lucide
 import { io } from 'socket.io-client';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 
 import type { BroadcastAudio } from '@/lib/live/audio';
 import type { ChatMessage } from '@/lib/live/chat';
@@ -224,11 +225,12 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
       data-sidebar-open={timelineOpen}
       className={`${styles.root} ${fullscreen ? styles.fullscreen : ''} grid items-stretch gap-4 ${timelineOpen ? 'lg:grid-cols-[minmax(0,1fr)_19rem]' : 'grid-cols-1'}`}
     >
-      <section
-        className={`${styles.broadcast} min-w-0 self-start overflow-hidden rounded-xl border bg-card`}
+      <Card
+        className={`${styles.broadcast} min-w-0 self-start gap-0 overflow-hidden py-0`}
+        role="region"
         aria-label="Live game broadcast"
       >
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4">
+        <CardHeader className="flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4 [.border-b]:pb-4">
           <div>
             <h1 className="text-lg font-semibold tracking-tight">{roomName ?? 'Live broadcast'}</h1>
             <p className="text-xs text-muted-foreground">
@@ -269,8 +271,8 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
               {fullscreen ? <Minimize aria-hidden="true" /> : <Maximize aria-hidden="true" />}
             </Button>
           </div>
-        </div>
-        <div className={`${styles.pitch} relative bg-[#18251f]`}>
+        </CardHeader>
+        <CardContent className={`${styles.pitch} relative bg-[#18251f] px-0`}>
           <canvas
             ref={canvas}
             className="block aspect-[16/9] w-full"
@@ -293,8 +295,8 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
           <div className="absolute bottom-3 left-3 z-20">
             <BroadcastSound audioRef={audio} />
           </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-xs text-muted-foreground">
+        </CardContent>
+        <CardFooter className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-3">
             <span className="flex items-center gap-2" role="status">
               <span
@@ -317,8 +319,8 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
               {frame?.players.filter((p) => p.team === 0).length ?? 0} spectators
             </span>
           </span>
-        </div>
-      </section>
+        </CardFooter>
+      </Card>
       {/* On desktop the panel fills this grid cell without contributing to the row height. */}
       <div
         hidden={!timelineOpen}

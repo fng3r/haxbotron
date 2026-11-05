@@ -4,7 +4,10 @@ import { useEffect, useId, useRef, useState } from 'react';
 
 import { MessageCircle, Send } from 'lucide-react';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 import type { ChatMessage } from '@/lib/live/chat';
 
@@ -122,16 +125,18 @@ export default function BroadcastChat({
               <span className="truncate">
                 Chatting as <span className={`font-medium ${nicknameColor(nickname)}`}>{nickname}</span>
               </span>
-              <button
+              <Button
                 type="button"
-                className="shrink-0 underline underline-offset-2"
+                variant="link"
+                size="sm"
+                className="h-auto shrink-0 p-0 text-[11px] font-normal text-muted-foreground underline underline-offset-2"
                 onClick={() => {
                   setDraftName(nickname);
                   setNickname('');
                 }}
               >
                 Change
-              </button>
+              </Button>
             </div>
             <form
               className="flex gap-2"
@@ -151,14 +156,14 @@ export default function BroadcastChat({
                 }
               }}
             >
-              <input
+              <Input
                 aria-label="Message"
                 placeholder={connected ? 'Say something…' : 'Reconnecting…'}
                 maxLength={500}
                 value={text}
                 onChange={(event) => setText(event.target.value)}
                 disabled={!connected}
-                className="h-9 min-w-0 flex-1 rounded-md border bg-background px-2 text-xs focus-visible:outline-2 focus-visible:outline-ring"
+                className="h-9 min-w-0 flex-1 bg-background px-2 text-xs md:text-xs"
               />
               <Button
                 type="submit"
@@ -189,18 +194,18 @@ export default function BroadcastChat({
               }
             }}
           >
-            <label className="mb-2 block text-xs font-medium" htmlFor={nicknameId}>
+            <Label className="mb-2 block text-xs font-medium" htmlFor={nicknameId}>
               Choose a nickname to chat
-            </label>
+            </Label>
             <div className="flex gap-2">
-              <input
+              <Input
                 id={nicknameId}
                 autoComplete="nickname"
                 maxLength={24}
                 placeholder="Your nickname"
                 value={draftName}
                 onChange={(event) => setDraftName(event.target.value)}
-                className="h-9 min-w-0 flex-1 rounded-md border bg-background px-2 text-xs focus-visible:outline-2 focus-visible:outline-ring"
+                className="h-9 min-w-0 flex-1 bg-background px-2 text-xs md:text-xs"
               />
               <Button type="submit" size="sm" className="h-9" disabled={!draftName.trim()}>
                 Join
@@ -209,9 +214,9 @@ export default function BroadcastChat({
           </form>
         )}
         {error && (
-          <p role="alert" className="mt-2 text-xs text-destructive">
-            {error}
-          </p>
+          <Alert variant="destructive" className="mt-2 px-2 py-1">
+            <AlertDescription className="text-xs">{error}</AlertDescription>
+          </Alert>
         )}
       </div>
     </div>

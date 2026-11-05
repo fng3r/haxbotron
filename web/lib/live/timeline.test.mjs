@@ -62,13 +62,17 @@ test('formats match-clock times, own goals, unknown scorers and team changes', (
   assert.equal(eventTime(125.9), '02:05');
   assert.equal(eventTime(6000), '100:00');
   assert.deepEqual(describeEvent({ type: 'goal', team: 1, goal: { ownGoal: true, scorer: { name: 'Alex' } } }), {
-    title: 'Red goal',
+    title: 'Red scores',
     detail: 'Alex (OG)',
   });
   assert.deepEqual(describeEvent({ type: 'goal', team: 2, goal: { ownGoal: true, scorer: { name: 'Alex' } } }), {
-    title: 'Blue goal',
+    title: 'Blue scores',
     detail: 'Alex (OG)',
   });
   assert.equal(describeEvent({ type: 'goal', team: 2 }).detail, 'Scorer unavailable');
+  assert.deepEqual(describeEvent({ type: 'goal', team: 1, goal: { scorer: { name: 'Alex' }, assistant: { name: 'Sam' } } }), {
+    title: 'Red scores',
+    detail: 'Alex (Sam)',
+  });
   assert.equal(describeEvent({ type: 'teamChange', team: 0, player: { name: 'Alex' } }).title, 'Moved to spectators');
 });

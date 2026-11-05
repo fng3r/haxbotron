@@ -5,6 +5,7 @@ import { type RefObject, useEffect, useMemo, useRef, useState, useSyncExternalSt
 import { Volume2, VolumeX } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
 
 import { BroadcastAudio } from '@/lib/live/audio';
 import {
@@ -108,18 +109,17 @@ export default function BroadcastSound({ audioRef }: { audioRef: RefObject<Broad
           )}
         </Button>
         <div className="invisible absolute left-full top-0 flex h-9 w-40 items-center gap-2 rounded-md border border-white/15 bg-black/80 px-3 opacity-0 transition-opacity group-hover/sound:visible group-hover/sound:opacity-100 group-focus-within/sound:visible group-focus-within/sound:opacity-100 motion-reduce:transition-none">
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={percent}
+          <Slider
+            min={0}
+            max={100}
+            step={1}
+            value={[percent]}
             aria-label="Broadcast sound volume"
             aria-valuetext={muted ? 'Muted' : `${percent}%`}
             title={`Broadcast sound volume: ${percent}%`}
-            className="h-4 min-w-0 flex-1 cursor-pointer accent-emerald-500"
-            onChange={(event) => {
-              const volume = Number(event.target.value) / 100;
+            className="min-w-0 flex-1 [&_[data-slot=slider-track]]:bg-white/25 [&_[data-slot=slider-range]]:bg-emerald-500 [&_[data-slot=slider-thumb]]:size-3 [&_[data-slot=slider-thumb]]:border-white/70"
+            onValueChange={([value]) => {
+              const volume = value / 100;
               update({ volume: volume || settings.volume, muted: volume === 0 });
             }}
           />

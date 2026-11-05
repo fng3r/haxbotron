@@ -46,8 +46,8 @@ export function describeEvent(event: LiveMatchEvent): { title: string; detail?: 
       return { title: `${event.team === 1 ? 'Red' : 'Blue'} wins`, detail: 'Full time' };
     case 'goal':
       return {
-        title: `${event.team === 1 ? 'Red' : 'Blue'} goal`,
-        detail: `${event.goal?.scorer?.name ?? 'Scorer unavailable'}${event.goal?.ownGoal ? ' (OG)' : ''}`,
+        title: `${event.team === 1 ? 'Red' : 'Blue'} scores`,
+        detail: `${event.goal?.scorer?.name ?? 'Scorer unavailable'}${event.goal?.ownGoal ? ' (OG)' : event.goal?.assistant ? ` (${event.goal.assistant.name})` : ''}`,
       };
     case 'join':
       return { title: 'Player joined', detail: event.player?.name };

@@ -141,6 +141,14 @@ browser storage or additional database service are involved.
 The former admin LIVE page, its navigation entry, `/api/live`, and `/live-ws`
 relay have been removed. Broadcasts are accessed exclusively at `/live/<ruid>`.
 
+Standard broadcast controls use local shadcn/ui components: Tabs for Chat/Events,
+Toggle Group for event filters, Slider for volume, Input/Label for chat forms,
+and Card/Alert/Button for containers and feedback. Tabs are force-mounted and
+inactive panels are hidden so drafts and filters survive tab changes. Native
+scroll containers preserve chat auto-follow and bounded sidebar/fullscreen
+layout. The volume hover container stays inside the fullscreen element; it does
+not portal outside the broadcast. Canvas rendering and event rows remain custom.
+
 Goal audio uses the existing guarded score-increase detection, scheduled with
 the same 80 ms interpolation delay as the goal celebration. Cached frames,
 reconnects and attribution updates do not replay it. Goals and kicks share the
