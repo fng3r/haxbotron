@@ -89,7 +89,22 @@ test('audio starts muted, loads once on enable, delays kicks, deduplicates event
   audio.destroy();
 });
 
-test('muting, clearing and destroying cancel pending sounds; hidden and delayed tabs do not play stale sounds', async (t) => {
+test('enabled kick and goal sounds play while the tab is hidden', async (t) => {
+  const { nodes } = setup(t);
+  const audio = new BroadcastAudio();
+  await audio.enable();
+  audio.kick({ id: 'before-hidden' }, 80);
+  document.hidden = true;
+  t.mock.timers.tick(80);
+  audio.kick({ id: 'while-hidden' }, 80);
+  audio.goal('hidden-goal', 80);
+  t.mock.timers.tick(80);
+  assert.equal(nodes.length, 3);
+  assert.ok(nodes.every((node) => node.started));
+  audio.destroy();
+});
+
+test('muting, clearing and destroying cancel pending sounds; delayed timers do not play stale sounds', async (t) => {
   const { nodes, context } = setup(t);
   const audio = new BroadcastAudio();
   await audio.enable();
@@ -102,11 +117,6 @@ test('muting, clearing and destroying cancel pending sounds; hidden and delayed 
   audio.clear();
   t.mock.timers.tick(80);
   assert.equal(nodes.length, 0);
-  audio.kick({ id: 'hidden' }, 80);
-  document.hidden = true;
-  t.mock.timers.tick(80);
-  assert.equal(nodes.length, 0);
-  document.hidden = false;
   let now = 0;
   t.mock.method(performance, 'now', () => now);
   audio.kick({ id: 'throttled' }, 80);

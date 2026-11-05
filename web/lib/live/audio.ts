@@ -78,7 +78,7 @@ export class BroadcastAudio {
     if (this.seen.has(key)) return;
     this.seen.add(key);
     if (this.seen.size > 128) this.seen.delete(this.seen.values().next().value!);
-    if (!this.enabled || this.context?.state !== 'running' || document.hidden) return;
+    if (!this.enabled || this.context?.state !== 'running') return;
     const received = performance.now();
     const timer = setTimeout(() => {
       this.pending.delete(timer);
@@ -87,7 +87,6 @@ export class BroadcastAudio {
         !this.enabled ||
         !this.buffers.has(sound) ||
         this.context?.state !== 'running' ||
-        document.hidden ||
         performance.now() - received > delayMs + 250
       )
         return;

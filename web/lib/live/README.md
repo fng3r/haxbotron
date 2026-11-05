@@ -94,7 +94,7 @@ on reload; if the browser blocks autoplay, the first pointer/keyboard interactio
 activates it without overwriting the preference. Web Audio loads and decodes the
 original locally served HaxBall kick and goal WAVs once and routes overlapping one-shot
 playback through a shared gain node, so volume changes affect active sounds. Playback follows the 80 ms visual
-delay. Duplicate, stale, hidden-tab and previous-match sounds are suppressed;
+delay, including in background tabs. Duplicate, stale and previous-match sounds are suppressed;
 muting, disconnects and match resets cancel pending audio. Asset provenance and
 checksum are in `public/audio/README.md`.
 
