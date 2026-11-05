@@ -11,6 +11,7 @@ import MatchTimeline from './MatchTimeline';
 import { Eye, Maximize, Minimize, PanelRightClose, PanelRightOpen, RectangleHorizontal } from 'lucide-react';
 import { io } from 'socket.io-client';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 
@@ -19,6 +20,7 @@ import type { ChatMessage } from '@/lib/live/chat';
 import { detectGoal, goalForScore } from '@/lib/live/goals';
 import { BroadcastRenderer, INTERPOLATION_DELAY_MS } from '@/lib/live/renderer';
 import { mergeTimeline } from '@/lib/live/timeline';
+import { isOvertime, isTimeRunningOut } from '@/lib/live/timer';
 import type { LiveFrame, LiveKick, LiveMatchTimeline } from '@/lib/live/types';
 
 export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: string }) {
@@ -221,6 +223,8 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   }, [ruid]);
 
   const seconds = Math.floor(frame?.scores?.time ?? 0);
+  const timeWarning = frame?.status !== 'stopped' && isTimeRunningOut(frame?.scores ?? null);
+  const overtime = frame?.status !== 'stopped' && isOvertime(frame?.scores ?? null);
   const time = `${Math.floor(seconds / 60)
     .toString()
     .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
@@ -245,13 +249,31 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
             </p>
           </div>
           <div
-            className="flex items-center gap-4 font-mono text-xl tabular-nums"
-            aria-label={`Red ${frame?.scores?.red ?? 0}, Blue ${frame?.scores?.blue ?? 0}, time ${time}`}
+            className="flex items-center gap-4 font-mono text-2xl tabular-nums"
+            aria-label={`Red ${frame?.scores?.red ?? 0}, Blue ${frame?.scores?.blue ?? 0}, time ${time}${overtime ? ', overtime' : ''}`}
           >
             <span className="text-[#e66e55]">{frame?.scores?.red ?? 0}</span>
             <span className="text-muted-foreground">:</span>
             <span className="text-[#5a89e5]">{frame?.scores?.blue ?? 0}</span>
-            <span className="ml-3 text-base">{time}</span>
+            <div className="ml-3 flex items-center gap-2">
+              <span
+                className={timeWarning ? styles.timerWarning : undefined}
+                data-paused={frame?.status !== 'playing' || connection !== 'Connected'}
+              >
+                {time}
+              </span>
+              {overtime && (
+                <Badge
+                  variant="outline"
+                  role="status"
+                  aria-label="Overtime"
+                  title="Overtime"
+                  className="rounded border-amber-500/30 bg-amber-500/10 px-2 py-1 text-lg font-semibold leading-none tracking-wide text-amber-700 dark:text-amber-400"
+                >
+                  OT
+                </Badge>
+              )}
+            </div>
           </div>
           {!fullscreen && (
             <Button

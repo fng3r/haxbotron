@@ -1,3 +1,33 @@
+.timerWarning {
+  --timer-warning-color: #dc2626;
+  animation: timer-warning 300ms linear infinite alternate;
+}
+
+:global(.dark) .timerWarning {
+  --timer-warning-color: #ff8080;
+}
+
+.timerWarning[data-paused='true'] {
+  animation: none;
+  color: var(--timer-warning-color);
+}
+
+@keyframes timer-warning {
+  from {
+    color: var(--foreground);
+  }
+  to {
+    color: var(--timer-warning-color);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timerWarning {
+    animation: none;
+    color: var(--timer-warning-color);
+  }
+}
+
 .root.expanded {
   position: fixed;
   inset: 0;
