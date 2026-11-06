@@ -134,6 +134,34 @@ function frame(stadium, sequence = 1) {
   };
 }
 
+test('all nicknames render below all player discs, with the ball above both', (t) => {
+  const { renderer, target, draw } = setup(t, 800, 450);
+  const operations = [];
+  target.context.fill = () => operations.push(`disc:${target.context.fillStyle}`);
+  target.context.strokeText = (text) => operations.push(`outline:${text}`);
+  target.context.fillText = (text) => operations.push(`text:${text}`);
+  const next = frame({ name: 'Overlapping players', width: 420, height: 200 });
+  const disc = { x: 0, y: 0, radius: 15, color: 0xffffff };
+  next.players = [
+    { id: 55, name: 'sido', team: 1, disc },
+    { id: 49, name: 'Skezzqa', team: 2, disc: { ...disc, y: -20 } },
+  ];
+  next.discs = [{ ...disc, radius: 10 }, ...next.players.map((p) => p.disc)];
+  renderer.push(next);
+  draw();
+  assert.deepEqual(operations, [
+    'outline:sido',
+    'text:sido',
+    'outline:Skezzqa',
+    'text:Skezzqa',
+    'disc:#e66e55',
+    'text:55',
+    'disc:#5a89e5',
+    'text:49',
+    'disc:#ffffff',
+  ]);
+});
+
 function assertCoverage(fill, stadium, width, height) {
   // At native 1x the cached layer covers both the map and the viewport.
   width = Math.max(width, stadium.width * 2 + 40);

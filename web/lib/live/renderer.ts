@@ -293,13 +293,16 @@ export class BroadcastRenderer {
       const d = blendDisc(a.discs[i], disc, t);
       if (d) this.disc(d);
     });
-    for (const player of b.players) {
-      const d = blendDisc(a.players.find((p) => p.id === player.id && p.team === player.team)?.disc, player.disc, t);
-      if (!d) continue;
-      // Kick readiness is discrete: use the buffered state without blending it.
+    const players = b.players.flatMap((player) => {
       const previous = a.players.find((p) => p.id === player.id && p.team === player.team);
+      const disc = blendDisc(previous?.disc, player.disc, t);
+      if (!disc) return [];
+      // Kick readiness is discrete: use the buffered state without blending it.
       const kicking = (t < 1 ? previous : player)?.kicking ?? false;
-      this.disc(d, String(player.id), player.team, kicking);
+      return [{ player, disc, kicking }];
+    });
+    // Draw complete layers so a later player's nickname cannot cover another disc.
+    for (const { player, disc: d } of players) {
       const nickname = Array.from(player.name).slice(0, 10).join('');
       ctx.font = '12px sans-serif';
       ctx.textAlign = 'center';
@@ -309,6 +312,9 @@ export class BroadcastRenderer {
       ctx.strokeText(nickname, d.x, d.y + d.radius + 5);
       ctx.fillStyle = '#fff';
       ctx.fillText(nickname, d.x, d.y + d.radius + 5);
+    }
+    for (const { player, disc, kicking } of players) {
+      this.disc(disc, String(player.id), player.team, kicking);
     }
     if (ball) this.disc(ball);
   };
