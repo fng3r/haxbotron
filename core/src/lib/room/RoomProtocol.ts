@@ -27,6 +27,7 @@ export interface TeamColourInfo {
 }
 
 export type RoomWorkerEvent =
+    | { type: "event"; event: "liveBroadcastState"; payload: { enabled: boolean } }
     | { type: "event"; event: "live"; payload: LiveFrame }
     | { type: "event"; event: "liveKick"; payload: LiveKick }
     | {
@@ -106,7 +107,7 @@ type ValidationResult<T> =
           error: string;
       };
 
-const roomWorkerEvents: RoomWorkerEvent["event"][] = ["roomReady", "log", "joinleft", "statuschange", "live", "liveKick"];
+const roomWorkerEvents: RoomWorkerEvent["event"][] = ["roomReady", "log", "joinleft", "statuschange", "live", "liveKick", "liveBroadcastState"];
 
 const undefinedSchema = Joi.any().custom((value, helpers) => {
     if (value !== undefined) {
@@ -177,6 +178,9 @@ export const roomRpcDefinitions = {
             initConfig: Joi.object<RoomInitConfig>().required(),
         }).required(),
         undefinedSchema
+    ),
+    setLiveBroadcast: defineRoomRpcCommand<{ enabled: boolean }, void>(
+        Joi.object({ enabled: Joi.boolean().strict().required() }).required(), undefinedSchema
     ),
     closeRoom: defineRoomRpcCommand<undefined, void>(undefinedSchema, undefinedSchema),
     getRoomLink: defineRoomRpcCommand<undefined, string>(undefinedSchema, Joi.string().required()),
@@ -320,6 +324,7 @@ const liveTimelineSchema = Joi.object({
 });
 
 const eventPayloadSchemas: Record<RoomWorkerEvent["event"], Joi.Schema> = {
+    liveBroadcastState: Joi.object({ enabled: Joi.boolean().required() }).required(),
     liveKick: Joi.object({
         id: Joi.string().required(), timestamp: Joi.number().required(),
         playerId: Joi.number().integer().required(), matchId: Joi.string().allow(null).required(),

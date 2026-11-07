@@ -240,6 +240,7 @@ class ControlPlaneService {
                     roomName: detailResponse.data.roomName,
                     link: detailResponse.data.link,
                     onlinePlayers: detailResponse.data.onlinePlayers,
+                    liveBroadcast: detailResponse.data.botSettings?.liveBroadcast !== false,
                   });
                 } catch {
                   detailByRuid.set(ruid, undefined);
@@ -436,6 +437,7 @@ class ControlPlaneService {
         roomName: runtime?.detail?.roomName,
         roomLink: runtime?.detail?.link,
         onlinePlayers: runtime?.detail?.onlinePlayers,
+        liveBroadcast: runtime?.detail?.liveBroadcast,
       };
 
       const hostRuntime = host ? snapshot.hosts.get(host.id) : undefined;
@@ -684,6 +686,7 @@ class ControlPlaneService {
     const host = await this.getAnyHost();
     const client = await this.getClient(host);
     const response = await client.request<T>(config);
+    if (config.method?.toUpperCase() !== 'GET') this.runtimeSnapshot.generatedAt = 0;
     if (response.status === 204) return undefined as T;
     return response.data;
   }
@@ -757,7 +760,7 @@ const globalForControlPlane = globalThis as typeof globalThis & {
   __controlPlaneServiceVersion?: string;
 };
 
-const CONTROL_PLANE_SERVICE_VERSION = 'hosts-v4-public-live';
+const CONTROL_PLANE_SERVICE_VERSION = 'hosts-v5-optional-live';
 
 export function getControlPlaneService(): ControlPlaneService {
   const existing = globalForControlPlane.__controlPlaneService as ControlPlaneService | undefined;

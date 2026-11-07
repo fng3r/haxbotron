@@ -1,3 +1,4 @@
+import { configureLiveBroadcast } from "./LiveBroadcastLifecycle.js";
 import {
     RoomRpcPayload,
     RoomRpcResult,
@@ -16,6 +17,7 @@ type RuntimeRoomCommandHandlerMap = {
 };
 
 const roomCommandHandlers: RuntimeRoomCommandHandlerMap = {
+    setLiveBroadcast: (runtime, payload) => configureLiveBroadcast(runtime, payload.enabled),
     closeRoom: async (runtime) => {
         runtime.room.getRoom().stopRecording();
     },

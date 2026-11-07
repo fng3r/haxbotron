@@ -132,9 +132,9 @@ export class LiveRelayPool {
         if (kick.ruid !== ruid || !room.ready || this.rooms.get(ruid) !== room) return;
         this.broadcast(ruid, 'live:kick', kick);
       });
-      source.on('live:offline', () => {
+      source.on('live:offline', (event?: { reason?: string }) => {
         ++subscription;
-        this.unavailable(ruid, room, 'Room is offline');
+        this.unavailable(ruid, room, event?.reason || 'Room is offline');
       });
       source.on('disconnect', () => {
         ++subscription;

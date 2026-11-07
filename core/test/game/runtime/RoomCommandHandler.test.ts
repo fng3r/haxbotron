@@ -9,6 +9,7 @@ const mockEmitPlayerStatusChange = jest.fn();
 
 jest.unstable_mockModule("../../../src/game/runtime/WorkerEventBridge.js", () => ({
     emitPlayerStatusChange: mockEmitPlayerStatusChange,
+    sendWorkerMessage: jest.fn(),
 }));
 
 const { handleRoomCommand } = await import("../../../src/game/runtime/RoomCommandHandler.js");

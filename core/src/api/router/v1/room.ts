@@ -26,6 +26,7 @@ export function createRoomRouter(roomOperations: RoomOperationsAPI): Router {
     roomRouter.post('/:ruid/chat/:id', roomController.whisper); // send message to specific player
 
     roomRouter.get('/:ruid/info', roomController.getRoomDetailInfo); // get detail room info
+    roomRouter.post('/:ruid/info/live-broadcast', roomController.setLiveBroadcast);
 
     roomRouter.post('/:ruid/info/password', roomController.setPassword); // set password
     roomRouter.delete('/:ruid/info/password', roomController.clearPassword); // clear password

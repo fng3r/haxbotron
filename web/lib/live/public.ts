@@ -12,7 +12,10 @@ export function selectPublicLiveRooms(
   supportedHostIds: ReadonlySet<string>,
 ): PublicLiveRoom[] {
   return rooms
-    .filter((room) => room.online && !room.blockingReason && supportedHostIds.has(room.hostId))
+    .filter(
+      (room) =>
+        room.online && room.liveBroadcast !== false && !room.blockingReason && supportedHostIds.has(room.hostId),
+    )
     .map((room) => ({
       ruid: room.ruid,
       roomName: room.roomName || room.ruid,

@@ -1,4 +1,5 @@
 import { Context } from "koa";
+import Joi from "joi";
 import { Player } from "../../../game/model/GameObject/Player.js";
 import { TeamID } from "../../../game/model/GameObject/TeamID.js";
 import { apiDbAdapter } from "../../../lib/db/adapters/ApiDbAdapter.js";
@@ -47,6 +48,22 @@ export function createRoomController(roomOperations: RoomOperationsAPI) {
     };
 
     return {
+        async setLiveBroadcast(ctx: Context) {
+            const { ruid } = ctx.params;
+            const result = Joi.object({ enabled: Joi.boolean().strict().required() }).validate(ctx.request.body);
+            if (result.error) throw new ValidationError('enabled must be a boolean');
+            const persisted = await apiDbAdapter.getRoomConfig(ruid);
+            const enabled = result.value.enabled as boolean;
+            // Persist first: a failed save must not change the running room.
+            await apiDbAdapter.saveRoomConfig({ ...persisted, settings: { ...persisted.settings, liveBroadcast: enabled } });
+            try {
+                if (roomOperations.checkExistRoom(ruid)) await roomOperations.setLiveBroadcast(ruid, enabled);
+            } catch (error) {
+                await apiDbAdapter.saveRoomConfig(persisted);
+                throw error;
+            }
+            ctx.body = { enabled };
+        },
         async createRoom(ctx: Context) {
             const validationResult = nestedHostRoomConfigSchema.validate(ctx.request.body);
 

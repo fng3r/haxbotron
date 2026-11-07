@@ -37,6 +37,7 @@ export type HostStatusInfo = {
 };
 
 export type ManagedRoomInfo = {
+  liveBroadcast?: boolean;
   ruid: string;
   hostId: string;
   hostName?: string;
@@ -72,6 +73,7 @@ export type HostSystemInfo = {
 export type RuntimeRoomInfo = {
   online: boolean;
   detail?: {
+    liveBroadcast?: boolean;
     roomName: string;
     link: string;
     onlinePlayers: number;
