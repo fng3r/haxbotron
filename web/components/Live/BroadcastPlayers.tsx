@@ -16,14 +16,12 @@ const teams = [
 
 export default function BroadcastPlayers({
   players,
-  roomName,
   open,
   onOpenChange,
   container,
 }: {
   container: HTMLElement | null;
   players: LiveFrame['players'];
-  roomName?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -45,11 +43,9 @@ export default function BroadcastPlayers({
       {/* Keep the dialog inside the canvas card, including native fullscreen. */}
       {container && (
         <DialogPrimitive.Portal container={container}>
-          <DialogPrimitive.Content className="absolute inset-0 z-30 flex min-h-0 flex-col bg-background/95 p-3 text-foreground outline-none sm:p-5">
+          <DialogPrimitive.Content className="absolute left-1/2 top-1/2 z-30 flex h-[calc(100%-1.5rem)] max-h-[420px] min-h-0 w-[calc(100%-1.5rem)] max-w-[720px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg border bg-background/95 p-3 text-foreground shadow-xl outline-none sm:p-4">
             <div className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b pb-2">
-              <DialogTitle className="truncate text-sm font-semibold sm:text-base">
-                {roomName ?? 'Player list'}
-              </DialogTitle>
+              <DialogTitle className="text-sm font-semibold">Players</DialogTitle>
               <DialogDescription className="sr-only">Live player roster grouped by team. Read only.</DialogDescription>
               <DialogClose asChild>
                 <Button

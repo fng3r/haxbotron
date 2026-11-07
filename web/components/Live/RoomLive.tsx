@@ -376,7 +376,6 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
             <BroadcastPlayers
               container={canvasContainer}
               players={frame?.players ?? []}
-              roomName={roomName}
               open={playersOpen}
               onOpenChange={setPlayersOpen}
             />
