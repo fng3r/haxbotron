@@ -16,6 +16,7 @@
   },
   "settings": {
     "chatFiltering": true,
+    "liveBroadcast": true,
     "antiChatFlood": true,
     "chatFloodCriterion": 5,
     "chatFloodIntervalMillisecs": 10000,

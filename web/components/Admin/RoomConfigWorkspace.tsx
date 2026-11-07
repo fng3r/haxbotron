@@ -48,6 +48,7 @@ const schema = z.object({
   teamLock: z.boolean(),
   autoAdmin: z.boolean(),
   whitelistEnabled: z.boolean(),
+  liveBroadcast: z.boolean(),
   settings: z.string().refine((value) => {
     try {
       JSON.parse(value);
@@ -82,6 +83,7 @@ const template = (): PersistedRoomConfig => ({
 });
 
 function valuesFrom(config: PersistedRoomConfig): Values {
+  const { liveBroadcast = true, ...settings } = config.settings;
   return {
     ruid: config.ruid,
     token: config._config.token,
@@ -95,7 +97,8 @@ function valuesFrom(config: PersistedRoomConfig): Values {
     teamLock: config.rules.teamLock,
     autoAdmin: config.rules.autoAdmin,
     whitelistEnabled: config.rules.whitelistEnabled,
-    settings: JSON.stringify(config.settings, null, 2),
+    liveBroadcast,
+    settings: JSON.stringify(settings, null, 2),
     geoEnabled: Boolean(config._config.geo),
     geoCode: config._config.geo?.code ?? 'KR',
     geoLat: config._config.geo?.lat ?? 37.5665,
@@ -130,7 +133,7 @@ function configFrom(v: Values): PersistedRoomConfig {
       autoAdmin: v.autoAdmin,
       whitelistEnabled: v.whitelistEnabled,
     },
-    settings: JSON.parse(v.settings),
+    settings: { ...JSON.parse(v.settings), liveBroadcast: v.liveBroadcast },
     discordWebhook: {
       feed: v.discordFeed,
       replayUpload: v.replayUpload,
@@ -485,6 +488,17 @@ export default function RoomConfigWorkspace({
               </Card>
             )}
           </WebhookBlurSection>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Broadcasting</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="max-w-sm space-y-2">
+                <Toggle form={form} name="liveBroadcast" label="Live broadcast" />
+                <p className="text-sm text-muted-foreground">Allow viewers to watch this room in public broadcasts.</p>
+              </div>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Advanced bot settings</CardTitle>

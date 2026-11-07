@@ -23,6 +23,7 @@ type RoomHandle = {
     ready: boolean;
     shuttingDown: boolean;
     roomLink?: string;
+    broadcastEnabled?: boolean;
     liveFrame?: LiveFrame;
     liveStadium?: LiveStadium;
     liveTimeline?: LiveMatchTimeline;
@@ -49,6 +50,10 @@ export class RoomProcessManager {
             socket.on("live:subscribe", (ruid: unknown, ack?: (result: { ok: boolean; error?: string }) => void) => {
                 if (typeof ruid !== "string" || !this.rooms.has(ruid)) {
                     if (typeof ack === "function") ack({ ok: false, error: "Room is offline" });
+                    return;
+                }
+                if (this.rooms.get(ruid)?.broadcastEnabled === false) {
+                    if (typeof ack === "function") ack({ ok: false, error: "Broadcast disabled" });
                     return;
                 }
                 // A socket watches one room at a time.
@@ -92,6 +97,7 @@ export class RoomProcessManager {
         });
 
         const handle = this.createHandle(ruid, child);
+        handle.broadcastEnabled = initConfig.settings.liveBroadcast !== false;
         this.rooms.set(ruid, handle);
         this.bindChildListeners(handle);
 
@@ -250,7 +256,7 @@ export class RoomProcessManager {
                 );
                 handle.startupReject(startupError);
             }
-            this.sioServer?.to(`live:${handle.ruid}`).emit("live:offline", { ruid: handle.ruid });
+            if (handle.broadcastEnabled !== false) this.sioServer?.to(`live:${handle.ruid}`).emit("live:offline", { ruid: handle.ruid });
             this.rooms.delete(handle.ruid);
             this.emitSocketIOEvent("roomct", { ruid: handle.ruid });
         });
@@ -279,10 +285,23 @@ export class RoomProcessManager {
 
     private handleWorkerEvent(handle: RoomHandle, event: RoomWorkerEvent): void {
         switch (event.event) {
+            case "liveBroadcastState":
+                handle.broadcastEnabled = event.payload.enabled;
+                if (!event.payload.enabled) {
+                    handle.liveFrame = undefined;
+                    handle.liveStadium = undefined;
+                    handle.liveTimeline = undefined;
+                    this.sioServer?.to(`live:${handle.ruid}`).emit("live:offline", { ruid: handle.ruid, reason: "Broadcast disabled" });
+                } else if (handle.ready) {
+                    this.sioServer?.emit("roomct", { ruid: handle.ruid });
+                }
+                return;
             case "liveKick":
+                if (handle.broadcastEnabled === false) return;
                 this.sioServer?.to(`live:${handle.ruid}`).emit("live:kick", { ruid: handle.ruid, ...event.payload });
                 return;
             case "live":
+                if (handle.broadcastEnabled === false) return;
                 const newGoal = event.payload.goal && event.payload.goal.id !== handle.liveFrame?.goal?.id;
                 if (handle.liveTimeline?.matchId !== event.payload.matchId) handle.liveTimeline = undefined;
                 if (event.payload.timeline?.matchId === event.payload.matchId) handle.liveTimeline = event.payload.timeline;

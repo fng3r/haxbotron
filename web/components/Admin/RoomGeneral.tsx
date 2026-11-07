@@ -26,6 +26,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 
+import { useSetLiveBroadcast } from '@/lib/queries/live-broadcast';
 import { mutations, queries } from '@/lib/queries/room';
 import type { PersistedRoomConfig } from '@/lib/types/room';
 
@@ -51,6 +52,8 @@ export default function RoomGeneral({ ruid, roomConfig }: { ruid: string; roomCo
   const toggleFreezeMutation = mutations.toggleFreeze();
   const shutdownRoomMutation = mutations.shutdownRoom();
   const relaunchRoomMutation = mutations.relaunchRoom();
+  const broadcastMutation = useSetLiveBroadcast();
+  const broadcastEnabled = roomInfo?.botSettings?.liveBroadcast ?? roomConfig.settings.liveBroadcast ?? true;
 
   const handleShutdown = () => {
     shutdownRoomMutation.mutate(ruid, {
@@ -68,7 +71,12 @@ export default function RoomGeneral({ ruid, roomConfig }: { ruid: string; roomCo
   const handleRelaunch = () => {
     if (!effectiveRelaunchToken) return;
     relaunchRoomMutation.mutate(
-      { ...roomConfig, ruid, _config: { ...roomConfig._config, token: effectiveRelaunchToken } },
+      {
+        ...roomConfig,
+        ruid,
+        settings: { ...roomConfig.settings, liveBroadcast: broadcastEnabled },
+        _config: { ...roomConfig._config, token: effectiveRelaunchToken },
+      },
       {
         onSuccess: () => {
           SnackBarNotification.success('Room relaunched successfully.');
@@ -270,6 +278,28 @@ export default function RoomGeneral({ ruid, roomConfig }: { ruid: string; roomCo
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
+          <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
+            <div className="space-y-1">
+              <Label htmlFor="live-broadcast">Live broadcast</Label>
+              <p className="text-sm text-muted-foreground">
+                Allow viewers to watch this room. Changes are saved automatically.
+              </p>
+            </div>
+            <Switch
+              id="live-broadcast"
+              checked={broadcastEnabled}
+              disabled={broadcastMutation.isPending}
+              onCheckedChange={(enabled) =>
+                broadcastMutation.mutate(
+                  { ruid, enabled },
+                  {
+                    onSuccess: () => router.refresh(),
+                    onError: (error) => SnackBarNotification.error(error.message),
+                  },
+                )
+              }
+            />
+          </div>
           <div className="flex flex-col gap-4 max-w-80">
             <div className="flex flex-col gap-2 flex-1">
               <Label htmlFor="host-id">Assigned host</Label>

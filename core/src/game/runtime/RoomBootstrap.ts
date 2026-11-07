@@ -1,4 +1,4 @@
-import { publishLiveFrame } from "./LiveBroadcast.js";
+import { configureLiveBroadcast } from "./LiveBroadcastLifecycle.js";
 import { getKickIndicator } from "./KickIndicator.js";
 import type { PlayerJoinObject, PlayerObject, RoomConfigObject, RoomObject, ScoresObject } from "haxball.js";
 import { generateRandomString } from "../../lib/utils.js";
@@ -53,6 +53,7 @@ export async function openRoomRuntime(
 
     setDefaultSettings(runtime);
     setEventHandlers(runtime);
+    configureLiveBroadcast(runtime, runtime.config.getSettings().liveBroadcast !== false);
     runBackgroundTasks(runtime);
 
     return runtime;
@@ -92,12 +93,7 @@ function setEventHandlers(runtime: RoomRuntime): void {
     room.onPlayerAdminChange = (changedPlayer: PlayerObject, byPlayer: PlayerObject | null): void => eventListener.onPlayerAdminChangeListener(runtime, changedPlayer, byPlayer);
     room.onPlayerKicked = async (kickedPlayer: PlayerObject, reason: string, ban: boolean, byPlayer: PlayerObject | null): Promise<void> => await eventListener.onPlayerKickedListener(runtime, kickedPlayer, reason, ban, byPlayer);
     room.onGameTick = () => eventListener.onGameTickListener(runtime);
-    room.onPlayerInput = (player) => {
-        getKickIndicator(runtime).input(player.id, (player.input & room.InputFlags.kick) !== 0);
-        // Never broadcast a transient armed press before physics can consume it.
-        // The settled tick snapshot carries the resulting outline state.
-    };
-    room.onKickRateLimitSet = (min, rate, burst) => getKickIndicator(runtime).setLimits(min, rate, burst);
+    room.onPositionsReset = () => getKickIndicator(runtime).resetInputs();
     room.onGamePause = (byPlayer: PlayerObject): void => eventListener.onGamePauseListener(runtime, byPlayer);
     room.onGameUnpause = (byPlayer: PlayerObject): void => eventListener.onGameUnpauseListener(runtime, byPlayer);
     room.onStadiumChange = (newStadiumName: string, byPlayer: PlayerObject): void => eventListener.onStadiumChangeListner(runtime, newStadiumName, byPlayer);
@@ -111,11 +107,6 @@ function setEventHandlers(runtime: RoomRuntime): void {
 
 
 function runBackgroundTasks(runtime: RoomRuntime): void {
-    // onGameTick is silent while paused or stopped. Keep viewers informed then too.
-    setInterval(() => {
-        if (!runtime.match.isPlaying()) publishLiveFrame(runtime);
-    }, 1000);
-    
     runtime.logger.i('initialization', `Run timers for executing background tasks...`);
 
     const advertisementTimer = setInterval(() => {

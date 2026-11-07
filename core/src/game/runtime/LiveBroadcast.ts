@@ -1,3 +1,4 @@
+import { isBroadcastEnabled } from "./BroadcastSettings.js";
 import JSON5 from "json5";
 import { randomUUID } from "node:crypto";
 import { sendWorkerMessage } from "./WorkerEventBridge.js";
@@ -12,6 +13,7 @@ const pendingFrames = new WeakSet<RoomRuntime>();
 
 /** Transient audio event: reliable transport, never stored in frame/history caches. */
 export function publishLiveKick(runtime: RoomRuntime, playerId: number): void {
+    if (!isBroadcastEnabled(runtime)) return;
     if (!process.send || !process.connected) return;
     sendWorkerMessage({ type: "event", event: "liveKick", payload: {
         id: randomUUID(), timestamp: Date.now(), playerId,
@@ -21,6 +23,7 @@ export function publishLiveKick(runtime: RoomRuntime, playerId: number): void {
 
 /** onGameTick runs before physics. Snapshot after the synchronous simulation batch settles. */
 export function scheduleLiveFrame(runtime: RoomRuntime): void {
+    if (!isBroadcastEnabled(runtime)) return;
     if (pendingFrames.has(runtime)) return;
     pendingFrames.add(runtime);
     queueMicrotask(() => {
@@ -69,6 +72,7 @@ export function parseLiveStadium(source: string): LiveStadium {
 }
 
 export function publishLiveFrame(runtime: RoomRuntime): void {
+    if (!isBroadcastEnabled(runtime)) return;
     if (!process.send || !process.connected) return;
     let state = states.get(runtime);
     if (!state) {
@@ -112,4 +116,8 @@ export function publishLiveFrame(runtime: RoomRuntime): void {
     state.timelineRevision = timeline?.revision;
     state.busy = true;
     process.send({ type: "event", event: "live", payload: frame }, () => { state!.busy = false; });
+}
+
+export function resetLiveBroadcast(runtime: RoomRuntime): void {
+    states.delete(runtime);
 }

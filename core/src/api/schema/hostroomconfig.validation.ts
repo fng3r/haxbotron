@@ -28,6 +28,7 @@ const gameRuleSchema = Joi.object().keys({
 
 const roomSettingSchema = Joi.object()
     .keys({
+        liveBroadcast: Joi.boolean().default(true),
         antiChatFlood: Joi.boolean().required(),
         chatFloodCriterion: Joi.number().required(),
         chatFloodIntervalMillisecs: Joi.number().required(),

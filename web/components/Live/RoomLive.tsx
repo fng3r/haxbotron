@@ -5,6 +5,7 @@ import styles from './RoomLive.module.css';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import BroadcastChat from './BroadcastChat';
+import BroadcastPlayers from './BroadcastPlayers';
 import BroadcastShortcuts from './BroadcastShortcuts';
 import BroadcastSound from './BroadcastSound';
 import GoalCelebration, { type GoalCelebrationData } from './GoalCelebration';
@@ -31,6 +32,8 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   const zoomRef = useRef(0);
   const broadcast = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [playersOpen, setPlayersOpen] = useState(false);
+  const [canvasContainer, setCanvasContainer] = useState<HTMLDivElement | null>(null);
   const [theater, setTheater] = useState(false);
   const expanded = theater || fullscreen;
   const audio = useRef<BroadcastAudio | null>(null);
@@ -91,10 +94,11 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
         return;
       const level = /^[0-5]$/.test(event.key) ? ZOOM_LEVELS[Number(event.key)] : undefined;
       const key = event.key.toLowerCase();
-      if (level === undefined && key !== 'm' && key !== 't' && key !== 'f') return;
+      if (level === undefined && key !== 'm' && key !== 't' && key !== 'f' && key !== 'p') return;
       event.preventDefault();
       if (level !== undefined) setZoom(level);
       else if (key === 'm') muteButton.current?.click();
+      else if (key === 'p') setPlayersOpen((active) => !active);
       else if (key === 't') {
         if (fullscreen) void toggleFullscreen().then(() => setTheater(true));
         else setTheater((active) => !active);
@@ -107,6 +111,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   useEffect(() => {
     const syncFullscreen = () => setFullscreen(document.fullscreenElement === broadcast.current);
     const escape = (event: KeyboardEvent) => {
+      if (playersOpen) return;
       if (event.key !== 'Escape' || document.fullscreenElement) return;
       if (fullscreen) setFullscreen(false);
       else setTheater(false);
@@ -117,7 +122,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
       document.removeEventListener('fullscreenchange', syncFullscreen);
       document.removeEventListener('keydown', escape);
     };
-  }, [fullscreen]);
+  }, [fullscreen, playersOpen]);
 
   useEffect(() => {
     if (!expanded) return;
@@ -342,7 +347,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
             </Button>
           )}
         </CardHeader>
-        <CardContent className={`${styles.pitch} relative bg-[#18251f] px-0`}>
+        <CardContent ref={setCanvasContainer} className={`${styles.pitch} relative bg-[#18251f] px-0`}>
           <canvas
             ref={canvas}
             className="block aspect-[16/9] w-full"
@@ -368,6 +373,13 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
             className="absolute bottom-3 right-3 z-20 flex h-9 items-center gap-1 rounded-md border border-white/15 bg-black/65 p-0.5 text-white"
           >
             <BroadcastShortcuts />
+            <BroadcastPlayers
+              container={canvasContainer}
+              players={frame?.players ?? []}
+              roomName={roomName}
+              open={playersOpen}
+              onOpenChange={setPlayersOpen}
+            />
             <Button
               type="button"
               variant="ghost"

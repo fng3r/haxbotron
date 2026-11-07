@@ -6,6 +6,7 @@ import { isPublicLivePath, selectPublicLiveRooms } from './public.ts';
 test('public discovery includes only online rooms on capable, available hosts', () => {
   const rooms = [
     { ruid: 'a', hostId: 'capable', online: true, roomName: 'Arena', onlinePlayers: 4, viewers: 3 },
+    { ruid: 'disabled-broadcast', hostId: 'capable', online: true, liveBroadcast: false },
     { ruid: 'b', hostId: 'capable', online: false },
     { ruid: 'c', hostId: 'old-core', online: true },
     { ruid: 'd', hostId: 'capable', online: true, blockingReason: 'Disabled host' },

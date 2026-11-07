@@ -65,6 +65,28 @@ The web process keeps the latest 100 messages per room (up to 500 recently
 active rooms) and replays them on reload/reconnect. History resets on web
 restart; separate web processes do not share chat history or delivery.
 
+`settings.liveBroadcast` enables the optional room broadcaster (defaults to true
+for existing configurations). The room General page saves each switch change
+immediately through the authenticated `POST /api/v1/room/:ruid/info/live-broadcast`
+endpoint, preserving other settings. Saving succeeds before runtime changes are
+applied; worker errors roll back the saved value. Offline rooms can also be updated.
+
+When disabled, the worker skips player/disc snapshot collection, snapshot scheduling,
+its idle heartbeat, transient audio events and broadcast IPC sends. The manager
+clears its delivery caches, notifies existing viewers and rejects subscriptions;
+disabled rooms are excluded from public discovery.
+
+Match events (including credited goals), match identity and completion state remain
+tracked in the worker. Stadium changes still capture/cache geometry once per change,
+without interrupting full match recordings. Input, successful kick and rate-limit
+events also remain tracked. Disabled ticks only advance a scalar simulation clock;
+kick cooldown/burst counters catch up lazily on access, with no player enumeration.
+These retained records make enabling mid-match equivalent to joining an already
+running broadcast: the first frame includes the complete current-match timeline,
+current stadium, scores and positions. Off/on toggles do not reset this history;
+the next actual match start replaces it. Earlier goals/sounds are not replayed.
+Normal game statistics, match replays, moderation and room management remain active.
+
 Core captures public scores, shot-button state, player positions, and disc positions
 after each simulation step, scheduled from `onGameTick`, with a one-second heartbeat
 during pauses/stops. Stadium metadata

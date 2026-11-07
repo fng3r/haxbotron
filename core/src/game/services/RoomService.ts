@@ -14,6 +14,7 @@ export class RoomService {
     private pendingStadiumSource: string | null = null;
     private stadiumRevision = 0;
     private matchRecording = false;
+    private stadiumName = '';
     private readonly decodeStadium: ReplayStadiumDecoder;
     private readonly onStadiumError: (error: unknown) => void;
     private defaultStadiumName: string = '';
@@ -107,6 +108,7 @@ export class RoomService {
     }
 
     public observeStadiumChange(name: string): Promise<void> {
+        this.stadiumName = name;
         const revision = ++this.stadiumRevision;
         const pending = this.pendingStadiumSource;
         this.pendingStadiumSource = null;
@@ -145,6 +147,12 @@ export class RoomService {
     public stopMatchRecording(): Uint8Array | null {
         try { return this._room.stopRecording(); }
         finally { this.matchRecording = false; }
+    }
+
+    public refreshStadiumGeometry(): void {
+        if (this.stadiumName && this.stadiumSource?.includes('"approximate":true')) {
+            void this.observeStadiumChange(this.stadiumName);
+        }
     }
 
     public getStadiumSource(): string | null {

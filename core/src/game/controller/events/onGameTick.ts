@@ -1,3 +1,4 @@
+import { isBroadcastEnabled } from "../../runtime/BroadcastSettings.js";
 import { scheduleLiveFrame } from "../../runtime/LiveBroadcast.js";
 import { getKickIndicator } from "../../runtime/KickIndicator.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
@@ -7,6 +8,10 @@ export function onGameTickListener(runtime: RoomRuntime): void {
     
     const scores = room.getScores();
     if (scores) runtime.match.updateScores(scores.red, scores.blue, scores.time);
+    if (!isBroadcastEnabled(runtime)) {
+        getKickIndicator(runtime).advanceClock();
+        return;
+    }
     const players = room.getPlayerList();
     const indicator = getKickIndicator(runtime);
     for (const player of players) indicator.input(player.id, (player.input & room.InputFlags.kick) !== 0);

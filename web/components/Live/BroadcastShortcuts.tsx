@@ -9,6 +9,7 @@ const shortcuts = [
   ['0', 'Fit full field'],
   ['1–5', 'Zoom: 1× to 2×'],
   ['M', 'Mute / unmute'],
+  ['P', 'Show / hide players'],
   ['T', 'Theater mode'],
   ['F', 'Fullscreen'],
   ['Esc', 'Exit expanded view'],

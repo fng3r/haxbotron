@@ -6,12 +6,27 @@ import getApiClient from '@/lib/api-client';
 import {
   AllRoomListItem,
   DiscordWebhookConfig,
+  PersistedRoomConfig,
   RoomInfo,
   RoomInfoItem,
   SetTeamColoursParams,
   TeamColoursResponse,
-  PersistedRoomConfig,
 } from '@/lib/types/room';
+
+export const setLiveBroadcast = async ({
+  ruid,
+  enabled,
+}: {
+  ruid: string;
+  enabled: boolean;
+}): Promise<{ enabled: boolean }> => {
+  try {
+    return (await getApiClient().post(`/api/v1/room/${encodeURIComponent(ruid)}/info/live-broadcast`, { enabled }))
+      .data;
+  } catch (error) {
+    throw new Error(toErrorMessage(error, 'Failed to save broadcast setting.'));
+  }
+};
 
 function toErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof AxiosError) {

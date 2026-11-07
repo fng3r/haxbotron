@@ -46,6 +46,7 @@ export interface RoomRules {
 }
 
 export interface RoomSettings {
+    liveBroadcast?: boolean;
     antiChatFlood: boolean;
     chatFloodCriterion: number;
     chatFloodIntervalMillisecs: number;

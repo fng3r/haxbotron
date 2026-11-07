@@ -28,6 +28,10 @@ export class RoomOperationsAPI {
         return this.roomProcessManager.getRoomCount();
     }
 
+    public async setLiveBroadcast(ruid: string, enabled: boolean): Promise<void> {
+        await this.roomProcessManager.requestRoom(ruid, "setLiveBroadcast", { enabled });
+    }
+
     public async getRoomLink(ruid: string): Promise<string> {
         return await this.roomProcessManager.requestRoom(ruid, "getRoomLink", undefined);
     }

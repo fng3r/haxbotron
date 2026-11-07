@@ -154,4 +154,51 @@ describe("RoomProcessManager", () => {
 
         await expect(requestPromise).rejects.toThrow("Invalid worker response for 'getOnlinePlayersIDList'");
     });
+    it("does not cache, forward or allow subscriptions to disabled broadcasts", async () => {
+        const manager = new RoomProcessManager();
+        const startup = manager.openRoom("optional", {
+            _RUID: 'optional', _LaunchDate: new Date(),
+            _config: { roomName: 'Optional', token: 'token', noPlayer: true, playerName: 'bot', public: false, maxPlayers: 8 },
+            rules: { scoreLimit: 3, timeLimit: 3, teamLock: false, autoAdmin: false, whitelistEnabled: false, defaultMapName: 'classic' },
+            settings: { liveBroadcast: false, antiChatFlood: true, chatFloodCriterion: 5,
+                chatFloodIntervalMillisecs: 10000, muteDefaultMillisecs: 10000, forbidDuplicatedNickname: true },
+        });
+        const opening = child.send.mock.calls[0][0] as AnyRoomRpcRequest;
+        child.emit('message', { type: 'response', requestId: opening.requestId, command: 'openRoom', success: true, result: undefined });
+        child.emit('message', { type: 'event', event: 'roomReady', payload: { link: 'https://example.com' } });
+        await startup;
+        const forwarded = jest.fn();
+        const server = Object.assign(new EventEmitter(), {
+            sockets: { emit: jest.fn() },
+            to: () => ({ emit: forwarded, volatile: { emit: forwarded } }),
+        });
+        manager.attachSocketIOServer(server as never);
+        const socket = Object.assign(new EventEmitter(), { rooms: new Set<string>(), join: jest.fn(), leave: jest.fn() });
+        const clientEvents = jest.spyOn(socket, 'emit');
+        server.emit('connection', socket);
+        const subscribe = jest.fn();
+        const frame = { sequence: 1, timestamp: 1, status: 'stopped', scores: null, players: [], discs: [] };
+        child.emit('message', { type: 'event', event: 'live', payload: frame });
+        socket.emit('live:subscribe', 'optional', subscribe);
+        expect(subscribe).toHaveBeenLastCalledWith(expect.objectContaining({ ok: false }));
+        expect(forwarded).not.toHaveBeenCalled();
+        expect(socket.join).not.toHaveBeenCalled();
+        child.emit('message', { type: 'event', event: 'liveBroadcastState', payload: { enabled: true } });
+        child.emit('message', { type: 'event', event: 'live', payload: frame });
+        expect(forwarded).toHaveBeenCalledWith('live', expect.objectContaining({ ruid: 'optional' }));
+        socket.emit('live:subscribe', 'optional', subscribe);
+        expect(subscribe).toHaveBeenLastCalledWith({ ok: true });
+        expect(clientEvents).toHaveBeenCalledWith('live', expect.objectContaining({ ruid: 'optional' }));
+        child.emit('message', { type: 'event', event: 'liveBroadcastState', payload: { enabled: false } });
+        expect(forwarded).toHaveBeenLastCalledWith('live:offline', { ruid: 'optional', reason: 'Broadcast disabled' });
+        forwarded.mockClear();
+        child.emit('message', { type: 'event', event: 'live', payload: frame });
+        expect(forwarded).not.toHaveBeenCalled();
+        child.emit('message', { type: 'event', event: 'liveBroadcastState', payload: { enabled: true } });
+        clientEvents.mockClear();
+        socket.emit('live:subscribe', 'optional', subscribe);
+        expect(clientEvents.mock.calls.filter(([event]) => event === 'live')).toHaveLength(0);
+        child.emit('exit', 0, null);
+    });
+
 });

@@ -1,3 +1,5 @@
+import { apiDbAdapter } from "../../../src/lib/db/adapters/ApiDbAdapter.js";
+import type { PersistedRoomConfig } from "../../../src/lib/room/RoomHostConfig.js";
 import Koa from 'koa';
 import bodyParser from '@koa/bodyparser';
 import Router from '@koa/router';
@@ -34,6 +36,7 @@ describe('Room API Contract Tests', () => {
       getNotice: jest.fn(),
       setNotice: jest.fn(),
       setPassword: jest.fn(),
+      setLiveBroadcast: jest.fn(),
       getChatFreeze: jest.fn(() => false),
       setChatFreeze: jest.fn(),
       getTeamColours: jest.fn(),
@@ -61,6 +64,7 @@ describe('Room API Contract Tests', () => {
     router.post('/api/v1/room/:ruid/chat', roomController.broadcast);
     router.post('/api/v1/room/:ruid/chat/:id', roomController.whisper);
     router.get('/api/v1/room/:ruid/info', roomController.getRoomDetailInfo);
+    router.post('/api/v1/room/:ruid/info/live-broadcast', roomController.setLiveBroadcast);
     router.post('/api/v1/room/:ruid/info/password', roomController.setPassword);
     router.delete('/api/v1/room/:ruid/info/password', roomController.clearPassword);
     router.get('/api/v1/room/:ruid/info/freeze', roomController.checkChatFreezed);
@@ -86,6 +90,58 @@ describe('Room API Contract Tests', () => {
 
   afterEach((done) => {
     server.close(done);
+  });
+
+  describe('persisted broadcast setting', () => {
+    const saved = { ruid: 'room1', _config: { roomName: 'Preserve me' },
+      rules: { scoreLimit: 3 }, settings: { antiChatFlood: true, liveBroadcast: true },
+    } as unknown as PersistedRoomConfig;
+    beforeEach(() => {
+      jest.spyOn(apiDbAdapter, 'getRoomConfig').mockResolvedValue(saved);
+      jest.spyOn(apiDbAdapter, 'saveRoomConfig').mockResolvedValue(saved);
+    });
+    afterEach(() => jest.restoreAllMocks());
+    const change = (enabled: unknown) => request(server)
+      .post('/api/v1/room/room1/info/live-broadcast').set('x-api-key', 'test-api-key').send({ enabled });
+    it('saves before applying immediately and preserves unrelated configuration', async () => {
+      mockRoomOperations.checkExistRoom.mockReturnValue(true);
+      mockRoomOperations.setLiveBroadcast.mockImplementation(() => {
+        expect(apiDbAdapter.saveRoomConfig).toHaveBeenCalledTimes(1);
+      });
+      const result = await change(false);
+      expect(result.status).toBe(200);
+      expect(result.body).toEqual({ enabled: false });
+      expect(mockRoomOperations.setLiveBroadcast).toHaveBeenCalledWith('room1', false);
+      expect(apiDbAdapter.saveRoomConfig).toHaveBeenCalledWith({ ...saved,
+        settings: { ...saved.settings, liveBroadcast: false } });
+    });
+    it('persists the choice for an offline room without calling a worker', async () => {
+      expect((await change(false)).status).toBe(200);
+      expect(apiDbAdapter.saveRoomConfig).toHaveBeenCalledTimes(1);
+      expect(mockRoomOperations.setLiveBroadcast).not.toHaveBeenCalled();
+    });
+    it('rejects non-boolean values without saving or changing runtime state', async () => {
+      expect((await change('false')).status).toBe(400);
+      expect(apiDbAdapter.saveRoomConfig).not.toHaveBeenCalled();
+      expect(mockRoomOperations.setLiveBroadcast).not.toHaveBeenCalled();
+    });
+    it('does not change the worker if persistence fails', async () => {
+      mockRoomOperations.checkExistRoom.mockReturnValue(true);
+      jest.mocked(apiDbAdapter.saveRoomConfig).mockRejectedValueOnce(new Error('database unavailable'));
+      expect((await change(false)).status).toBe(500);
+      expect(mockRoomOperations.setLiveBroadcast).not.toHaveBeenCalled();
+    });
+    it('restores the saved setting if a runtime update fails', async () => {
+      mockRoomOperations.checkExistRoom.mockReturnValue(true);
+      mockRoomOperations.setLiveBroadcast.mockRejectedValue(new Error('worker unavailable'));
+      expect((await change(false)).status).toBe(500);
+      expect(apiDbAdapter.saveRoomConfig).toHaveBeenLastCalledWith(saved);
+    });
+    it('requires admin API authentication', async () => {
+      const result = await request(server).post('/api/v1/room/room1/info/live-broadcast').send({ enabled: false });
+      expect(result.status).toBe(401);
+      expect(apiDbAdapter.saveRoomConfig).not.toHaveBeenCalled();
+    });
   });
 
   describe('GET /api/v1/room - Get room list', () => {

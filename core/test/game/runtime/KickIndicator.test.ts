@@ -63,4 +63,32 @@ describe('native-style kick outline', () => {
         indicator.remove(1);
         expect(indicator.ready(1)).toBe(false);
     });
+    it('lazy disabled-clock tracking matches per-player ticks through kicks, rate changes and spectator time', () => {
+        const continuous = new KickIndicator();
+        const lazy = new KickIndicator();
+        for (const tracker of [continuous, lazy]) {
+            tracker.setLimits(6, 12, 4);
+            tracker.setActive(1, true);
+        }
+        let active = true;
+        for (let tick = 0; tick < 200; tick++) {
+            if (tick === 70) for (const tracker of [continuous, lazy]) tracker.setLimits(2, 1, 0);
+            if (tick === 100 || tick === 130) {
+                active = tick === 130;
+                for (const tracker of [continuous, lazy]) tracker.setActive(1, active);
+            }
+            if (tick % 5 === 0 && active) for (const tracker of [continuous, lazy]) tracker.input(1, tick % 10 === 0);
+            if (tick < 80 || tick >= 90) { // Paused games do not advance counters.
+                continuous.advance(active ? [1] : []);
+                lazy.advanceClock();
+            }
+            if (tick % 7 === 0 && active && continuous.ready(1)) {
+                continuous.kicked(1);
+                lazy.kicked(1);
+            }
+            if (tick % 11 === 0) expect(lazy.settledReady(1)).toBe(continuous.settledReady(1));
+        }
+        expect(lazy.ready(1)).toBe(continuous.ready(1));
+    });
+
 });

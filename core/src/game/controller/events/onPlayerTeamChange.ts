@@ -1,10 +1,12 @@
 import type { PlayerObject } from "haxball.js";
+import { getKickIndicator } from "../../runtime/KickIndicator.js";
 import { convertTeamID2Name, TeamID } from "../../model/GameObject/TeamID.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import { emitPlayerStatusChange } from "../../runtime/WorkerEventBridge.js";
 import { recordLiveMatchEvent } from "../../runtime/LiveBroadcast.js";
 
 export function onPlayerTeamChangeListener(runtime: RoomRuntime, changedPlayer: PlayerObject, byPlayer: PlayerObject | null): void {
+    getKickIndicator(runtime).setActive(changedPlayer.id, changedPlayer.team !== 0);
     // Event called when a player team is changed.
     // byPlayer is the player which caused the event (can be null if the event wasn't caused by a player).
     const room = runtime.room.getRoom();
