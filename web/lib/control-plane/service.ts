@@ -21,6 +21,7 @@ import 'server-only';
 import socketClient from 'socket.io-client';
 
 import { generateToken } from '@/lib/auth/jwt';
+import { getMatchHistory } from '@/lib/live/match-history';
 import { type PublicLiveRoom, selectPublicLiveRooms } from '@/lib/live/public';
 
 type HostSocketHandle = {
@@ -108,6 +109,7 @@ class ControlPlaneService {
   private refreshPromise: Promise<RuntimeSnapshot> | null = null;
   private socketHandles = new Map<string, HostSocketHandle>();
   private socketsBootstrapped = false;
+  private socketSyncPromise: Promise<void> | null = null;
 
   private async loadState(): Promise<ControlPlaneState> {
     if (this.state) return this.state;
@@ -285,6 +287,14 @@ class ControlPlaneService {
   }
 
   private async syncSockets(): Promise<void> {
+    if (this.socketSyncPromise) return this.socketSyncPromise;
+    this.socketSyncPromise = this.performSocketSync().finally(() => {
+      this.socketSyncPromise = null;
+    });
+    return this.socketSyncPromise;
+  }
+
+  private async performSocketSync(): Promise<void> {
     const state = await this.loadState();
     const validHostIds = new Set(state.hosts.filter((host) => host.enabled).map((host) => host.id));
 
@@ -315,6 +325,17 @@ class ControlPlaneService {
             getControlPlaneEventBus().emit(event);
           };
 
+          socket.on('match:completed', (payload: { ruid?: unknown; match?: unknown }, ack?: () => void) => {
+            try {
+              if (!payload || typeof payload.ruid !== 'string') return;
+              if (!this.state?.hosts.some((node) => node.id === host.id && node.enabled)) return;
+              if (!this.state.mappings.some((mapping) => mapping.ruid === payload.ruid && mapping.hostId === host.id))
+                return;
+              getMatchHistory().add(payload.ruid, payload.match);
+            } finally {
+              if (typeof ack === 'function') ack();
+            }
+          });
           socket.on('roomct', (payload: { ruid: string }) => {
             void this.refreshSnapshot(true);
             emit({ event: 'roomct', hostId: host.id, ruid: payload.ruid });
@@ -760,7 +781,7 @@ const globalForControlPlane = globalThis as typeof globalThis & {
   __controlPlaneServiceVersion?: string;
 };
 
-const CONTROL_PLANE_SERVICE_VERSION = 'hosts-v5-optional-live';
+const CONTROL_PLANE_SERVICE_VERSION = 'hosts-v6-match-history';
 
 export function getControlPlaneService(): ControlPlaneService {
   const existing = globalForControlPlane.__controlPlaneService as ControlPlaneService | undefined;

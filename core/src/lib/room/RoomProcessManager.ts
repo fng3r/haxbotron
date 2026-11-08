@@ -285,6 +285,9 @@ export class RoomProcessManager {
 
     private handleWorkerEvent(handle: RoomHandle, event: RoomWorkerEvent): void {
         switch (event.event) {
+            case "matchCompleted":
+                this.emitSocketIOEvent("match:completed", { ruid: handle.ruid, match: event.payload });
+                return;
             case "liveBroadcastState":
                 handle.broadcastEnabled = event.payload.enabled;
                 if (!event.payload.enabled) {

@@ -87,6 +87,23 @@ current stadium, scores and positions. Off/on toggles do not reset this history;
 the next actual match start replaces it. Earlier goals/sounds are not replayed.
 Normal game statistics, match replays, moderation and room management remain active.
 
+The History tab holds the last 10 completed matches per room in web-process memory
+(up to 500 recently updated rooms). Each record includes public starting lineups,
+game-clock playtime excluding pauses, final score, start/end timestamps, outcome
+and match events. Manually stopped matches are labeled separately from victories.
+Selecting a match opens its lineups and event list.
+
+At game stop the worker sends one sanitized `matchCompleted` IPC message regardless
+of viewers or the broadcast switch. The manager forwards `match:completed` on the
+authenticated control-plane WebSocket. Web's startup instrumentation initializes
+that listener independently of admin visits/broadcasts. Host/room mappings and the
+payload are validated before insertion; IDs deduplicate records. New viewers receive
+`match:history`, and completions push an updated list to connected viewers. No extra
+per-room upstream or polling is used. Page reloads retain history, but web-process
+restarts clear it; completions during a disconnect are not recovered. No disk or
+database storage is involved, and only matches completed after deploying this
+feature are collected.
+
 Core captures public scores, shot-button state, player positions, and disc positions
 after each simulation step, scheduled from `onGameTick`, with a one-second heartbeat
 during pauses/stops. Stadium metadata

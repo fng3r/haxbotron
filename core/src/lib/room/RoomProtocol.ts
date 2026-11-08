@@ -1,4 +1,4 @@
-import type { LiveFrame, LiveKick } from "./LiveProtocol.js";
+import type { CompletedMatch, LiveFrame, LiveKick } from "./LiveProtocol.js";
 import Joi from "joi";
 import { Player } from "../../game/model/GameObject/Player.js";
 import { TeamID } from "../../game/model/GameObject/TeamID.js";
@@ -27,6 +27,7 @@ export interface TeamColourInfo {
 }
 
 export type RoomWorkerEvent =
+    | { type: "event"; event: "matchCompleted"; payload: CompletedMatch }
     | { type: "event"; event: "liveBroadcastState"; payload: { enabled: boolean } }
     | { type: "event"; event: "live"; payload: LiveFrame }
     | { type: "event"; event: "liveKick"; payload: LiveKick }
@@ -107,7 +108,7 @@ type ValidationResult<T> =
           error: string;
       };
 
-const roomWorkerEvents: RoomWorkerEvent["event"][] = ["roomReady", "log", "joinleft", "statuschange", "live", "liveKick", "liveBroadcastState"];
+const roomWorkerEvents: RoomWorkerEvent["event"][] = ["roomReady", "log", "joinleft", "statuschange", "live", "liveKick", "liveBroadcastState", "matchCompleted"];
 
 const undefinedSchema = Joi.any().custom((value, helpers) => {
     if (value !== undefined) {
@@ -323,7 +324,16 @@ const liveTimelineSchema = Joi.object({
     })).required(),
 });
 
+const completedMatchSchema = liveTimelineSchema.keys({
+    endedAt: Joi.number().required(),
+    startingLineups: Joi.object({ red: Joi.array().items(livePersonSchema).required(), blue: Joi.array().items(livePersonSchema).required() }).required(),
+    playtime: Joi.number().min(0).required(),
+    scores: Joi.object({ red: Joi.number().integer().min(0).required(), blue: Joi.number().integer().min(0).required() }).required(),
+    outcome: Joi.string().valid("victory", "stopped").required(),
+});
+
 const eventPayloadSchemas: Record<RoomWorkerEvent["event"], Joi.Schema> = {
+    matchCompleted: completedMatchSchema.required(),
     liveBroadcastState: Joi.object({ enabled: Joi.boolean().required() }).required(),
     liveKick: Joi.object({
         id: Joi.string().required(), timestamp: Joi.number().required(),

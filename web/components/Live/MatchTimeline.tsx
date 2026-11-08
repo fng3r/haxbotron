@@ -2,39 +2,16 @@
 
 import { type ReactNode, useState } from 'react';
 
-import {
-  ArrowRightLeft,
-  CircleDot,
-  Flag,
-  List,
-  LogIn,
-  LogOut,
-  MessageCircle,
-  PanelRightClose,
-  Pause,
-  Play,
-  Square,
-  Trophy,
-} from 'lucide-react';
+import MatchEvents from './MatchEvents';
+import MatchHistory from './MatchHistory';
+import { Flag, History, List, MessageCircle, PanelRightClose } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
-import { type TimelineFilter, describeEvent, eventTime, filterEvents } from '@/lib/live/timeline';
-import type { LiveMatchEvent, LiveMatchTimeline } from '@/lib/live/types';
-
-const icons: Record<LiveMatchEvent['type'], typeof Flag> = {
-  start: Flag,
-  goal: CircleDot,
-  pause: Pause,
-  resume: Play,
-  victory: Trophy,
-  stop: Square,
-  join: LogIn,
-  leave: LogOut,
-  teamChange: ArrowRightLeft,
-};
+import { type TimelineFilter, filterEvents } from '@/lib/live/timeline';
+import type { CompletedMatch, LiveMatchTimeline } from '@/lib/live/types';
 
 export default function MatchTimeline({
   timeline,
@@ -43,6 +20,7 @@ export default function MatchTimeline({
   collapsed,
   onCollapse,
   chat,
+  matches,
 }: {
   timeline: LiveMatchTimeline | null;
   connected: boolean;
@@ -50,6 +28,7 @@ export default function MatchTimeline({
   collapsed: boolean;
   onCollapse: () => void;
   chat: ReactNode;
+  matches: CompletedMatch[];
 }) {
   const [filter, setFilter] = useState<TimelineFilter>('all');
   const events = filterEvents(timeline?.events ?? [], filter);
@@ -64,13 +43,17 @@ export default function MatchTimeline({
       >
         <div className="flex shrink-0 items-center justify-between border-b px-3 py-2">
           <TabsList aria-label="Broadcast panel" className="group-data-[orientation=horizontal]/tabs:h-8">
-            <TabsTrigger value="chat" className="px-3 text-xs dark:data-[state=active]:border-transparent">
+            <TabsTrigger value="chat" className="px-2 text-xs dark:data-[state=active]:border-transparent">
               <MessageCircle className="size-3.5" aria-hidden="true" />
               Chat
             </TabsTrigger>
-            <TabsTrigger value="events" className="px-3 text-xs dark:data-[state=active]:border-transparent">
+            <TabsTrigger value="events" className="px-2 text-xs dark:data-[state=active]:border-transparent">
               <List className="size-3.5" aria-hidden="true" />
               Events
+            </TabsTrigger>
+            <TabsTrigger value="history" className="px-2 text-xs dark:data-[state=active]:border-transparent">
+              <History className="size-3.5" aria-hidden="true" />
+              History
             </TabsTrigger>
           </TabsList>
           <Button
@@ -145,51 +128,7 @@ export default function MatchTimeline({
             className="min-h-0 max-h-96 overflow-y-auto overscroll-contain lg:h-0 lg:max-h-none lg:flex-1"
           >
             {timeline ? (
-              <ol className="px-3 py-1">
-                {[...events].reverse().map((event) => {
-                  const Icon = icons[event.type];
-                  const { title, detail: details } = describeEvent(event);
-                  const teamColor =
-                    event.team === 1 ? 'text-[#e66e55]' : event.team === 2 ? 'text-[#5a89e5]' : 'text-muted-foreground';
-                  return (
-                    <li key={event.id} className="relative flex gap-2 border-b border-border/60 py-2 last:border-b-0">
-                      <div
-                        className={`flex size-5 shrink-0 items-center justify-center rounded-full bg-muted/30 ${teamColor}`}
-                      >
-                        <Icon className="size-3" aria-hidden="true" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline gap-2">
-                          <span
-                            className={`min-w-0 flex-1 truncate text-xs font-semibold leading-5 ${event.type === 'goal' || event.type === 'victory' ? teamColor : ''}`}
-                            title={title}
-                          >
-                            {title}
-                          </span>
-                          {event.scores && (
-                            <span className="shrink-0 font-mono text-[11px] font-semibold tabular-nums">
-                              <span className="text-[#e66e55]">{event.scores.red}</span>
-                              <span className="px-1 text-muted-foreground">–</span>
-                              <span className="text-[#5a89e5]">{event.scores.blue}</span>
-                            </span>
-                          )}
-                          <time
-                            className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground"
-                            dateTime={`PT${Math.floor(event.time)}S`}
-                          >
-                            {eventTime(event.time)}
-                          </time>
-                        </div>
-                        {details && (
-                          <p className="truncate text-[11px] leading-4 text-muted-foreground" title={details}>
-                            {details}
-                          </p>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
+              <MatchEvents events={events} />
             ) : (
               <div className="px-6 py-10 text-center">
                 <Flag className="mx-auto mb-3 size-5 text-muted-foreground" aria-hidden="true" />
@@ -200,6 +139,13 @@ export default function MatchTimeline({
               </div>
             )}
           </div>
+        </TabsContent>
+        <TabsContent
+          forceMount
+          value="history"
+          className="m-0 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"
+        >
+          <MatchHistory matches={matches} />
         </TabsContent>
         <TabsContent forceMount value="chat" className="m-0 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">
           {chat}

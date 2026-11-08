@@ -173,6 +173,15 @@ describe("RoomProcessManager", () => {
             to: () => ({ emit: forwarded, volatile: { emit: forwarded } }),
         });
         manager.attachSocketIOServer(server as never);
+        const completed = {
+            matchId: 'completed', startedAt: 1000, endedAt: 2000, revision: 2,
+            events: [{ id: 'stop', type: 'stop', time: 1, timestamp: 2000 }],
+            startingLineups: { red: [], blue: [] }, playtime: 1,
+            scores: { red: 0, blue: 0 }, outcome: 'stopped',
+        };
+        child.emit('message', { type: 'event', event: 'matchCompleted', payload: completed });
+        expect(server.sockets.emit).toHaveBeenCalledWith('match:completed', { ruid: 'optional', match: completed });
+
         const socket = Object.assign(new EventEmitter(), { rooms: new Set<string>(), join: jest.fn(), leave: jest.fn() });
         const clientEvents = jest.spyOn(socket, 'emit');
         server.emit('connection', socket);

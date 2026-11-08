@@ -57,3 +57,12 @@ export interface LiveGoal {
     assistant: { id: number; name: string } | null;
     ownGoal: boolean;
 }
+
+/** Public snapshot of a completed match; no player auth or connection data. */
+export interface CompletedMatch extends LiveMatchTimeline {
+    endedAt: number;
+    startingLineups: { red: { id: number; name: string }[]; blue: { id: number; name: string }[] };
+    playtime: number;
+    scores: { red: number; blue: number };
+    outcome: 'victory' | 'stopped';
+}

@@ -1,3 +1,4 @@
+import { publishCompletedMatch } from "../../runtime/CompletedMatches.js";
 import type { PlayerObject } from "haxball.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
 import { recordLiveMatchEvent } from "../../runtime/LiveBroadcast.js";
@@ -12,6 +13,7 @@ export function onGameStopListener(runtime: RoomRuntime, byPlayer: PlayerObject 
     const stats = runtime.match.getMatchStats();
     recordLiveMatchEvent(runtime, { type: "stop", scores: stats.scores,
         ...(byPlayer ? { actor: byPlayer } : {}) });
+    publishCompletedMatch(runtime);
     runtime.logger.i('onGameStop', JSON.stringify(stats));
 
     runtime.match.stopMatch();

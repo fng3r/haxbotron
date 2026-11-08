@@ -23,7 +23,7 @@ import { detectGoal, goalForScore } from '@/lib/live/goals';
 import { BroadcastRenderer, INTERPOLATION_DELAY_MS, ZOOM_LEVELS } from '@/lib/live/renderer';
 import { mergeTimeline } from '@/lib/live/timeline';
 import { isOvertime, isTimeRunningOut } from '@/lib/live/timer';
-import type { LiveFrame, LiveKick, LiveMatchTimeline } from '@/lib/live/types';
+import type { CompletedMatch, LiveFrame, LiveKick, LiveMatchTimeline } from '@/lib/live/types';
 
 export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -45,6 +45,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
   const [connection, setConnection] = useState('Connecting…');
   const [stadium, setStadium] = useState({ name: 'Waiting for stadium', approximate: false });
   const [goal, setGoal] = useState<(GoalCelebrationData & { id: number }) | null>(null);
+  const [matches, setMatches] = useState<CompletedMatch[]>([]);
   const [timeline, setTimeline] = useState<LiveMatchTimeline | null>(null);
   const [timelineOpen, setTimelineOpen] = useState(true);
   const [viewers, setViewers] = useState<number | null>(null);
@@ -164,6 +165,9 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
         if (disposed) return;
         socket = io({ path: '/public-live-ws', transports: ['websocket'], forceNew: true });
         liveSocket.current = socket;
+        socket.on('match:history', (payload: { ruid: string; matches: CompletedMatch[] }) => {
+          if (payload.ruid === ruid) setMatches(payload.matches);
+        });
         socket.on('chat:history', (payload: { ruid: string; messages: ChatMessage[] }) => {
           if (payload.ruid !== ruid) return;
           setMessages(payload.messages);
@@ -458,6 +462,7 @@ export default function RoomLive({ ruid, roomName }: { ruid: string; roomName?: 
         <MatchTimeline
           id={timelineId}
           timeline={timeline}
+          matches={matches}
           connected={connection === 'Connected'}
           collapsed={!sidebarVisible}
           onCollapse={() => setTimelineOpen(false)}

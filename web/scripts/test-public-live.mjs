@@ -55,7 +55,8 @@ async function mockHost(room, capable) {
   const socket = new Server(http, { path: '/ws', transports: ['websocket'] });
   socket.use(async (client, next) => {
     try {
-      await jwtVerify(client.request.headers.cookie?.split('access_token=')[1] ?? '', key);
+      const { payload } = await jwtVerify(client.request.headers.cookie?.split('access_token=')[1] ?? '', key);
+      client.data.role = payload.username;
       next();
     } catch {
       next(new Error('Unauthorized'));
@@ -195,16 +196,44 @@ try {
       checksum,
     );
   }
+  // History arrives over the control-plane connection, before any broadcast viewer.
+  const completed = {
+    matchId: 'completed-before-viewer',
+    startedAt: 1000,
+    endedAt: 61000,
+    revision: 2,
+    events: [
+      { id: 'start', type: 'start', time: 0, timestamp: 1000 },
+      { id: 'stop', type: 'stop', time: 60, timestamp: 61000, scores: { red: 2, blue: 1 } },
+    ],
+    startingLineups: { red: [{ id: 1, name: 'Red starter' }], blue: [{ id: 2, name: 'Blue starter' }] },
+    playtime: 60,
+    scores: { red: 2, blue: 1 },
+    outcome: 'stopped',
+  };
+  const control = [...hosts[0].sockets.sockets.values()].find((socket) => socket.data.role === 'control-plane');
+  assert.ok(control, 'control-plane listener starts with web process');
+  hosts[0].emit('match:completed', { ruid: 'arena', match: completed });
+  // Socket.IO acknowledgement provides a processing barrier in the web listener.
+  await new Promise((resolve) => control.emit('match:completed', { ruid: 'arena', match: completed }, resolve));
   const viewer = await connect(base, '/public-live-ws');
   const viewerCount = once(viewer, 'live:viewers');
   const received = once(viewer, 'live');
   const initialChat = once(viewer, 'chat:history');
+  const initialMatches = once(viewer, 'match:history');
   viewer.emit('live:subscribe', 'arena');
   const [frame] = await received;
   assert.deepEqual((await viewerCount)[0], { ruid: 'arena', viewers: 1 });
   assert.equal(frame.ruid, 'arena');
+  assert.deepEqual((await initialMatches)[0], { ruid: 'arena', matches: [completed] });
+  const historyUpdate = once(viewer, 'match:history');
+  hosts[0].emit('match:completed', {
+    ruid: 'arena',
+    match: { ...completed, matchId: 'completed-live', endedAt: 62000 },
+  });
+  assert.equal((await historyUpdate)[0].matches[0].matchId, 'completed-live');
   assert.equal(frame.timeline.events[0].type, 'start');
-  assert.equal(hosts[0].sockets.sockets.size, 1);
+  assert.equal([...hosts[0].sockets.sockets.values()].filter((socket) => socket.data.role === 'live-relay').length, 1);
   const directoryCount = async () => (await (await fetch(base + '/api/public/rooms')).json()).rooms[0].viewers;
   assert.equal(await directoryCount(), 1, 'directory uses web-owned counts across Next route bundles');
   assert.deepEqual((await initialChat)[0], { ruid: 'arena', messages: [] });
@@ -231,7 +260,11 @@ try {
   assert.equal(typeof (await rejected)[0], 'string');
   assert.equal((await sendChat(viewer, { nickname: 'Viewer', text: 'No room' })).ok, false);
   assert.equal(await directoryCount(), 0);
-  assert.equal(hosts[0].sockets.sockets.size, 1, 'empty broadcast retains upstream during grace');
+  assert.equal(
+    [...hosts[0].sockets.sockets.values()].filter((socket) => socket.data.role === 'live-relay').length,
+    1,
+    'empty broadcast retains upstream during grace',
+  );
   assert.ok(coreEvents.every((event) => event === 'live:subscribe'));
   const token = await new SignJWT({ username: 'synthetic-admin' })
     .setProtectedHeader({ alg: 'HS256' })
@@ -253,7 +286,11 @@ try {
   const viewerHistory = once(viewer, 'chat:history');
   viewer.emit('live:subscribe', 'arena');
   assert.deepEqual((await viewerHistory)[0].messages, [message]);
-  assert.equal(hosts[0].sockets.sockets.size, 1, 'two browsers share one upstream');
+  assert.equal(
+    [...hosts[0].sockets.sockets.values()].filter((socket) => socket.data.role === 'live-relay').length,
+    1,
+    'two browsers share one upstream',
+  );
   assert.equal(
     coreEvents.filter((event) => event === 'live:subscribe').length,
     1,
@@ -279,7 +316,7 @@ try {
   viewer.emit('live:unsubscribe');
   assert.equal((await sendChat(viewer, { nickname: 'Viewer', text: 'Unsubscribed' })).ok, false);
   assert.equal(await directoryCount(), 0);
-  assert.equal(hosts[0].sockets.sockets.size, 1);
+  assert.equal([...hosts[0].sockets.sockets.values()].filter((socket) => socket.data.role === 'live-relay').length, 1);
   assert.ok(
     coreEvents.every((event) => event === 'live:subscribe'),
     'chat never reaches core',

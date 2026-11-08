@@ -6,6 +6,7 @@ import { io } from 'socket.io-client';
 import { generateToken } from '@/lib/auth/jwt';
 import { getControlPlaneService } from '@/lib/control-plane/service';
 import { LiveChat } from '@/lib/live/chat';
+import { getMatchHistory } from '@/lib/live/match-history';
 import { LiveRelayPool } from '@/lib/live/relay-pool';
 import { setLiveViewerCount } from '@/lib/live/viewers';
 
@@ -24,7 +25,10 @@ export function ensureLiveRelay(server: RelayHTTPServer): void {
   server.publicLiveIO = live;
   const pool = new LiveRelayPool({
     onCount: setLiveViewerCount,
-    onReady: (viewer, ruid) => viewer.emit('chat:history', { ruid, messages: chat.history(ruid) }),
+    onReady: (viewer, ruid) => {
+      viewer.emit('chat:history', { ruid, messages: chat.history(ruid) });
+      viewer.emit('match:history', { ruid, matches: getMatchHistory().list(ruid) });
+    },
     createSource: async (ruid) => {
       const state = await getControlPlaneService().getState();
       const mapping = state.mappings.find((m) => m.ruid === ruid);
@@ -41,6 +45,11 @@ export function ensureLiveRelay(server: RelayHTTPServer): void {
     },
   });
   server.livePool = pool;
+  const unsubscribeHistory = getMatchHistory().subscribe((ruid, matches) =>
+    pool.broadcast(ruid, 'match:history', { ruid, matches }),
+  );
+  live.once('close', unsubscribeHistory);
+  server.once('close', unsubscribeHistory);
   live.on('close', () => pool.dispose());
   server.once('close', () => pool.dispose());
   live.use((socket, next) => {

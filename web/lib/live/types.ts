@@ -70,3 +70,12 @@ export interface LiveMatchTimeline {
   revision: number;
   events: LiveMatchEvent[];
 }
+
+/** Public snapshot of a completed match; no player auth or connection data. */
+export interface CompletedMatch extends LiveMatchTimeline {
+  endedAt: number;
+  startingLineups: { red: { id: number; name: string }[]; blue: { id: number; name: string }[] };
+  playtime: number;
+  scores: { red: number; blue: number };
+  outcome: 'victory' | 'stopped';
+}
