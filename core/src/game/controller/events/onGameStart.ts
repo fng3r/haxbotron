@@ -1,3 +1,4 @@
+import { getDefaultAvatars } from "../../runtime/DefaultAvatars.js";
 import type { PlayerObject } from "haxball.js";
 import { getKickIndicator } from "../../runtime/KickIndicator.js";
 import { TeamID } from "../../model/GameObject/TeamID.js";
@@ -20,9 +21,11 @@ export function onGameStartListener(runtime: RoomRuntime, byPlayer: PlayerObject
     runtime.room.startMatchRecording();
     room.setKickRateLimit(DEFAULT_KICKRATE.min, DEFAULT_KICKRATE.rate, DEFAULT_KICKRATE.burst);
 
+    const players = room.getPlayerList();
+    getDefaultAvatars(runtime).reset(players);
     const startingLineup = {
-        red: room.getPlayerList().filter(p => p.team === TeamID.Red),
-        blue: room.getPlayerList().filter(p => p.team === TeamID.Blue)
+        red: players.filter(p => p.team === TeamID.Red),
+        blue: players.filter(p => p.team === TeamID.Blue)
     };
     runtime.match.startMatch(startingLineup);
     startLiveMatch(runtime, byPlayer);

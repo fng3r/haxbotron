@@ -160,8 +160,13 @@ Install core dependencies normally (`npm ci`); the decoder includes prebuilt
 binaries for Linux glibc x64/arm64, macOS x64/arm64 and Windows x64.
 The renderer resolves
 HBS segment traits and draws straight/curved segments, markings, discs, and
-player labels. It currently uses default red/blue team discs; custom jersey
-stripes and avatars are not reproduced.
+player labels. Default avatar numbers are tracked in core through public events:
+each team gets 1…n in room-list order at kickoff and goal-position resets. Team
+changes take the lowest free number without renumbering teammates; departures
+leave gaps until a reset. Assignments survive broadcast toggles and are included
+in snapshots for late viewers/reconnects. No engine modifications are used.
+It currently uses default red/blue team discs; custom jersey stripes and explicitly
+chosen avatars are not reproduced.
 
 Grass and hockey backgrounds have dedicated procedural textures. Grass uses
 green diagonal mowing bands and grain inside the rounded `bg.width`/`bg.height`

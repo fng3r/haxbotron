@@ -1,3 +1,4 @@
+import { getDefaultAvatars } from "./DefaultAvatars.js";
 import { isBroadcastEnabled } from "./BroadcastSettings.js";
 import JSON5 from "json5";
 import { randomUUID } from "node:crypto";
@@ -96,6 +97,7 @@ export function publishLiveFrame(runtime: RoomRuntime): void {
     const timelineChanged = timeline && (timeline.matchId !== state.timelineMatchId || timeline.revision !== state.timelineRevision);
     const indicator = getKickIndicator(runtime);
     const players = room.getPlayerList();
+    const avatars = getDefaultAvatars(runtime);
     const pick = (d: ReturnType<typeof room.getDiscProperties>): LiveDisc | null => d ? ({
         x: d.x, y: d.y, radius: d.radius, color: d.color,
     }) : null;
@@ -104,7 +106,7 @@ export function publishLiveFrame(runtime: RoomRuntime): void {
         status: !scores ? "stopped" : runtime.match.isPlaying() ? "playing" : "paused",
         scores,
         discs: scores ? Array.from({ length: room.getDiscCount() }, (_, i) => pick(room.getDiscProperties(i))) : [],
-        players: players.map(p => ({ id: p.id, name: p.name, team: p.team,
+        players: players.map(p => ({ id: p.id, name: p.name, team: p.team, avatarNumber: avatars.number(p.id),
             kicking: !!scores && runtime.match.isPlaying() && p.team !== 0 && indicator.settledReady(p.id),
             disc: scores && p.team !== 0 ? pick(room.getPlayerDiscProperties(p.id)) : null })),
         ...(stadium ? { stadium } : {}),

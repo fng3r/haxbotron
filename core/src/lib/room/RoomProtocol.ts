@@ -344,7 +344,7 @@ const eventPayloadSchemas: Record<RoomWorkerEvent["event"], Joi.Schema> = {
         status: Joi.string().valid("playing", "paused", "stopped").required(),
         scores: Joi.object().unknown(true).allow(null).required(),
         discs: Joi.array().items(Joi.object().unknown(true).allow(null)).required(),
-        players: Joi.array().items(Joi.object().unknown(true)).required(),
+        players: Joi.array().items(Joi.object({ avatarNumber: Joi.number().integer().min(0).optional() }).unknown(true)).required(),
         stadium: Joi.object().unknown(true).optional(),
         goal: liveGoalSchema.optional(),
         matchId: Joi.string().allow(null).optional(),

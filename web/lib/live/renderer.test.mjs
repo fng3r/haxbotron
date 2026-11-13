@@ -143,8 +143,8 @@ test('all nicknames render below all player discs, with the ball above both', (t
   const next = frame({ name: 'Overlapping players', width: 420, height: 200 });
   const disc = { x: 0, y: 0, radius: 15, color: 0xffffff };
   next.players = [
-    { id: 55, name: 'sido', team: 1, disc },
-    { id: 49, name: 'Skezzqa', team: 2, disc: { ...disc, y: -20 } },
+    { id: 55, name: 'sido', team: 1, avatarNumber: 1, disc },
+    { id: 49, name: 'Skezzqa', team: 2, avatarNumber: 1, disc: { ...disc, y: -20 } },
   ];
   next.discs = [{ ...disc, radius: 10 }, ...next.players.map((p) => p.disc)];
   renderer.push(next);
@@ -155,9 +155,9 @@ test('all nicknames render below all player discs, with the ball above both', (t
     'outline:Skezzqa',
     'text:Skezzqa',
     'disc:#e66e55',
-    'text:55',
+    'text:1',
     'disc:#5a89e5',
-    'text:49',
+    'text:1',
     'disc:#ffffff',
   ]);
 });

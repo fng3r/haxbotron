@@ -35,7 +35,14 @@ export interface LiveFrame {
   status: 'playing' | 'paused' | 'stopped';
   scores: { red: number; blue: number; time: number; scoreLimit: number; timeLimit: number } | null;
   discs: (LiveDisc | null)[];
-  players: { id: number; name: string; team: number; kicking?: boolean; disc: LiveDisc | null }[];
+  players: {
+    id: number;
+    name: string;
+    team: number;
+    avatarNumber?: number;
+    kicking?: boolean;
+    disc: LiveDisc | null;
+  }[];
   stadium?: LiveStadium;
   goal?: LiveGoal;
   matchId?: string | null;

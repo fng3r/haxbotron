@@ -314,7 +314,7 @@ export class BroadcastRenderer {
       ctx.fillText(nickname, d.x, d.y + d.radius + 5);
     }
     for (const { player, disc, kicking } of players) {
-      this.disc(disc, String(player.id), player.team, kicking);
+      this.disc(disc, String(player.avatarNumber ?? player.id), player.team, kicking);
     }
     if (ball) this.disc(ball);
   };

@@ -1,3 +1,4 @@
+import { getDefaultAvatars } from "./DefaultAvatars.js";
 import { configureLiveBroadcast } from "./LiveBroadcastLifecycle.js";
 import { getKickIndicator } from "./KickIndicator.js";
 import type { PlayerJoinObject, PlayerObject, RoomConfigObject, RoomObject, ScoresObject } from "haxball.js";
@@ -93,7 +94,10 @@ function setEventHandlers(runtime: RoomRuntime): void {
     room.onPlayerAdminChange = (changedPlayer: PlayerObject, byPlayer: PlayerObject | null): void => eventListener.onPlayerAdminChangeListener(runtime, changedPlayer, byPlayer);
     room.onPlayerKicked = async (kickedPlayer: PlayerObject, reason: string, ban: boolean, byPlayer: PlayerObject | null): Promise<void> => await eventListener.onPlayerKickedListener(runtime, kickedPlayer, reason, ban, byPlayer);
     room.onGameTick = () => eventListener.onGameTickListener(runtime);
-    room.onPositionsReset = () => getKickIndicator(runtime).resetInputs();
+    room.onPositionsReset = () => {
+        getKickIndicator(runtime).resetInputs();
+        getDefaultAvatars(runtime).reset(room.getPlayerList());
+    };
     room.onGamePause = (byPlayer: PlayerObject): void => eventListener.onGamePauseListener(runtime, byPlayer);
     room.onGameUnpause = (byPlayer: PlayerObject): void => eventListener.onGameUnpauseListener(runtime, byPlayer);
     room.onStadiumChange = (newStadiumName: string, byPlayer: PlayerObject): void => eventListener.onStadiumChangeListner(runtime, newStadiumName, byPlayer);

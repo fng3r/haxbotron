@@ -1,3 +1,4 @@
+import { getDefaultAvatars } from "../../../src/game/runtime/DefaultAvatars.js";
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import type { PlayerObject } from 'haxball.js';
 import type { RoomRuntime } from '../../../src/game/runtime/RoomRuntime.js';
@@ -41,6 +42,18 @@ function fixture() {
 }
 
 describe('live broadcast snapshots', () => {
+    it('includes tracked team avatar numbers in snapshots for new subscribers', () => {
+        const send = jest.fn(); process.send = send as typeof process.send;
+        Object.defineProperty(process, 'connected', { configurable: true, value: true });
+        const { runtime } = fixture();
+        getDefaultAvatars(runtime).reset([{ id: 7, team: 1 }, { id: 8, team: 0 }]);
+        publishLiveFrame(runtime);
+        expect(parseRoomWorkerMessage(send.mock.calls[0][0]).success).toBe(true);
+        expect(send.mock.calls[0][0]).toMatchObject({ payload: { players: [
+            { id: 7, avatarNumber: 1 }, { id: 8, avatarNumber: 0 },
+        ] } });
+    });
+
     it('sends distinct kick events while snapshot IPC is busy, without retaining sounds in frames', () => {
         const send = jest.fn();
         process.send = send as typeof process.send;

@@ -1,3 +1,4 @@
+import { getDefaultAvatars } from "../../runtime/DefaultAvatars.js";
 import type { PlayerObject } from "haxball.js";
 import * as Messages from "../../resource/strings.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
@@ -8,6 +9,7 @@ import * as Tst from "../../shared/Translator.js";
 import { getKickIndicator } from "../../runtime/KickIndicator.js";
 
 export async function onPlayerLeaveListener(runtime: RoomRuntime, player: PlayerObject): Promise<void> {
+    getDefaultAvatars(runtime).remove(player.id);
     getKickIndicator(runtime).remove(player.id);
     // Event called when a player leaves the room.
     const room = runtime.room.getRoom();

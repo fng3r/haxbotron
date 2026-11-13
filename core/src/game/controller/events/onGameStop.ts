@@ -1,3 +1,4 @@
+import { getDefaultAvatars } from "../../runtime/DefaultAvatars.js";
 import { publishCompletedMatch } from "../../runtime/CompletedMatches.js";
 import type { PlayerObject } from "haxball.js";
 import { RoomRuntime } from "../../runtime/RoomRuntime.js";
@@ -10,6 +11,7 @@ export function onGameStopListener(runtime: RoomRuntime, byPlayer: PlayerObject 
     byPlayer is the player which caused the event (can be null if the event wasn't caused by a player).
     Haxball developer Basro said, The game will be stopped automatically after a team victory. (victory -> stop)
     */
+    getDefaultAvatars(runtime).clear();
     const stats = runtime.match.getMatchStats();
     recordLiveMatchEvent(runtime, { type: "stop", scores: stats.scores,
         ...(byPlayer ? { actor: byPlayer } : {}) });
