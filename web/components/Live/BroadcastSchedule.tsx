@@ -2,7 +2,7 @@
 
 import styles from './BroadcastSchedule.module.css';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 import Link from 'next/link';
 
@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
-import { isScheduleDate, scheduleDate } from '@/lib/live/schedule';
+import { isCurrentReservation, isScheduleDate, scheduleDate } from '@/lib/live/schedule';
 import type { Reservation, BroadcastSchedule as Schedule } from '@/lib/live/schedule';
 
 function ScheduleTeam({ team, logoAfter = false }: { team: Reservation['teams']['home']; logoAfter?: boolean }) {
@@ -41,6 +41,16 @@ function matchContext(entry: Reservation) {
 
 export default function BroadcastSchedule({ ruid }: { ruid?: string }) {
   const [date, setDate] = useState(() => scheduleDate());
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    const update = () => setNow(Date.now());
+    const timer = window.setInterval(update, 1000);
+    window.addEventListener('focus', update);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', update);
+    };
+  }, []);
   const dateId = useId();
   const valid = isScheduleDate(date);
   const { data, isPending, isError, isFetching, refetch } = useQuery({
@@ -110,45 +120,50 @@ export default function BroadcastSchedule({ ruid }: { ruid?: string }) {
       ) : (
         <Card className="gap-0 overflow-hidden py-0">
           <ul className="max-h-96 overflow-y-auto overscroll-contain">
-            {data.reservations.map((entry) => (
-              <li
-                key={entry.id}
-                className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b bg-card px-5 py-4 last:border-0"
-              >
-                <time dateTime={entry.startsAt} className="font-mono text-lg font-medium tabular-nums">
-                  {new Date(entry.startsAt).toLocaleTimeString('en-GB', {
-                    timeZone: data.timezone,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hourCycle: 'h23',
-                  })}
-                </time>
-                <div className="min-w-0 flex-1 basis-40">
-                  <a
-                    href={entry.match.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 font-semibold hover:underline"
-                  >
-                    <ScheduleTeam team={entry.teams.home} />
-                    <span className="text-muted-foreground">vs</span>
-                    <ScheduleTeam team={entry.teams.away} logoAfter />
-                  </a>
-                  <p className="mt-1 break-words text-xs text-muted-foreground">{matchContext(entry)}</p>
-                  {!ruid && <p className="mt-1 text-xs text-muted-foreground">{entry.host.name}</p>}
-                </div>
-                {!ruid &&
-                  (entry.broadcastUrl ? (
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={entry.broadcastUrl}>
-                        Watch <ArrowUpRight className="size-3.5" aria-hidden="true" />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">Broadcast offline</span>
-                  ))}
-              </li>
-            ))}
+            {data.reservations.map((entry) => {
+              const current = isCurrentReservation(entry.startsAt, now);
+              return (
+                <li
+                  key={entry.id}
+                  className={`flex flex-wrap items-center gap-x-5 gap-y-3 border-b px-5 py-4 last:border-0 ${current ? 'bg-blue-500/10 shadow-[inset_3px_0_0] shadow-blue-500' : 'bg-card'}`}
+                >
+                  <time dateTime={entry.startsAt} className="font-mono text-lg font-medium tabular-nums">
+                    {new Date(entry.startsAt).toLocaleTimeString('en-GB', {
+                      timeZone: data.timezone,
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hourCycle: 'h23',
+                    })}
+                  </time>
+                  <div className="min-w-0 flex-1 basis-40">
+                    <div>
+                      <a
+                        href={entry.match.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 font-semibold hover:underline"
+                      >
+                        <ScheduleTeam team={entry.teams.home} />
+                        <span className="text-muted-foreground">vs</span>
+                        <ScheduleTeam team={entry.teams.away} logoAfter />
+                      </a>
+                    </div>
+                    <p className="mt-1 break-words text-xs text-muted-foreground">{matchContext(entry)}</p>
+                    {!ruid && <p className="mt-1 text-xs text-muted-foreground">{entry.host.name}</p>}
+                  </div>
+                  {!ruid &&
+                    (entry.broadcastUrl ? (
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={entry.broadcastUrl}>
+                          Watch <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                        </Link>
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Broadcast offline</span>
+                    ))}
+                </li>
+              );
+            })}
           </ul>
         </Card>
       )}

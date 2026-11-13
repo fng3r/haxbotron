@@ -39,6 +39,12 @@ const sourceSchedule = z.object({
 });
 
 export type Reservation = z.infer<typeof reservation>;
+
+export function isCurrentReservation(startsAt: string, now: number): boolean {
+  const start = Date.parse(startsAt);
+  return now >= start && now < start + 30 * 60_000;
+}
+
 export type BroadcastSchedule = Omit<z.infer<typeof sourceSchedule>, 'reservations'> & {
   configured: boolean;
   reservations: (Reservation & { broadcastUrl: string | null })[];

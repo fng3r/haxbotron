@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { ScheduleSource, isScheduleDate, linkSchedule, scheduleDate } from './schedule.ts';
+import { ScheduleSource, isCurrentReservation, isScheduleDate, linkSchedule, scheduleDate } from './schedule.ts';
+
+test('current matches start at kick-off and stop exactly 30 minutes later', () => {
+  const startsAt = '2026-11-13T21:30:00+03:00';
+  const start = Date.parse(startsAt);
+  assert.equal(isCurrentReservation(startsAt, start - 1), false);
+  assert.equal(isCurrentReservation(startsAt, start), true);
+  assert.equal(isCurrentReservation(startsAt, start + 30 * 60_000 - 1), true);
+  assert.equal(isCurrentReservation(startsAt, start + 30 * 60_000), false);
+  assert.equal(isCurrentReservation('invalid', start), false);
+});
 
 const entry = (id, codename, startsAt = '2026-11-13T20:00:00+03:00') => ({
   id,
