@@ -302,6 +302,8 @@ export class BroadcastRenderer {
       return [{ player, disc, kicking }];
     });
     // Draw complete layers so a later player's nickname cannot cover another disc.
+    ctx.save();
+    ctx.lineJoin = 'round';
     for (const { player, disc: d } of players) {
       const nickname = Array.from(player.name).slice(0, 10).join('');
       ctx.font = '12px sans-serif';
@@ -313,6 +315,7 @@ export class BroadcastRenderer {
       ctx.fillStyle = '#fff';
       ctx.fillText(nickname, d.x, d.y + d.radius + 5);
     }
+    ctx.restore();
     for (const { player, disc, kicking } of players) {
       this.disc(disc, String(player.avatarNumber ?? player.id), player.team, kicking);
     }
