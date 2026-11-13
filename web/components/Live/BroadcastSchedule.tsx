@@ -1,5 +1,7 @@
 'use client';
 
+import styles from './BroadcastSchedule.module.css';
+
 import { useId, useState } from 'react';
 
 import Link from 'next/link';
@@ -74,7 +76,7 @@ export default function BroadcastSchedule({ ruid }: { ruid?: string }) {
             type="date"
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="w-40"
+            className={styles.dateInput}
           />
           <Button
             type="button"

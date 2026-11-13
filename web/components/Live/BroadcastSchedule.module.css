@@ -1,0 +1,21 @@
+.dateInput {
+  display: block;
+  width: 9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Native date segments have extra padding in Chromium and Safari. */
+.dateInput::-webkit-datetime-edit,
+.dateInput::-webkit-datetime-edit-fields-wrapper,
+.dateInput::-webkit-datetime-edit-text,
+.dateInput::-webkit-datetime-edit-day-field,
+.dateInput::-webkit-datetime-edit-month-field,
+.dateInput::-webkit-datetime-edit-year-field {
+  padding: 0;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  margin-left: 0.5rem;
+  padding: 0;
+  cursor: pointer;
+}
