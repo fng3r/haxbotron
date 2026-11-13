@@ -23,9 +23,44 @@ const hosts = [];
 const coreEvents = [];
 let web;
 let webOutput = '';
+let scheduleRequests = 0;
+const scheduled = {
+  id: 1,
+  startsAt: '2026-11-13T20:00:00+03:00',
+  host: { codename: 'arena', name: 'Public Arena' },
+  match: {
+    id: 1,
+    url: 'https://cis-haxball.ru/match/1',
+    season: { id: 1, name: 'Season' },
+    league: { id: 1, name: 'League' },
+    stage: null,
+    group: null,
+    tour: { id: 1, name: '1 тур' },
+    series: null,
+    date: null,
+    officialScore: [0, 0],
+    isPlayed: false,
+  },
+  teams: {
+    home: { id: 1, name: 'Home', shortName: 'H', logo: null },
+    away: { id: 2, name: 'Away', shortName: 'A', logo: null },
+  },
+};
 
 async function mockHost(room, capable) {
   const http = createServer((request, response) => {
+    if (request.url?.startsWith('/api/reservations/?date=')) {
+      scheduleRequests++;
+      response.setHeader('Content-Type', 'application/json');
+      response.end(
+        JSON.stringify({
+          date: new URL(request.url, 'http://localhost').searchParams.get('date'),
+          timezone: 'Europe/Moscow',
+          reservations: [scheduled],
+        }),
+      );
+      return;
+    }
     if (request.headers['x-api-key'] !== 'synthetic-api-key') {
       response.writeHead(401).end();
       return;
@@ -143,7 +178,7 @@ try {
     [join(root, 'node_modules/next/dist/bin/next'), 'start', root, '-H', '127.0.0.1', '-p', String(port)],
     {
       cwd: directory,
-      env: { ...process.env, JWT_SECRET: secret, CORE_API_KEY: 'synthetic-api-key' },
+      env: { ...process.env, JWT_SECRET: secret, CORE_API_KEY: 'synthetic-api-key', CIS_HAXBALL_URL: capable },
       stdio: ['ignore', 'pipe', 'pipe'],
     },
   );
@@ -171,15 +206,30 @@ try {
   }
   const rooms = await (await fetch(base + '/api/public/rooms')).json();
   assert.deepEqual(rooms, { rooms: [{ ruid: 'arena', roomName: 'Public Arena', onlinePlayers: 2, viewers: 0 }] });
+  const schedule = await fetch(base + '/api/public/schedule?date=2026-11-13', { redirect: 'manual' });
+  assert.equal(schedule.status, 200, 'schedule is public without an admin session');
+  assert.equal(schedule.headers.get('cache-control'), 'no-store');
+  assert.deepEqual((await schedule.json()).reservations, [{ ...scheduled, broadcastUrl: '/live/arena' }]);
+  const otherRoom = await (await fetch(base + '/api/public/schedule?date=2026-11-13&ruid=other')).json();
+  assert.deepEqual(otherRoom.reservations, []);
+  assert.equal(scheduleRequests, 1, 'dates share the same source cache across room filters');
+  assert.equal((await fetch(base + '/api/public/schedule?date=2026-02-30')).status, 400);
   for (const path of ['/live/legacy', '/live/offline']) {
     assert.equal((await fetch(base + path, { redirect: 'manual' })).status, 404, path);
   }
-  for (const path of ['/admin', '/api/v1/room', '/api/v1/control/events', '/api/live', '/api/public/hosts']) {
+  for (const path of [
+    '/admin',
+    '/api/v1/room',
+    '/api/v1/control/events',
+    '/api/live',
+    '/api/public/hosts',
+    '/api/public/schedule/admin',
+  ]) {
     const response = await fetch(base + path, { redirect: 'manual' });
     assert.ok([307, 308].includes(response.status), path);
     assert.match(response.headers.get('location'), /\/login$/);
   }
-  for (const path of ['/api/public/rooms', '/api/public/live']) {
+  for (const path of ['/api/public/rooms', '/api/public/live', '/api/public/schedule']) {
     assert.equal((await fetch(base + path, { method: 'POST', redirect: 'manual' })).status, 405, path);
   }
   assert.equal((await fetch(base + '/api/public/live')).status, 200);

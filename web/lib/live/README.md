@@ -19,14 +19,38 @@ names, online player counts and viewer counts. All such rooms are publicly watch
 The public viewer initializes `/api/public/live` and uses the broadcast
 `/public-live-ws` WebSocket relay. Also forward upgrades for this path through
 the reverse proxy. The public socket accepts broadcast subscriptions and viewer chat;
-upstream core JWTs remain on the web server. `/api/public/rooms` and
-`/api/public/live` are the only public API exceptions. Admin pages,
+upstream core JWTs remain on the web server. `/api/public/rooms`,
+`/api/public/live` and `/api/public/schedule` are the only public API exceptions. Admin pages,
 control APIs and administrative SSE remain authenticated; the SSE
 provider is mounted only in the admin layout.
 
 Run `npm run build && npm run test:public-live` in web for a production
 HTTP/WebSocket check. It uses temporary storage, synthetic hosts and test-only
 credentials, without modifying the configured room/host state.
+
+The date-selectable broadcast schedule appears above the directory and below each
+room broadcast. Web fetches `GET /api/reservations/?date=YYYY-MM-DD` from
+`CIS_HAXBALL_URL` (defaults to `https://cis-haxball.ru`). Set this server-only
+environment variable to `http://127.0.0.1:8001` for a local cis-haxball server;
+set it to an empty string to disable the integration. Restart web after changing
+its environment. The cis-haxball API must be deployed separately before production
+schedule requests succeed. No cross-origin browser access or core changes are needed.
+
+The public web endpoint `GET /api/public/schedule?date=YYYY-MM-DD[&ruid=cis6]`
+validates calendar dates and the upstream JSON, with a five-second source timeout.
+Missing dates default to today in Europe/Moscow, the current site's timezone.
+One source fetch is shared per date and cached for 30 seconds (up to 32 dates).
+Clients refresh every 30 seconds. Room filtering happens after the shared fetch.
+Source errors return 503 and an unavailable message rather than an empty schedule.
+
+Reservation `host.codename` matches room `ruid` exactly; control-plane host IDs
+are unrelated. Offline reservations still appear but only currently watchable
+rooms get a broadcast link. The reservation's `match` and `teams` follow analyzer
+manifest schemaVersion 2, including season, league, optional stage/group, tour,
+series match number and team details. Match links open the source site's match
+page. Dates and 24-hour kick-off times use the source timezone. The API excludes
+cancelled reservations, played matches and inactive/missing hosts, retaining
+all eligible reservations on the selected date, including earlier kick-offs.
 
 The first browser subscription creates a room relay. Other viewers share that
 upstream, including while its initial connection is pending. The relay caches

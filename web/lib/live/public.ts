@@ -27,5 +27,5 @@ export function selectPublicLiveRooms(
 
 /** Only these read-only endpoints bypass the administrative API authentication. */
 export function isPublicLivePath(pathname: string): boolean {
-  return pathname === '/api/public/rooms' || pathname === '/api/public/live';
+  return pathname === '/api/public/rooms' || pathname === '/api/public/live' || pathname === '/api/public/schedule';
 }

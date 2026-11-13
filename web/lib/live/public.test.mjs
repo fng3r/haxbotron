@@ -43,6 +43,7 @@ test('public responses contain no host information, room links or administrative
 test('only the exact read-only discovery and relay endpoints bypass admin protection', () => {
   assert.equal(isPublicLivePath('/api/public/rooms'), true);
   assert.equal(isPublicLivePath('/api/public/live'), true);
+  assert.equal(isPublicLivePath('/api/public/schedule'), true);
   for (const path of [
     '/api/live',
     '/api/v1/room',
@@ -51,6 +52,7 @@ test('only the exact read-only discovery and relay endpoints bypass admin protec
     '/api/public/live/admin',
     '/api/public/hosts',
     '/api/public/rooms-other',
+    '/api/public/schedule/admin',
   ]) {
     assert.equal(isPublicLivePath(path), false, path);
   }
